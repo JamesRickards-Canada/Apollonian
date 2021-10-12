@@ -5,19 +5,23 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 
 \\ACP=Apollonian circle packaing
 	\\MAIN METHODS
-		install("apol_orbit","GL","apol_orbit","./libapol.so");
-		addhelp(apol_orbit,"Inputs v, depth: vector v representing an ACP, positive integer depth.\n Returns a sorted list of curvatures of circles up to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 2*(3^depth+1).");
-		install("apol_1orbit","GLD1,L,","apol_1orbit","./libapol.so");
-		addhelp(apol_1orbit,"Inputs v, depth, {ind=1}: vector v representing an ACP, positive integer depth, 1<=ind<=4.\n Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 3*2^depth.");
 		install("apol_check", "iG", "apol_check", "./libapol.so");
 		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this generates an ACP, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
+		install("apol_make","GGD1,L,","apol_make","./libapol.so");
+		addhelp(apol_make,"Inputs n, m, {red=1}: positive integers n and m.\n Returns the primitive Apollonian circle quadruples constructed from n^2+m^2=d_1d_2; they all have first entry -n. If red=1, we only return the reduced ones. If red=2, we find all forms and reduce them (may be repeats, and won't be in order a<=b<=c<=d)");
 		install("apol_move", "GL", "apol_move", "./libapol.so");
 		addhelp(apol_move, "Inputs v, ind: vector v representing an ACP, 1<=ind<=4.\n Returns the ACP where we replace circle i with the other possible circle.");
+		install("apol_orbit","GL","apol_orbit","./libapol.so");
+		addhelp(apol_orbit,"Inputs v, depth: vector v representing an ACP, positive integer depth.\n Returns a sorted list of curvatures of circles up to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 2*(3^depth+1).");
+		install("apol_orbit_1","GLD1,L,","apol_orbit_1","./libapol.so");
+		addhelp(apol_orbit_1,"Inputs v, depth, {ind=1}: vector v representing an ACP, positive integer depth, 1<=ind<=4.\n Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 3*2^depth.");
 		install("apol_qf", "GD1,L,", "apol_qf", "./libapol.so");
 		addhelp(apol_qf, "Inputs v, {ind=1}: vector v representing an ACP, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
+		install("apol_reduce","GD0,L,","apol_reduce","./libapol.so");
+		addhelp(apol_reduce,"Inputs v, {seq=0}: ACP v.\n Returns the reduced ACP. If seq=1, also returns a VECSMALL of the sequence of indices used to reach the reduced form.");
 
 	\\GENERAL HELP
-		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_orbit, apol_1orbit, apol_check, apol_move, apol_qf.");
+		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_move, apol_orbit, apol_orbit_1, apol_qf, apol_reduce.");
 
 \\base.c
 
