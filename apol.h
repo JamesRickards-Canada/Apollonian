@@ -18,18 +18,25 @@ typedef struct listtype3{//A generic linked list of longs, stores data and next 
 
 //METHODS
 
+
 //apol.c
+
 
 int apol_check(GEN v);
 GEN apol_make(GEN n, GEN m, int red);
+GEN apol_make_fromqf(GEN q, int pos);
 GEN apol_move(GEN v, int ind);
+GEN apol_ncgp_forms(GEN n, int pos, long prec);
+GEN apol_ncgp_smallcurve(GEN n, long prec);
 GEN apol_orbit(GEN v, int depth);
 GEN apol_orbit_1(GEN v, int depth, int ind);
 GEN apol_qf(GEN v, int ind);
 GEN apol_reduce(GEN v, int seq);
 GEN apol_search(GEN v, GEN N, int depth, int rqf);
 
+
 //base.c
+
 
 //INFINITY 
 GEN addoo(GEN a, GEN b);
@@ -68,7 +75,9 @@ void llist_putstart(llist **head_ref, long new_data);
 GEN llist_togvec(llist *l, long length, int dir);
 GEN llist_tovecsmall(llist *l, long length, int dir);
 
+
 //bqf.c
+
 
 //DISCRIMINANT METHODS
 GEN disclist(GEN D1, GEN D2, int fund, GEN cop);
@@ -200,3 +209,18 @@ GEN bqf_linearsolve_tc(GEN q, GEN n1, GEN lin, GEN n2, long prec);
 void bqf_check(GEN q);
 GEN bqf_checkdisc(GEN q);
 void intmatrix_check(GEN mtx);
+
+
+//hist.c
+
+
+//HISTOGRAMS
+void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *autofile, char *plotoptions, int open);
+void hist_compile(char *imagename, char *autoname, int open);
+GEN hist_make(GEN data, char *imagename, char *autofile, int compilenew, char *plotoptions, int open, long prec);
+GEN hist_tobins(GEN data, GEN minx, GEN maxx, GEN nbins, int toscale, int compilenew, char *imagename, char *autofile, char *plotoptions, int open, long prec);
+GEN hist_tobins_defaultbins(GEN data, GEN minx, GEN maxx, int toscale, int compilenew, char *imagename, char *autofile, char *plotoptions, int open, long prec);
+GEN hist_rebin(GEN data, GEN histdata, GEN nbins, long prec);
+void hist_recompile(GEN histdata);
+GEN hist_rerange(GEN data, GEN histdata, GEN minx, GEN maxx, long prec);
+GEN hist_rescale(GEN data, GEN histdata, int scale, long prec);

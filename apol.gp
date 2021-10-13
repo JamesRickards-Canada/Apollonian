@@ -1,5 +1,5 @@
 print("\n\nType '?apol' for help.\n\n");
-addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apollonian \n base \n bqf");
+addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apol \n base \n bqf \n hist");
 
 \\apol.c
 
@@ -9,8 +9,14 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this generates an ACP, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
 		install("apol_make","GGD1,L,","apol_make","./libapol.so");
 		addhelp(apol_make,"Inputs n, m, {red=1}: positive integers n and m.\n Returns the primitive Apollonian circle quadruples constructed from n^2+m^2=d_1d_2; they all have first entry -n. If red=1, we only return the reduced ones. If red=2, we find all forms and reduce them (may be repeats, and won't be in order a<=b<=c<=d)");
+		install("apol_make_fromqf","GD1,L,","apol_make_fromqf","./libapol.so");
+		addhelp(apol_make_fromqf,"Input q, {pos=1}, a quadratic form of discriminant -4n^2.\n Returns the root quadruple of the APC it corresponds to. If pos=0, the root quadruple starts with -n<0. Else, the form has a +n circle.");
 		install("apol_move", "GL", "apol_move", "./libapol.so");
 		addhelp(apol_move, "Inputs v, ind: vector v representing an ACP, 1<=ind<=4.\n Returns the ACP where we replace circle i with the other possible circle.");
+		install("apol_ncgp_forms","GD1,L,p","apol_ncgp_forms","./libapol.so");
+		addhelp(apol_ncgp_forms,"Inputs n, {pos=1}.\n Returns the root quadruples corresponding to all quadratic forms of discriminant -4n^2 (we only take 1 quadruple from each pair [A,B,C]!~[A,-B,C], since they give the same result). If pos=1 these quadruples include +n, and if pos=0 these quadruples include -n. The output has length h^{+/-}(-4n^2).");
+		install("apol_ncgp_smallcurve","Gp","apol_ncgp_smallcurve","./libapol.so");
+		addhelp(apol_ncgp_smallcurve,"Input n, a positive integer.\n Computes apol_ncgp_forms(n, 1), takes the corresponding smallest curvatures (the negative of, since they are all negative), and returns the sorted list. This has length h^{+/-}(-4n^2), and each entry is from the set {0,1,...,n-1}.");
 		install("apol_orbit","GL","apol_orbit","./libapol.so");
 		addhelp(apol_orbit,"Inputs v, depth: vector v representing an ACP, positive integer depth.\n Returns a sorted list of curvatures of circles up to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 2*(3^depth+1).");
 		install("apol_orbit_1","GLD1,L,","apol_orbit_1","./libapol.so");
@@ -23,7 +29,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_search,"Inputs v, N, depth, {rqf=0}: ACP v, positive integer N, depth>0.\n Returns the ACP's with an N inside them up to depth depth. If rqf=1, returns the qf's. If rqf=2, returns [ACP's, qfs].");
 
 	\\GENERAL HELP
-		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_move, apol_orbit, apol_orbit_1, apol_qf, apol_reduce.");
+		addhelp(apol,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_make_fromqf, apol_move, apol_ncgp_forms, apol_ncgp_smallcurve, apol_orbit, apol_orbit_1, apol_qf, apol_reduce, apol_search.");
 
 \\base.c
 
@@ -40,10 +46,9 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(mat3_complete, "Inputs A,B,C integers with gcd 1.\n Outputs a 3x3 integer matrix with determinant 1 whose top row is [A, B, C].");
 
 	\\GENERAL HELP
-		addhelp(base,"This package is a collection of miscellaneous methods that may be useful in a variety of settings, and not just for the programs they were originally created for \n Subtopics: \n Infinity (inf) \n Linear algebra (la) \n Random (rand)");
+		addhelp(base,"This package is a collection of miscellaneous methods that may be useful in a variety of settings, and not just for the programs they were originally created for \n Subtopics: \n Infinity (inf) \n Linear algebra (la)");
 		addhelp(inf,"addoo, divoo.");
 		addhelp(la,"lin_intsolve, mat3_complete.");
-		addhelp(rand,"rand_elt.");
 
 
 \\bqf.c
@@ -135,7 +140,23 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(disc,"disclist, discprimeindex, isdisc, pell, posreg, quadroot.");
 		addhelp(bqfbasic,"bqf_automorph, bqf_disc, bqf_isequiv, bqf_isreduced, bqf_random, bqf_random_D, bqf_red, bqf_roots, bqf_trans, bqf_trans_coprime, ideal_tobqf.");
 		addhelp(ibqf,"ibqf_isrecip, ibqf_leftnbr, ibqf_redorbit, ibqf_rightnbr, ibqf_river, ibqf_riverforms, ibqf_symmetricarc, mat_toibqf.");
-		addhelp(bqfclass,"bqf_comp, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");
+		addhelp(bqfclass,"bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");
 		addhelp(bqfsolve,"bqf_bigreps, bqf_linearsolve, bqf_reps.");
+
+\\hist.c
+	\\HISTOGRAMS
+		install("hist_make","GrrD0,L,DrD0,L,p","hist_make","./libapol.so");
+		addhelp(hist_make,"Inputs data, imagename, filename, {compilenew=0}, {plotoptions=NULL}, {open=0}: sorted list of real numbers data, name of the tikz picture, name of the LaTeX file (without .tex), {compilenew=0, 1}, {plotoptions=NULL, string}, {open=0, 1}.\n Automatically bins the data, and creates a pdf of the histogram using tikz and externalize. The output is in the folder /images, with the build file (named filename) being in the folder /images/build. If compilenew=0 assumes the LaTeX document to compile the plot is pre-made, and otherwise this method automatically writes it. If additionally, plotoptions!=NULL, this string is inserted in between \\begin{axis} and \\end{axis} in the LaTeX document (allowing one to customize how the histogram looks). If open=1, the pdf is automatically opened (only works with Linux subsystem for Windows). The returned value is used to modify the histogram, e.g. changing the bins, scaling it, and changing the range.");
+		install("hist_rebin","GGGp","hist_rebin","./libapol.so");
+		addhelp(hist_rebin,"Inputs data, histdata, nbins: the sorted data, the length 8 vector output of a hist_ method, the number of bins.\n Rebins the data according to the new number of bins, and updates histdata.");
+		install("hist_recompile","vG","hist_recompile","./libapol.so");
+		addhelp(hist_recompile,"Input histdata, the length 8 vector output of a hist_ method.\n Recompiles the histogram, returning nothing. This is used when you edit the LaTeX document by hand.");
+		install("hist_rerange","GGGGp","hist_rerange","./libapol.so");
+		addhelp(hist_rerange,"Inputs data, histdata, minx, maxx: the sorted data, the length 8 vector output of a hist_ method, minimum x-value, maximum x-value.\n Rebins the data according to the new minimum and maximum value. This is useful when there are outliers that skew the look of the graph. Returns the updated histdata.");
+		install("hist_rescale","GGLp","hist_rescale","./libapol.so");
+		addhelp(hist_rescale,"Inputs data, histdata, scale: the sorted data, the length 8 vector output of a hist_ method, and scale=0, 1.\n If scale=1 scales the data so the total area is 1, and if scale=0 uses the absolute count for the y-axis. Returns the updated histdata.");
+
+	\\GENERAL HELP
+		addhelp(hist,"This package deals with visualizing data. Installed methods:\n hist_make, hist_rebin, hist_recompile, hist_rerange, hist_rescale.");
 
 default(parisize, "4096M");\\Must come at the end

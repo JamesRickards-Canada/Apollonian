@@ -51,6 +51,25 @@ GEN apol_make(GEN n, GEN m, int red){
   return gerepilecopy(top, apols);
 }
 
+//Given a bqf q, this gives the corresponding root quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n
+GEN apol_make_fromqf(GEN q, int pos){
+  pari_sp top=avma;
+  GEN D=bqf_disc(q);
+  if(signe(D)!=-1) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
+  long rem;
+  GEN nsqr=divis_rem(D, -4, &rem);
+  if(rem!=0) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
+  GEN sqrtrem;
+  GEN n=sqrtremi(nsqr, &sqrtrem);
+  if(!gequal0(sqrtrem)) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
+  //Now D=-4n^2, a=+/-n (- if pos=0), and q=[A, B, C]->[a, A-a, C-a, A+C-a-B]
+  GEN a= pos? n:negi(n);//+/-n
+  GEN Ama=subii(gel(q, 1), a);
+  GEN v=mkvec4(a, Ama, subii(gel(q, 3), a), addii(Ama, subii(gel(q, 3), gel(q, 2))));//The APC
+  v=apol_reduce(v, 0);
+  return gerepileupto(top, ZV_sort(v));
+}
+
 //Returns the set of four curvatures when we replace circle i.
 GEN apol_move(GEN v, int ind){
   pari_sp top=avma;
@@ -62,6 +81,37 @@ GEN apol_move(GEN v, int ind){
   GEN newv=cgetg_copy(v, &lv);
   for(int i=1;i<=4;i++) gel(newv, i)=rep[i]? subii(S, gel(v, ind)):icopy(gel(v, i));
   return gerepileupto(top, newv);
+}
+
+//Computes ncgp(-4n^2), and output the ACP's created from these quadratic forms with apol_make_qf. We only count ambiguous forms ONCE.
+GEN apol_ncgp_forms(GEN n, int pos, long prec){
+  pari_sp top=avma;
+  GEN D=mulis(sqri(n), -4);
+  GEN U=bqf_ncgp_lexic(D, prec);
+  GEN forms=gel(U, 3);
+  long lf=lg(forms);
+  GEN quads=vectrunc_init(lf);
+  for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
+	if(signe(gmael(forms, i, 2))==-1) continue;
+	vectrunc_append(quads, apol_make_fromqf(gel(forms, i), pos));
+  }
+  return gerepileupto(top, quads);
+  /*GEN forms=gel(U, 3);
+  long lf;
+  GEN quads=cgetg_copy(forms, &lf);
+  for(long i=1;i<lf;i++) gel(quads, i)=apol_make_fromqf(gel(forms, i), pos);
+  return gerepileupto(top, lexsort(quads));*/
+}
+
+
+//Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative).
+GEN apol_ncgp_smallcurve(GEN n, long prec){
+  pari_sp top=avma;
+  GEN forms=apol_ncgp_forms(n, 1, prec);
+  long lf;
+  GEN curves=cgetg_copy(forms, &lf);
+  for(long i=1;i<lf;i++){gel(curves, i)=gmael(forms, i, 1);togglesign_safe(&gel(curves, i));}
+  return gerepileupto(top, ZV_sort(curves));
 }
 
 //Returns a sorted list of curvatures of circles, where we go to depth depth, i.e. we do up to depth circle replacements. I may have to do some careful garbage collection for high depths.
