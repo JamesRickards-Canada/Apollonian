@@ -1,5 +1,5 @@
 print("\n\nType '?apol' for help.\n\n");
-addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apol \n base \n bqf \n hist");
+addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apollonian \n base \n bqf \n hist");
 
 \\apol.c
 
@@ -29,7 +29,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_search,"Inputs v, N, depth, {rqf=0}: ACP v, positive integer N, depth>0.\n Returns the ACP's with an N inside them up to depth depth. If rqf=1, returns the qf's. If rqf=2, returns [ACP's, qfs].");
 
 	\\GENERAL HELP
-		addhelp(apol,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_make_fromqf, apol_move, apol_ncgp_forms, apol_ncgp_smallcurve, apol_orbit, apol_orbit_1, apol_qf, apol_reduce, apol_search.");
+		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_make_fromqf, apol_move, apol_ncgp_forms, apol_ncgp_smallcurve, apol_orbit, apol_orbit_1, apol_qf, apol_reduce, apol_search.");
 
 \\base.c
 
