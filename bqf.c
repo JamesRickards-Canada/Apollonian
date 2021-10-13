@@ -1806,10 +1806,10 @@ GEN bqf_comp_tc(GEN q1, GEN q2, int tored, long prec){
   if(tored==1){
     GEN D1=bqf_checkdisc(q1);
     GEN D2=bqf_checkdisc(q2);
-    if(!equalii(D1,D2)) pari_err_TYPE("discriminants not equal",q1);
-    if(signe(D1)==1) return gerepileupto(top,bqf_comp_red(q1,q2,gsqrt(D1,prec),1));
+    if(!equalii(D1, D2)) pari_err_TYPE("discriminants not equal",q1);
+    if(signe(D1)==1) return gerepileupto(top, bqf_comp_red(q1, q2, gsqrt(D1, prec), 1));
     avma=top;
-    return bqf_comp_red(q1,q2,NULL,-1);
+    return bqf_comp_red(q1, q2, NULL, -1);
   }
   bqf_check(q1);
   bqf_check(q2);
@@ -1835,17 +1835,37 @@ GEN bqf_idelt(GEN D){
   return gerepileupto(top,q);
 }
 
-/*
-//Given the orders of elements in the narrow class group and an index ind, this returns the tuple [e1,...,er] where cgp[3][ind]=g1^e1*...*gr^er
+//Identifies q in terms of the given basis. Must pass in the lexicographic ncgp. If doing this on a large set, should sort this first, and use a set search.
+GEN bqf_identify(GEN ncgp_lexic, GEN q, GEN rootD, int Dsign){
+  pari_sp top=avma;
+  long ind=itos(bqf_isequiv_set(q, gel(ncgp_lexic, 3), rootD, Dsign, 0));
+  avma=top;
+  if(ind==-1) pari_err_TYPE("Error, did not find q. Must have supplied the wrong data", q);
+  return bqf_lexicind_tobasis(gel(ncgp_lexic, 2), ind);
+}
+
+//bqf_identify with type checking.
+GEN bqf_identify_tc(GEN ncgp_lexic, GEN q, long prec){
+  pari_sp top=avma;
+  GEN D=bqf_checkdisc(q);
+  if(signe(D)==-1) return gerepileupto(top, bqf_identify(ncgp_lexic, q, NULL, -1));
+  GEN rootD=gsqrt(D, prec);
+  return gerepileupto(top, bqf_identify(ncgp_lexic, q, rootD, 1));
+}
+
+//Given the VECSMALL of orders of elements in the narrow class group and an index ind, this returns the tuple [e1,...,er] where cgp[3][ind]=g1^e1*...*gr^er
 GEN bqf_lexicind_tobasis(GEN orders, long ind){
   pari_sp top=avma;
   long lord=lg(orders);
   GEN es=cgetg(lord, t_VECSMALL);
-  long u=i-1, n, v;//we start with i=1
-  for(long j=lord-1;j>0;j--){//Go backwards.
-    n=itos(gel(orders, i));
+  long u=ind-1, n, v;//we start with ind-1
+  for(long i=lord-1;i>0;i--){//Go backwards.
+    n=orders[i];
+	u=sdivss_rem(u, n, &v);//u_{i+1}=u_i*n_i+v_i; u_{r+1}=i-1.
+	es[i]=v;
   }
-}*/
+  return gerepilecopy(top, es);
+}
 
 //This computes the narrow class group
 GEN bqf_ncgp(GEN D, long prec){

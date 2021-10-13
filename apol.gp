@@ -107,6 +107,10 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\CLASS GROUPS AND COMPOSITION OF FORMS
 		install("bqf_comp_tc","GGD1,L,p","bqf_comp","./libapol.so");
 		addhelp(bqf_comp,"Inputs q1, q2, {tored=1}: BQFs q1, q2 of the same discriminant, tored=0, 1.\n Returns the composition of q1 and q2, reduced if tored=1.");
+		install("bqf_identify_tc","GGp","bqf_identify","./libapol.so");
+		addhelp(bqf_identify,"Inputs ncgp_lexic, q: the output of bqf_ncgp_lexic(D), and a form q of discriminant D.\n Returns [e1,...,er], where in the narrow class group we have q=g1^e1*...*gr^er.");
+		install("bqf_lexicind_tobasis","GL","bqf_lexicind_tobasis","./libapol.so");
+		addhelp(bqf_lexicind_tobasis,"Inputs orders (vecsmall), index ind.\n Returns [e1,...,er], where the ind element in the lexicographic ordering of the narrow class group is of the form g1^e1*...*gr^er.");
 		install("bqf_ncgp","Gp","bqf_ncgp","./libapol.so");
 		addhelp(bqf_ncgp, "Input D, a proper discriminant.\n Returns the narrow class group, in the format [n,[n_1,...,n_r],[g_1,...,g_r]], where it has size n, is isomorphic to c_{n_1} x ... x c_{n_r} with n_1 | n_2 | ... | n_r, and g_i is a generator of the corresponding cyclic group of order n_i.");
 		install("bqf_ncgp_lexic","Gp","bqf_ncgp_lexic","./libapol.so");
