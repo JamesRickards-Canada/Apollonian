@@ -1835,65 +1835,77 @@ GEN bqf_idelt(GEN D){
   return gerepileupto(top,q);
 }
 
+/*
+//Given the orders of elements in the narrow class group and an index ind, this returns the tuple [e1,...,er] where cgp[3][ind]=g1^e1*...*gr^er
+GEN bqf_lexicind_tobasis(GEN orders, long ind){
+  pari_sp top=avma;
+  long lord=lg(orders);
+  GEN es=cgetg(lord, t_VECSMALL);
+  long u=i-1, n, v;//we start with i=1
+  for(long j=lord-1;j>0;j--){//Go backwards.
+    n=itos(gel(orders, i));
+  }
+}*/
+
 //This computes the narrow class group
 GEN bqf_ncgp(GEN D, long prec){
   pari_sp top = avma;
   GEN fd=coredisc(D);
-  if(equalii(fd,D)){
-    GEN field = Buchall(gsub(gsqr(pol_x(0)), D), 0, prec);//The field Q(sqrt(D))
-	GEN gpclgp = bnfnarrow(field);//The narrow class group of the maximal order
+  if(equalii(fd, D)){
+    GEN field=Buchall(gsub(gsqr(pol_x(0)), D), 0, prec);//The field Q(sqrt(D))
+	GEN gpclgp=bnfnarrow(field);//The narrow class group of the maximal order
     if(equali1(gel(gpclgp, 1))){//Class number 1, may as well do this separately
       GEN rvec=cgetg(4,t_VEC);
       gel(rvec,1)=gen_1;
-      gel(rvec,2)=mkvec(gen_1);//Universal object, okay
+      gel(rvec,2)=mkvecsmall(1);
       gel(rvec,3)=cgetg(2,t_VEC);
-      gel(gel(rvec,3),1)=bqf_idelt(D);
-      return gerepileupto(top,rvec);
+      gmael(rvec, 3, 1)=bqf_idelt(D);
+      return gerepileupto(top, rvec);
     }
-    long j=lg(gel(gpclgp,3));
+    long j=lg(gel(gpclgp, 3));
     long ngens=j-1, lx;//Number of generators
-	GEN idtobqf=cgetg_copy(gel(gpclgp,3),&lx);
-	for(long i=1;i<=ngens;i++) gel(idtobqf,i)=ideal_tobqf(field,gel(gel(gpclgp,3),i));//Making the generators into quadratic forms
-    GEN rootD=gsqrt(D,prec);
-    GEN rvec=cgetg(4,t_VEC);
-    gel(rvec,1)=icopy(gel(gpclgp,1));//clgp size
-    gel(rvec,2)=cgetg_copy(gel(gpclgp,3),&lx);//Shape of group
-    gel(rvec,3)=cgetg_copy(gel(gpclgp,3),&lx);//Generators
+	GEN idtobqf=cgetg_copy(gel(gpclgp,3), &lx);
+	for(long i=1;i<=ngens;i++) gel(idtobqf, i)=ideal_tobqf(field, gmael(gpclgp, 3, i));//Making the generators into quadratic forms
+    GEN rootD=gsqrt(D, prec);
+    GEN rvec=cgetg(4, t_VEC);
+    gel(rvec, 1)=icopy(gel(gpclgp, 1));//clgp size
+	gel(rvec, 2)=cgetg(lg(gel(gpclgp, 3)), t_VECSMALL);//Shape of group
+    gel(rvec, 3)=cgetg_copy(gel(gpclgp,3),&lx);//Generators
     for(long i=1;i<=ngens;++i){//Inputting backwards, as bnfnarrow does the reverse order to what we want.
       j--;
-      gel(gel(rvec,2),i)=icopy(gel(gel(gpclgp,2),j));//Must copy
-      gel(gel(rvec,3),i)=bqf_red(gel(idtobqf,j),rootD,signe(D),0);
+      gel(rvec, 2)[i]=itos(gmael(gpclgp, 2, j));
+      gmael(rvec, 3, i)=bqf_red(gel(idtobqf, j), rootD, signe(D), 0);
     }
-    return gerepileupto(top,rvec);
+    return gerepileupto(top, rvec);
   }//OK, so now we have a non-fundamental discrimiant
   GEN FULLgp=quadclassunit0(D, 0, NULL, prec);
-  GEN rootD=gsqrt(D,prec);
-  if(signe(D)==1 && gequal1(quadnorm(quadunit0(D,-1)))) return gerepileupto(top,bqf_ncgp_nonfundnarrow(FULLgp, D, rootD));//Must double in size
+  GEN rootD=gsqrt(D, prec);
+  if(signe(D)==1 && gequal1(quadnorm(quadunit0(D, -1)))) return gerepileupto(top, bqf_ncgp_nonfundnarrow(FULLgp, D, rootD));//Must double in size
   GEN temp, newgens;//No modification needed, clgp=narrow clgp in this case
   long lx;
   if(equali1(gel(FULLgp, 1))){//Class number 1, may as well do this separately
-    GEN rvec=cgetg(4,t_VEC);
-    gel(rvec,1)=gen_1;
-    gel(rvec,2)=mkvec(gen_1);//Universal object, okay
-    gel(rvec,3)=cgetg(2,t_VEC);
-    gel(gel(rvec,3),1)=bqf_idelt(D);
-    return gerepileupto(top,rvec);
+    GEN rvec=cgetg(4, t_VEC);
+    gel(rvec, 1)=gen_1;
+    gel(rvec, 2)=mkvecsmall(1);//Universal object, okay
+    gel(rvec, 3)=cgetg(2,t_VEC);
+    gmael(rvec, 3, 1)=bqf_idelt(D);
+    return gerepileupto(top, rvec);
   }
-  newgens=cgetg_copy(gel(FULLgp,3),&lx);
-  for(long i=1;i<lg(gel(FULLgp,3));i++){
-	temp=gtovec(gel(gel(FULLgp,3),i));
-	setlg(temp,4);//Truncate
-	gel(newgens,i)=bqf_red(temp,rootD,signe(D),0);
+  newgens=cgetg_copy(gel(FULLgp, 3), &lx);
+  for(long i=1;i<lg(gel(FULLgp, 3));i++){
+	temp=gtovec(gel(gel(FULLgp, 3),i));
+	setlg(temp, 4);//Truncate
+	gel(newgens, i)=bqf_red(temp, rootD, signe(D), 0);
   }
-  GEN rvec=cgetg(4,t_VEC);
-  gel(rvec,1)=icopy(gel(FULLgp,1));//Size
-  gel(rvec,2)=cgetg_copy(gel(FULLgp,2),&lx);
-  gel(rvec,3)=cgetg_copy(gel(FULLgp,3),&lx);
-  long j=lg(gel(FULLgp,3));
-  for(long i=1;i<lg(gel(FULLgp,3));i++){
+  GEN rvec=cgetg(4, t_VEC);
+  gel(rvec, 1)=icopy(gel(FULLgp,1));//Size
+  gel(rvec, 2)=cgetg(lg(gel(FULLgp, 2)), t_VECSMALL);
+  gel(rvec, 3)=cgetg_copy(gel(FULLgp, 3), &lx);
+  long j=lx;
+  for(long i=1;i<lx;i++){
 	j--;
-	gel(gel(rvec,2),j)=icopy(gel(gel(FULLgp,2),i));
-	gel(gel(rvec,3),j)=ZV_copy(gel(newgens,i));
+	gel(rvec, 2)[j]=itos(gmael(FULLgp, 2, i));
+	gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
   }
   return gerepileupto(top,rvec);
   //GEN modulus;
@@ -1906,133 +1918,133 @@ GEN bqf_ncgp(GEN D, long prec){
 //D>0 is non-fundamental and the fundamental unit has norm 1. cgp is the current class group, the output of quadclassunit0. This modifies cgp to be the FULL narrow class group.
 static GEN bqf_ncgp_nonfundnarrow(GEN cgp, GEN D, GEN rootD){
   pari_sp top=avma;
-  GEN minus1=cgetg(4,t_VEC);
-  gel(minus1,1)=gen_m1;
-  if(smodis(D,2)==0) gel(minus1,2)=gen_0;
-  else gel(minus1,2)=gen_1;
-  gel(minus1,3)=shifti(subii(D,gel(minus1,2)),-2);//[-1,0/1, (D-0/1)/4]
+  GEN minus1=cgetg(4, t_VEC);
+  gel(minus1, 1)=gen_m1;
+  if(smodis(D, 2)==0) gel(minus1, 2)=gen_0;
+  else gel(minus1, 2)=gen_1;
+  gel(minus1, 3)=shifti(subii(D, gel(minus1, 2)), -2);//[-1,0/1, (D-0/1)/4]
   if(equali1(gel(cgp, 1))){//Class number 1=narrow class 2, may as well do this separately
-    GEN rvec=cgetg(4,t_VEC);
-    gel(rvec,1)=gen_2;
-    gel(rvec,2)=mkvec(gen_2);//Universal object, okay
-    gel(rvec,3)=cgetg(2,t_VEC);
-    gel(gel(rvec,3),1)=ZV_copy(minus1);
-    return gerepileupto(top,rvec);
+    GEN rvec=cgetg(4, t_VEC);
+    gel(rvec, 1)=gen_2;
+    gel(rvec, 2)=mkvecsmall(2);
+    gel(rvec, 3)=cgetg(2,t_VEC);
+    gmael(rvec, 3, 1)=ZV_copy(minus1);
+    return gerepileupto(top, rvec);
   }
   //Now we power through
-  GEN neworder=ZV_copy(gel(cgp,2));
+  GEN neworder=ZV_copy(gel(cgp, 2));
   long lx;
-  GEN newgens=cgetg_copy(gel(cgp,3),&lx), temp;
-  for(long i=1;i<lg(newgens);i++){
-	temp=gtovec(gel(gel(cgp,3),i));
-	setlg(temp,4);//Truncate
-	gel(newgens,i)=temp;
+  GEN newgens=cgetg_copy(gel(cgp, 3), &lx), temp;
+  for(long i=1;i<lx;i++){
+	temp=gtovec(gmael(cgp, 3, i));
+	setlg(temp, 4);//Truncate
+	gel(newgens, i)=temp;
   }//Just making the initial conversion to BQFs on our form.
   long firstm1=-1;
-  for(long i=1;i<lg(newgens);i++){
-	temp=bqf_pow_red(gel(newgens,i), gel(neworder,i), rootD, 1);
+  for(long i=1;i<lx;i++){
+	temp=bqf_pow_red(gel(newgens, i), gel(neworder, i), rootD, 1);
 	if(equali1(ibqf_isequiv(minus1, temp, rootD))){firstm1=i;break;}
   }
   if(firstm1==-1){//Just add in new Z/2Z copy
 	long lastodd=-1;
-	for(long i=1;i<lg(newgens);i++){if(smodis(gel(neworder,i),2)==1){lastodd=i;break;}}
+	for(long i=1;i<lx;i++){if(smodis(gel(neworder, i), 2)==1){lastodd=i;break;}}
 	if(lastodd==-1){//All even, add a new Z/2Z
 	  GEN rvec=cgetg(4,t_VEC);
-	  long j=lg(newgens);
-	  gel(rvec,1)=mulis(gel(cgp,1),2);
-	  gel(rvec,2)=cgetg(j+1,t_VEC);
-	  gel(rvec,3)=cgetg(j+1,t_VEC);
-	  for(long i=1;i<lg(newgens);i++){
-		gel(gel(rvec,2),j)=icopy(gel(neworder,i));
-		gel(gel(rvec,3),j)=ZV_copy(gel(newgens,i));
+	  long j=lx;
+	  gel(rvec, 1)=shifti(gel(cgp, 1), 1);
+	  gel(rvec, 2)=cgetg(j+1, t_VECSMALL);
+	  gel(rvec, 3)=cgetg(j+1, t_VEC);
+	  for(long i=1;i<lx;i++){
+		gel(rvec, 2)[j]=itos(gel(neworder, i));
+		gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
 		j--;
 	  }
-	  gel(gel(rvec,2),1)=gen_2;
-	  gel(gel(rvec,3),1)=ibqf_red(minus1, rootD);
-	  return gerepileupto(top,rvec);
+	  gel(rvec, 2)[1]=2;
+	  gmael(rvec, 3, 1)=ibqf_red(minus1, rootD);
+	  return gerepileupto(top, rvec);
 	}//OK, now there is an odd number.
-	GEN rvec=cgetg(4,t_VEC);
-	long j=lg(newgens)-1;
-	gel(rvec,1)=mulis(gel(cgp,1),2);
-	gel(rvec,2)=cgetg_copy(newgens,&lx);
-	gel(rvec,3)=cgetg_copy(newgens,&lx);
+	GEN rvec=cgetg(4, t_VEC);
+	long j=lx-1;
+	gel(rvec, 1)=shifti(gel(cgp, 1),1);
+	gel(rvec, 2)=cgetg(lx, t_VECSMALL);
+	gel(rvec, 3)=cgetg_copy(newgens, &lx);
 	for(long i=1;i<lastodd;i++){
-	  gel(gel(rvec,2),j)=icopy(gel(neworder,i));
-	  gel(gel(rvec,3),j)=ZV_copy(gel(newgens,i));
+	  gel(rvec, 2)[j]=itos(gel(neworder, i));
+	  gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
 	  j--;
 	}
-	gel(gel(rvec,2),j)=mulis(gel(neworder,lastodd),2);
-	gel(gel(rvec,3),j)=bqf_comp_red(minus1, gel(newgens,lastodd), rootD, 1);
+	gel(rvec, 2)[j]=2*itos(gel(neworder, lastodd));
+	gmael(rvec, 3, j)=bqf_comp_red(minus1, gel(newgens, lastodd), rootD, 1);
 	j--;
-	for(long i=lastodd+1;i<lg(newgens);i++){
-	  gel(gel(rvec,2),j)=icopy(gel(neworder,i));
-	  gel(gel(rvec,3),j)=ZV_copy(gel(newgens,i));
+	for(long i=lastodd+1;i<lx;i++){
+	  gel(rvec, 2)[j]=itos(gel(neworder, i));
+	  gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
 	  j--;
 	}
-	return gerepileupto(top,rvec);
+	return gerepileupto(top, rvec);
   }//OK SO now we have an element powering to -1 and not 1. We must fix the previous and subsequent entries.
-  GEN g=gel(newgens,firstm1), gpow=g, aj=gel(neworder,firstm1);//gpow represents g^(.5order(g)/aj)
-  for(long j=firstm1+1;j<lg(newgens);j++){//Fix the later ones by modifying by gpow^(a_j/a_g) if they power to -1 instead of 1
-	temp=bqf_pow_red(gel(newgens,j), gel(neworder,j), rootD, 1);
+  GEN g=gel(newgens, firstm1), gpow=g, aj=gel(neworder, firstm1);//gpow represents g^(.5order(g)/aj)
+  for(long j=firstm1+1;j<lx;j++){//Fix the later ones by modifying by gpow^(a_j/a_g) if they power to -1 instead of 1
+	temp=bqf_pow_red(gel(newgens, j), gel(neworder, j), rootD, 1);
 	if(equali1(ibqf_isequiv(minus1, temp, rootD))){//If =0 then we have the identity and there is no need to fix it.
-		gpow=bqf_pow_red(gpow, diviiexact(aj,gel(neworder,j)), rootD, 1);
-		aj=gel(neworder,j);//Updating
-		gel(newgens,j)=bqf_comp_red(gel(newgens,j), gpow, rootD, 1);//Fixing it
+		gpow=bqf_pow_red(gpow, diviiexact(aj, gel(neworder,j)), rootD, 1);
+		aj=gel(neworder, j);//Updating
+		gel(newgens, j)=bqf_comp_red(gel(newgens, j), gpow, rootD, 1);//Fixing it
     }
   }//Now we are done fixing the generators past firstm1; we shift focus to those before it.  
   long optplace=1;//The place where we should be inserting the 2x in the class group
-  long lastv=vali(gel(neworder,firstm1));//2-adic valuation  
+  long lastv=vali(gel(neworder, firstm1));//2-adic valuation  
   for(long i=firstm1-1;i>0;i--){
-	if(vali(gel(neworder,i))>lastv){optplace=i+1;break;}
+	if(vali(gel(neworder, i))>lastv){optplace=i+1;break;}
   }//If this for method never triggers, we are left with optplace=1=the start, as desired.
   //Now we must modify the elements between firstm1 and lastv to only double the order of lastv and retain the other orders. In fact, we only need to modify these two elements
   if(firstm1!=optplace){//If equal, there is nothing left to do! If !=, we must shift the elements appropriately
 	if(lastv==0){//The elements between firstm1 and optplace are all ODD powered, so we can adjust firstm1 and lastv by minus1
-	  gel(newgens,firstm1)=bqf_comp_red(minus1, gel(newgens,firstm1), rootD, 1);
-	  gel(newgens,optplace)=bqf_comp_red(minus1, gel(newgens,optplace), rootD, 1);
+	  gel(newgens, firstm1)=bqf_comp_red(minus1, gel(newgens, firstm1), rootD, 1);
+	  gel(newgens, optplace)=bqf_comp_red(minus1, gel(newgens, optplace), rootD, 1);
 	}
 	else{//firstm1 is g1 and has order 2^(v+1)h1, optplace is g2 and has order g^vh2 with h1, h2 odd and h1|h2. Replace g1 by g1^(2^(v+1))*g2^h2 which has order 2^vh1, and replace g2 by g2^(2^v)*g1^h1 which has order 2^(v+1)h2. These elements generate the same subgroup as well since 2h2 is coprime to 2^(2v+1)-h1h2.
-	  GEN twovali=shifti(gen_1,lastv);
-	  GEN h1=diviiexact(gel(neworder,firstm1),twovali);
-	  GEN h2=diviiexact(gel(neworder,optplace),twovali);
-	  gel(newgens,firstm1)=bqf_comp_red(bqf_square_red(bqf_pow_red(g, twovali, rootD, 1), rootD, 1), bqf_pow_red(gel(newgens,optplace), h2, rootD, 1), rootD, 1);
-      gel(newgens,optplace)=bqf_comp_red(bqf_pow_red(g, h1, rootD, 1), bqf_pow_red(gel(newgens,optplace), twovali, rootD, 1), rootD, 1);
+	  GEN twovali=shifti(gen_1, lastv);
+	  GEN h1=diviiexact(gel(neworder, firstm1), twovali);
+	  GEN h2=diviiexact(gel(neworder, optplace), twovali);
+	  gel(newgens, firstm1)=bqf_comp_red(bqf_square_red(bqf_pow_red(g, twovali, rootD, 1), rootD, 1), bqf_pow_red(gel(newgens, optplace), h2, rootD, 1), rootD, 1);
+      gel(newgens, optplace)=bqf_comp_red(bqf_pow_red(g, h1, rootD, 1), bqf_pow_red(gel(newgens, optplace), twovali, rootD, 1), rootD, 1);
 	}
   }
-  gel(neworder,optplace)=shifti(gel(neworder,optplace),1);//Doubling the correct place
+  gel(neworder, optplace)=shifti(gel(neworder, optplace), 1);//Doubling the correct place
   //Ok, now we just need to reverse the vectors and compile it into rvec and return it.
-  GEN rvec=cgetg(4,t_VEC);
-  long j=lg(newgens)-1;
-  gel(rvec,1)=mulis(gel(cgp,1),2);
-  gel(rvec,2)=cgetg_copy(newgens,&lx);
-  gel(rvec,3)=cgetg_copy(newgens,&lx);
-  for(long i=1;i<lg(newgens);i++){
-	gel(gel(rvec,2),j)=icopy(gel(neworder,i));
-	gel(gel(rvec,3),j)=ZV_copy(gel(newgens,i));
+  GEN rvec=cgetg(4, t_VEC);
+  long j=lx-1;
+  gel(rvec, 1)=shifti(gel(cgp, 1), 1);
+  gel(rvec, 2)=cgetg(lx, t_VECSMALL);
+  gel(rvec, 3)=cgetg_copy(newgens,&lx);
+  for(long i=1;i<lx;i++){
+	gel(rvec, 2)[j]=itos(gel(neworder, i));
+	gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
 	j--;
-  }	
-  return gerepileupto(top,rvec);
+  }
+  return gerepileupto(top, rvec);
 }
 
 //Same as bqf_ncgp, but the third element is a lexicographic ordering of the elements of the ncgp.
 GEN bqf_ncgp_lexic(GEN D, long prec){
   pari_sp top = avma;
-  GEN ncgp=bqf_ncgp(D,prec);//Get the ncgp
-  GEN rootD=gsqrt(D,prec);
-  long nclno=itos(gel(ncgp,1));//Class number as a long
-  GEN rvec=cgetg(4,t_VEC);
-  gel(rvec,1)=icopy(gel(ncgp,1));
-  gel(rvec,2)=ZV_copy(gel(ncgp,2));//Copy the first two elements
-  gel(rvec,3)=cgetg(nclno+1,t_VEC);//The forms vector
-  gel(gel(rvec,3),1)=bqf_red(bqf_idelt(D),rootD,signe(D),0);//Start with Id
-  long f1, f2=1, pow, j,k=2;
-  for(long i=lg(gel(ncgp,2))-1;i>=1;--i){
+  GEN ncgp=bqf_ncgp(D, prec);//Get the ncgp
+  GEN rootD=gsqrt(D, prec);
+  long nclno=itos(gel(ncgp, 1));//Class number as a long
+  GEN rvec=cgetg(4, t_VEC);
+  gel(rvec, 1)=icopy(gel(ncgp, 1));
+  gel(rvec, 2)=zv_copy(gel(ncgp, 2));//Copy the first two elements
+  gel(rvec, 3)=cgetg(nclno+1, t_VEC);//The forms vector
+  gmael(rvec, 3, 1)=bqf_red(bqf_idelt(D), rootD, signe(D), 0);//Start with Id
+  long f1, f2=1, pow, j, k=2;
+  for(long i=lg(gel(ncgp, 2))-1;i>=1;i--){
     f1=1;
     f2=k-1;
-    for(pow=1;pow<=itos(gel(gel(ncgp,2),i))-1;++pow){
+    for(pow=1;pow<=gel(ncgp, 2)[i]-1;pow++){
       k=f2+1;
-      for(j=f1;j<=f2;++j){
-        gel(gel(rvec,3),k)=bqf_comp_red(gel(gel(rvec,3),j),gel(gel(ncgp,3),i),rootD,signe(D));
+      for(j=f1;j<=f2;j++){
+        gmael(rvec, 3, k)=bqf_comp_red(gmael(rvec, 3, j), gmael(ncgp, 3, i), rootD, signe(D));
         k++;
       }
       f1=f2+1;

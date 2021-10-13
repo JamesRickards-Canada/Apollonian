@@ -173,6 +173,53 @@ GEN apol_reduce(GEN v, int seq){
   return gerepilecopy(top, mkvec2(apol_move(v, ind), llist_tovecsmall(S, len, -1)));
 }
 
+//Search for circles of curvature N up to depth depth. Returns the corresponding ACPs. Adops the code of apol_orbit. Returns the qf's if rqf=1, and both if rqf=2 (each entry is [ACP, qf]).
+GEN apol_search(GEN v, GEN N, int depth, int rqf){
+  pari_sp top=avma;
+  glist *S=NULL;//Stores the ACP's.
+  int ind=1;//We reuse ind to track which depth we are going towards.
+  GEN W=zerovec(depth);//Tracks the sequence of APC's; W[ind] is at ind-1 depth
+  gel(W, 1)=v;//The first one.
+  GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
+  int forward=1;//Tracks if we are going forward or not.
+  long Nfound=0;
+  for(int i=1;i<=4;i++){
+	if(equalii(N, gel(v, i))){//Found one!
+      if(rqf==0) glist_putstart(&S, gcopy(v));
+	  else{
+		GEN q=apol_qf(v, i);
+		if(rqf==1) glist_putstart(&S, q);
+		else glist_putstart(&S, mkvec2(gcopy(v), q));
+	  }
+	  Nfound++;
+	  break;
+	}
+  }
+  do{//1<=ind<=depth is assumed.
+    I[ind]=forward? 1:I[ind]+1;
+    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
+	if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+	//At this point, we can go on with valid and new inputs
+	GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+	if(equalii(N, gel(newv, I[ind]))){//Found it!
+	  if(rqf==0) glist_putstart(&S, gcopy(newv));
+	  else{
+		GEN q=apol_qf(newv, I[ind]);
+		if(rqf==1) glist_putstart(&S, q);
+		else glist_putstart(&S, mkvec2(newv, q));
+	  }
+	  Nfound++;
+	}
+	if(ind==depth) forward=0;
+	else{//We can keep going forward
+      ind++;
+	  gel(W, ind)=newv;
+	  forward=1;
+	}
+  }while(ind>0);
+  return gerepileupto(top, glist_togvec(S, Nfound, -1));
+}
+
 //Returns the maximum index of the ZV v. Returns the first such index if a tie.
 static long ZV_maxind(GEN v){
   pari_sp top=avma;
