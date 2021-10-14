@@ -14,6 +14,7 @@
 
 //STATIC DECLARATIONS
 static long ZV_maxind(GEN v);
+static long ZV_minind(GEN v);
 
 //Checks if v gives 4 circles that generate an integral Apollonian packing, returning 1 if so and 0 else
 int apol_check(GEN v){
@@ -94,7 +95,7 @@ GEN apol_ncgp_forms(GEN n, int pos, int red, int include2torsion, long prec){
   for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
     GEN q=gel(forms, i);
 	if(signe(gel(q, 2))==-1) continue;
-	if(!include2torsion && (gequal0(gel(q, 2)) || equalii(gel(q, 1), gel(q, 3)) || equalii(gel(q, 1), gel(q, 2)))) continue;//Order <=2, equivalent to A=B or A=C or B=0
+	if(include2torsion==0 && (gequal0(gel(q, 2)) || equalii(gel(q, 1), gel(q, 3)) || equalii(gel(q, 1), gel(q, 2)))) continue;//Order <=2, equivalent to A=B or A=C or B=0
 	vectrunc_append(quads, apol_make_fromqf(q, pos, red));
   }
   return gerepileupto(top, quads);
@@ -109,6 +110,19 @@ GEN apol_ncgp_smallcurve(GEN n, int red, int include2torsion, long prec){
   for(long i=1;i<lf;i++){
 	gel(curves, i)=gmael(forms, i, 1);
 	if(red) togglesign_safe(&gel(curves, i));
+  }
+  return gerepileupto(top, ZV_sort(curves));
+}
+
+//apol_ncgp_smallcurve, but we only reduce maxsteps steps.
+GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec){
+  pari_sp top=avma;
+  GEN forms=apol_ncgp_forms(n, 1, 0, 1, prec);
+  long lf;
+  GEN curves=cgetg_copy(forms, &lf);
+  for(long i=1;i<lf;i++){
+	GEN q=apol_red_bsteps(gel(forms, i), maxsteps);
+	gel(curves, i)=gel(q, ZV_minind(q));
   }
   return gerepileupto(top, ZV_sort(curves));
 }
@@ -222,6 +236,24 @@ GEN apol_red(GEN v, int seq){
   return gerepilecopy(top, mkvec2(apol_move(v, ind), llist_tovecsmall(S, len, -1)));
 }
 
+//Reduces v, where we ONLY at most maxsteps steps.
+GEN apol_red_bsteps(GEN v, long maxsteps){
+  pari_sp top=avma;
+  if(maxsteps==0) return ZV_copy(v);
+  long ind, step=0;
+  int mstepsreached=1;
+  GEN dold;
+  do{
+    step++;
+    ind=ZV_maxind(v);
+    dold=gel(v, ind);
+    v=apol_move(v, ind);
+	if(cmpii(gel(v, ind), dold)!=-1){mstepsreached=0;break;}//We are reduced if we go back one.
+  }while(step<maxsteps);
+  if(mstepsreached) return gerepilecopy(top, v);
+  else return gerepileupto(top, apol_move(v, ind));//Must go back one!
+}
+
 //Search for circles of curvature N up to depth depth. Returns the corresponding ACPs. Adops the code of apol_orbit. Returns the qf's if rqf=1, and both if rqf=2 (each entry is [ACP, qf]).
 GEN apol_search(GEN v, GEN N, int depth, int rqf){
   pari_sp top=avma;
@@ -269,6 +301,19 @@ GEN apol_search(GEN v, GEN N, int depth, int rqf){
   return gerepileupto(top, glist_togvec(S, Nfound, -1));
 }
 
+//Given a sorted ZV, counts how many entries are non-positive.
+long ZV_countnonpos(GEN v){
+  long i1=1, i2=lg(v)-1, i=0;
+  if(signe(gel(v, i1))==1) return 0;//None <=0
+  if(signe(gel(v, i2))!=1) return i2;//All <=0
+  while(i1+1<i2){
+	i=(i1+i2)/2;//Floor
+	if(signe(gel(v, i))==1) i2=i;//v[i]>0
+	else i1=i;//v[i]<=0
+  }
+  return i1;
+}
+
 //Returns the maximum index of the ZV v. Returns the first such index if a tie.
 static long ZV_maxind(GEN v){
   pari_sp top=avma;
@@ -277,5 +322,15 @@ static long ZV_maxind(GEN v){
   for(long i=2;i<lg(v);i++) if(cmpii(gel(v, i), max)==1){cmax=i;max=gel(v, i);}
   avma=top;
   return cmax;
+}
+
+//Returns the minimal index of the ZV v. Returns the first such index if a tie.
+static long ZV_minind(GEN v){
+  pari_sp top=avma;
+  long cmin=1;
+  GEN min=gel(v, 1);
+  for(long i=2;i<lg(v);i++) if(cmpii(gel(v, i), min)==-1){cmin=i;min=gel(v, i);}
+  avma=top;
+  return cmin;
 }
 

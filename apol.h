@@ -28,11 +28,14 @@ GEN apol_make_fromqf(GEN q, int pos, int red);
 GEN apol_move(GEN v, int ind);
 GEN apol_ncgp_forms(GEN n, int pos, int red, int include2torsion, long prec);
 GEN apol_ncgp_smallcurve(GEN n, int red, int include2torsion, long prec);
+GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
 GEN apol_orbit(GEN v, int depth);
 GEN apol_orbit_1(GEN v, int depth, int ind);
 GEN apol_qf(GEN v, int ind);
 GEN apol_red(GEN v, int seq);
+GEN apol_red_bsteps(GEN v, long maxsteps);
 GEN apol_search(GEN v, GEN N, int depth, int rqf);
+long ZV_countnonpos(GEN v);
 
 
 //base.c
