@@ -45,7 +45,7 @@ GEN apol_make(GEN n, GEN m, int red){
 	if(!equali1(gcdii(gcdii(d1, n), d2))) continue;
 	GEN d1px=addii(d1, n);
 	GEN v=mkvec4(mn, d1px, addii(d2, n), addii(d1px, subii(d2, twom)));
-	if(red==2) vectrunc_append(apols, apol_reduce(v, 0));
+	if(red==2) vectrunc_append(apols, apol_red(v, 0));
 	else vectrunc_append(apols, v);
   }
   return gerepilecopy(top, apols);
@@ -66,7 +66,7 @@ GEN apol_make_fromqf(GEN q, int pos, int red){
   GEN a= pos? n:negi(n);//+/-n
   GEN Ama=subii(gel(q, 1), a);
   GEN v=mkvec4(a, Ama, subii(gel(q, 3), a), addii(Ama, subii(gel(q, 3), gel(q, 2))));//The APC
-  if(red) v=apol_reduce(v, 0);
+  if(red) v=apol_red(v, 0);
   return gerepileupto(top, ZV_sort(v));
 }
 
@@ -196,7 +196,7 @@ GEN apol_qf(GEN v, int ind){
 }
 
 //Returns the reduction of v. If seq=1, also returns a VECSMALL of the sequence of indices swapped to reduce.
-GEN apol_reduce(GEN v, int seq){
+GEN apol_red(GEN v, int seq){
   pari_sp top=avma;
   long ind;
   GEN dold;

@@ -23,13 +23,13 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_orbit_1,"Inputs v, depth, {ind=1}: vector v representing an ACP, positive integer depth, 1<=ind<=4.\n Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 3*2^depth.");
 		install("apol_qf", "GD1,L,", "apol_qf", "./libapol.so");
 		addhelp(apol_qf, "Inputs v, {ind=1}: vector v representing an ACP, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
-		install("apol_reduce","GD0,L,","apol_reduce","./libapol.so");
-		addhelp(apol_reduce,"Inputs v, {seq=0}: ACP v.\n Returns the reduced ACP. If seq=1, also returns a VECSMALL of the sequence of indices used to reach the reduced form.");
+		install("apol_red","GD0,L,","apol_red","./libapol.so");
+		addhelp(apol_red,"Inputs v, {seq=0}: ACP v.\n Returns the reduced ACP. If seq=1, also returns a VECSMALL of the sequence of indices used to reach the reduced form.");
 		install("apol_search","GGLD0,L,","apol_search","./libapol.so");
 		addhelp(apol_search,"Inputs v, N, depth, {rqf=0}: ACP v, positive integer N, depth>0.\n Returns the ACP's with an N inside them up to depth depth. If rqf=1, returns the qf's. If rqf=2, returns [ACP's, qfs].");
 
 	\\GENERAL HELP
-		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_make_fromqf, apol_move, apol_ncgp_forms, apol_ncgp_smallcurve, apol_orbit, apol_orbit_1, apol_qf, apol_reduce, apol_search.");
+		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_make_fromqf, apol_move, apol_ncgp_forms, apol_ncgp_smallcurve, apol_orbit, apol_orbit_1, apol_qf, apol_red, apol_search.");
 
 \\base.c
 

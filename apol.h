@@ -31,7 +31,7 @@ GEN apol_ncgp_smallcurve(GEN n, int red, int include2torsion, long prec);
 GEN apol_orbit(GEN v, int depth);
 GEN apol_orbit_1(GEN v, int depth, int ind);
 GEN apol_qf(GEN v, int ind);
-GEN apol_reduce(GEN v, int seq);
+GEN apol_red(GEN v, int seq);
 GEN apol_search(GEN v, GEN N, int depth, int rqf);
 
 
