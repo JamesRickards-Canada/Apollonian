@@ -51,8 +51,8 @@ GEN apol_make(GEN n, GEN m, int red){
   return gerepilecopy(top, apols);
 }
 
-//Given a bqf q, this gives the corresponding root quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n
-GEN apol_make_fromqf(GEN q, int pos){
+//Given a bqf q, this gives the corresponding root quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.
+GEN apol_make_fromqf(GEN q, int pos, int red){
   pari_sp top=avma;
   GEN D=bqf_disc(q);
   if(signe(D)!=-1) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
@@ -66,7 +66,7 @@ GEN apol_make_fromqf(GEN q, int pos){
   GEN a= pos? n:negi(n);//+/-n
   GEN Ama=subii(gel(q, 1), a);
   GEN v=mkvec4(a, Ama, subii(gel(q, 3), a), addii(Ama, subii(gel(q, 3), gel(q, 2))));//The APC
-  v=apol_reduce(v, 0);
+  if(red) v=apol_reduce(v, 0);
   return gerepileupto(top, ZV_sort(v));
 }
 
@@ -84,7 +84,7 @@ GEN apol_move(GEN v, int ind){
 }
 
 //Computes ncgp(-4n^2), and output the ACP's created from these quadratic forms with apol_make_qf. We only count ambiguous forms ONCE.
-GEN apol_ncgp_forms(GEN n, int pos, long prec){
+GEN apol_ncgp_forms(GEN n, int pos, int red, int include2torsion, long prec){
   pari_sp top=avma;
   GEN D=mulis(sqri(n), -4);
   GEN U=bqf_ncgp_lexic(D, prec);
@@ -92,24 +92,24 @@ GEN apol_ncgp_forms(GEN n, int pos, long prec){
   long lf=lg(forms);
   GEN quads=vectrunc_init(lf);
   for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
-	if(signe(gmael(forms, i, 2))==-1) continue;
-	vectrunc_append(quads, apol_make_fromqf(gel(forms, i), pos));
+    GEN q=gel(forms, i);
+	if(signe(gel(q, 2))==-1) continue;
+	if(!include2torsion && (gequal0(gel(q, 2)) || equalii(gel(q, 1), gel(q, 3)) || equalii(gel(q, 1), gel(q, 2)))) continue;//Order <=2, equivalent to A=B or A=C or B=0
+	vectrunc_append(quads, apol_make_fromqf(q, pos, red));
   }
   return gerepileupto(top, quads);
-  /*GEN forms=gel(U, 3);
-  long lf;
-  GEN quads=cgetg_copy(forms, &lf);
-  for(long i=1;i<lf;i++) gel(quads, i)=apol_make_fromqf(gel(forms, i), pos);
-  return gerepileupto(top, lexsort(quads));*/
 }
 
-//Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative).
-GEN apol_ncgp_smallcurve(GEN n, long prec){
+//Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative). If red=0, we actually just take the data as is, and output the smallest curvature in each of the quadruples (no negation).
+GEN apol_ncgp_smallcurve(GEN n, int red, int include2torsion, long prec){
   pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, prec);
+  GEN forms=apol_ncgp_forms(n, 1, red, include2torsion, prec);
   long lf;
   GEN curves=cgetg_copy(forms, &lf);
-  for(long i=1;i<lf;i++){gel(curves, i)=gmael(forms, i, 1);togglesign_safe(&gel(curves, i));}
+  for(long i=1;i<lf;i++){
+	gel(curves, i)=gmael(forms, i, 1);
+	if(red) togglesign_safe(&gel(curves, i));
+  }
   return gerepileupto(top, ZV_sort(curves));
 }
 

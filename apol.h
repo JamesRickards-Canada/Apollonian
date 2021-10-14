@@ -24,10 +24,10 @@ typedef struct listtype3{//A generic linked list of longs, stores data and next 
 
 int apol_check(GEN v);
 GEN apol_make(GEN n, GEN m, int red);
-GEN apol_make_fromqf(GEN q, int pos);
+GEN apol_make_fromqf(GEN q, int pos, int red);
 GEN apol_move(GEN v, int ind);
-GEN apol_ncgp_forms(GEN n, int pos, long prec);
-GEN apol_ncgp_smallcurve(GEN n, long prec);
+GEN apol_ncgp_forms(GEN n, int pos, int red, int include2torsion, long prec);
+GEN apol_ncgp_smallcurve(GEN n, int red, int include2torsion, long prec);
 GEN apol_orbit(GEN v, int depth);
 GEN apol_orbit_1(GEN v, int depth, int ind);
 GEN apol_qf(GEN v, int ind);
