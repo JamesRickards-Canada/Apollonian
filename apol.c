@@ -103,7 +103,6 @@ GEN apol_ncgp_forms(GEN n, int pos, long prec){
   return gerepileupto(top, lexsort(quads));*/
 }
 
-
 //Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative).
 GEN apol_ncgp_smallcurve(GEN n, long prec){
   pari_sp top=avma;
