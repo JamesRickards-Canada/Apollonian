@@ -23,6 +23,7 @@ typedef struct listtype3{//A generic linked list of longs, stores data and next 
 
 
 int apol_check(GEN v);
+long apol_quaddepth(GEN v);
 GEN apol_make(GEN n, GEN m, int red);
 GEN apol_make_fromqf(GEN q, int pos, int red);
 GEN apol_move(GEN v, int ind);

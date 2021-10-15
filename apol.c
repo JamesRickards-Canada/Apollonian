@@ -30,6 +30,21 @@ int apol_check(GEN v){
   return gc_int(top, equalii(L, R)? 1:0);
 }
 
+//Returns the depth of v, i.e. the minimal number of swaps requried to reach a quadruple with negative curvature.
+long apol_quaddepth(GEN v){
+  pari_sp top=avma;
+  long ind, step=0;
+  ind=ZV_minind(v);
+  if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
+  for(;;){
+    step++;
+    ind=ZV_maxind(v);
+    v=apol_move(v, ind);
+	ind=ZV_minind(v);
+	if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
+  }
+}
+
 //Returns all primitive Apollonian root quadruples using the construction from x^2+m^2=d_1d_2 (page 19 of GLMWY Number Theory). This has first entry x=-n.
 GEN apol_make(GEN n, GEN m, int red){
   pari_sp top=avma;

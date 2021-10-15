@@ -7,6 +7,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\MAIN METHODS
 		install("apol_check", "iG", "apol_check", "./libapol.so");
 		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this generates an ACP, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
+		install("apol_quaddepth","lG","apol_quaddepth","./libapol.so");
+		addhelp(apol_quaddepth,"Input v, an APC.\n Returns the depth of v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
 		install("apol_make","GGD1,L,","apol_make","./libapol.so");
 		addhelp(apol_make,"Inputs n, m, {red=1}: positive integers n and m.\n Returns the primitive Apollonian circle quadruples constructed from n^2+m^2=d_1d_2; they all have first entry -n. If red=1, we only return the reduced ones. If red=2, we find all forms and reduce them (may be repeats, and won't be in order a<=b<=c<=d)");
 		install("apol_make_fromqf","GD1,L,D1,L,","apol_make_fromqf","./libapol.so");
