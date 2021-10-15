@@ -99,6 +99,22 @@ GEN apol_move(GEN v, int ind){
   return gerepileupto(top, newv);
 }
 
+//Computes apol_ncgpforms, and returns the depths of the corresponding circles of curvature n.
+GEN apol_ncgp_depths(GEN n, long prec){
+  pari_sp top=avma;
+  GEN forms=apol_ncgp_forms(n, 1, 0, 1, prec);//The forms
+  long maxdepth=0, lf=lg(forms);
+  GEN depths=cgetg(lf, t_VECSMALL);
+  for(long i=1;i<lf;i++){//Computing depths
+	long d=apol_quaddepth(gel(forms, i));
+	depths[i]=d;
+	if(d>maxdepth) maxdepth=d;
+  }
+  GEN dcount=zero_zv(maxdepth+1);//Depths 0 through d.
+  for(long i=1;i<lf;i++) dcount[depths[i]+1]++;//Counting.
+  return gerepileupto(top, dcount);
+}
+
 //Computes ncgp(-4n^2), and output the ACP's created from these quadratic forms with apol_make_qf. We only count ambiguous forms ONCE.
 GEN apol_ncgp_forms(GEN n, int pos, int red, int include2torsion, long prec){
   pari_sp top=avma;

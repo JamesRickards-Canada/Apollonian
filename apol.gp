@@ -7,14 +7,14 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\MAIN METHODS
 		install("apol_check", "iG", "apol_check", "./libapol.so");
 		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this generates an ACP, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
-		install("apol_quaddepth","lG","apol_quaddepth","./libapol.so");
-		addhelp(apol_quaddepth,"Input v, an APC.\n Returns the depth of v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
 		install("apol_make","GGD1,L,","apol_make","./libapol.so");
 		addhelp(apol_make,"Inputs n, m, {red=1}: positive integers n and m.\n Returns the primitive Apollonian circle quadruples constructed from n^2+m^2=d_1d_2; they all have first entry -n. If red=1, we only return the reduced ones. If red=2, we find all forms and reduce them (may be repeats, and won't be in order a<=b<=c<=d)");
 		install("apol_make_fromqf","GD1,L,D1,L,","apol_make_fromqf","./libapol.so");
 		addhelp(apol_make_fromqf,"Input q, {pos=1}, {red=1}; q a quadratic form of discriminant -4n^2.\n Returns the root quadruple of the APC it corresponds to. If pos=0, the root quadruple starts with -n<0. Else, the form has a +n circle. If red=1 we reduce the form, otherwise we don't.");
 		install("apol_move", "GL", "apol_move", "./libapol.so");
 		addhelp(apol_move, "Inputs v, ind: vector v representing an ACP, 1<=ind<=4.\n Returns the ACP where we replace circle i with the other possible circle.");
+		install("apol_ncgp_depths","Gp","apol_ncgp_depths","./libapol.so");
+		addhelp(apol_ncgp_depths,"Input n.\n Computes apol_ncgp_forms(n), and returns [d0,d1,...,dk], where the number of forms at depth i is given by di.");
 		install("apol_ncgp_forms","GD1,L,D1,L,D1,L,p","apol_ncgp_forms","./libapol.so");
 		addhelp(apol_ncgp_forms,"Inputs n, {pos=1}, {red=1}, {include2torsion=1}.\n Returns the root quadruples corresponding to all quadratic forms of discriminant -4n^2 (we only take 1 quadruple from each pair [A,B,C]!~[A,-B,C], since they give the same result). If pos=1 these quadruples include +n, and if pos=0 these quadruples include -n. We reduce the quadruples iff red=1. If include2torsion=0, we disregard the 2-torsion. The output has length h^{+/-}(-4n^2) if we include the 2-torsion.");
 		install("apol_ncgp_smallcurve","GD1,L,D1,L,p","apol_ncgp_smallcurve","./libapol.so");
@@ -27,6 +27,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_orbit_1,"Inputs v, depth, {ind=1}: vector v representing an ACP, positive integer depth, 1<=ind<=4.\n Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 3*2^depth.");
 		install("apol_qf", "GD1,L,", "apol_qf", "./libapol.so");
 		addhelp(apol_qf, "Inputs v, {ind=1}: vector v representing an ACP, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
+		install("apol_quaddepth","lG","apol_quaddepth","./libapol.so");
+		addhelp(apol_quaddepth,"Input v, an APC.\n Returns the depth of v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
 		install("apol_red","GD0,L,","apol_red","./libapol.so");
 		addhelp(apol_red,"Inputs v, {seq=0}: ACP v.\n Returns the reduced ACP. If seq=1, also returns a VECSMALL of the sequence of indices used to reach the reduced form.");
 		install("apol_red_bsteps","GL","apol_red_bsteps","./libapol.so");
@@ -37,7 +39,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(ZV_countnonpos,"Input v, a sorted vector of integers.\n Returns the number of entries that are nonpositive.");
 
 	\\GENERAL HELP
-		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_make_fromqf, apol_move, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_1, apol_qf, apol_red, apol_search, ZV_countnonpos.");
+		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_make_fromqf, apol_move, apol_ncgp_depths, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_1, apol_qf, apol_quaddepth, apol_red, apol_search, ZV_countnonpos.");
 
 \\base.c
 

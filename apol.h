@@ -27,6 +27,7 @@ long apol_quaddepth(GEN v);
 GEN apol_make(GEN n, GEN m, int red);
 GEN apol_make_fromqf(GEN q, int pos, int red);
 GEN apol_move(GEN v, int ind);
+GEN apol_ncgp_depths(GEN n, long prec);
 GEN apol_ncgp_forms(GEN n, int pos, int red, int include2torsion, long prec);
 GEN apol_ncgp_smallcurve(GEN n, int red, int include2torsion, long prec);
 GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
