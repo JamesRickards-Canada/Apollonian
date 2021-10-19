@@ -66,15 +66,17 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\DISCRIMINANT METHODS
 		install("disclist","GGD0,L,D0,G,","disclist","./libapol.so");
 		addhelp(disclist, "Inputs d1, d2, {fund=0}, {cop=0}: d1 and d2 integers with d1<=d2, fund=0,1, cop integer.\n Returns the set of proper discriminants between d1 and d2, inclusive. If fund=1, only returns fundamental discriminants. If cop!=0, only returns discriminants coprime to cop.");
-		install("discprimeindex_tc","G","discprimeindex","./libapol.so");
+		install("discprimeindex","G","discprimeindex","./libapol.so");
 		addhelp(discprimeindex, "Inputs: D, a proper discriminant.\n Returns all prime divisors p of D for which D/p^2 is a proper discriminant.");
+		install("discsuperorders","G","discsuperorders","./libapol.so");
+		addhelp(discsuperorders,"Input D, a proper discriminant. Returns the vector of divisors D' of D such that D' is a discriminant and D/D' is a square.\n ");
 		install("isdisc","iG","isdisc","./libapol.so");
 		addhelp(isdisc, "Inputs: D a real number.\n Returns 1 if D is a proper discriminant, and 0 otherwise.");
-		install("pell_tc","G","pell","./libapol.so");
+		install("pell","G","pell","./libapol.so");
 		addhelp(pell, "Inputs: D a positive discriminant.\n Returns [T, U], which is the smallest positive integer solution to T^2-DU^2=4 (and so (T+Usqrt(D))/2 is the fundamental unit in O_D).");
-		install("posreg_tc","Gp","posreg","./libapol.so");
+		install("posreg","Gp","posreg","./libapol.so");
 		addhelp(posreg, "Inputs: D a positive discriminant.\n Returns the positive regulator of O_D, i.e. the logarithm of the fundamental totally positive unit.");
-		install("quadroot_tc","G","quadroot","./libapol.so");
+		install("quadroot","G","quadroot","./libapol.so");
 		addhelp(quadroot, "Input D, a non-square integer.\n Returns sqrt(D) of type t_QUAD.");
 
 	\\BASIC OPERATIONS ON BINARY QUADRATIC FORMS
@@ -147,7 +149,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 
 	\\GENERAL HELP
 		addhelp(bqf, "This package deals with binary quadratic forms with integer coefficients. A homogeneous binary quadratic form Ax^2+Bxy+Cy^2 is stored as [A,B,C]. A proper discriminant is an integer that is equivalent to 0 or 1 modulo 4 and is not a square. \n Subtopics:\n Discriminants (disc)\n Basic operations (bqfbasic)\n Indefinite forms (ibqf)\n Class group and composition (bqfclass)\n Representation of numbers (bqfsolve)");
-		addhelp(disc,"disclist, discprimeindex, isdisc, pell, posreg, quadroot.");
+		addhelp(disc,"disclist, discprimeindex, discsuperorders, isdisc, pell, posreg, quadroot.");
 		addhelp(bqfbasic,"bqf_automorph, bqf_disc, bqf_isequiv, bqf_isreduced, bqf_random, bqf_random_D, bqf_red, bqf_roots, bqf_trans, bqf_trans_coprime, ideal_tobqf.");
 		addhelp(ibqf,"ibqf_isrecip, ibqf_leftnbr, ibqf_redorbit, ibqf_rightnbr, ibqf_river, ibqf_riverforms, ibqf_symmetricarc, mat_toibqf.");
 		addhelp(bqfclass,"bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");

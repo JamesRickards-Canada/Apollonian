@@ -87,14 +87,11 @@ GEN llist_tovecsmall(llist *l, long length, int dir);
 //DISCRIMINANT METHODS
 GEN disclist(GEN D1, GEN D2, int fund, GEN cop);
 GEN discprimeindex(GEN D, GEN facs);
-GEN discprimeindex_tc(GEN D);
+GEN discsuperorders(GEN D);
 int isdisc(GEN D);
 GEN pell(GEN D);
-GEN pell_tc(GEN D);
 GEN posreg(GEN D, long prec);
-GEN posreg_tc(GEN D, long prec);
 GEN quadroot(GEN D);
-GEN quadroot_tc(GEN D);
 
 //BASIC OPERATIONS ON BINARY QUADRATIC FORMS
 GEN bqf_automorph_tc(GEN q);

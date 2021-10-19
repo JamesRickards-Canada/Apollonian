@@ -132,6 +132,7 @@ GEN disclist(GEN D1, GEN D2, int fund, GEN cop){
 //Generate the list of primes dividing D for which D/p^2 is a discriminant, can pass in facs=factorization of D
 GEN discprimeindex(GEN D, GEN facs){
   pari_sp top=avma;
+  if(!isdisc(D)) pari_err_TYPE("discprimeindex, not a discriminant", D);
   if(gequal0(facs)) facs=Z_factor(D);
   long numprimes=itos(gel(matsize(facs), 1));
   GEN curp=gen_0, curexp=gen_0;
@@ -148,80 +149,70 @@ GEN discprimeindex(GEN D, GEN facs){
   return gerepilecopy(top, plist);
 }
 
-//discprimeindex but also checks D is a discriminant
-GEN discprimeindex_tc(GEN D){
-  if(!isdisc(D)) pari_err_TYPE("discprimeindex, not a discriminant",D);
-  return discprimeindex(D,gen_0);//No garbage
+//Returns the set of divisors of D that are discriminants and whose quotient to D is a square.
+GEN discsuperorders(GEN D){
+  pari_sp top=avma;
+  if(!isdisc(D)) pari_err_TYPE("D needs to be a discriminant", D);
+  GEN divs=divisors(D);
+  long ld=lg(divs), j=ld, dsig=signe(D);
+  GEN list=vectrunc_init(ld);
+  for(long i=1;i<ld;i++){
+	j--;//i+j=ld
+	if(Z_issquare(gel(divs, j))){
+	  GEN D;
+	  if(dsig==1) D=gel(divs, i);
+	  else D=negi(gel(divs, i));//Making the appropriate sign change.
+	  if(isdisc(D)) vectrunc_append(list, D);
+	}
+  }
+  return gerepilecopy(top, list);
 }
 
 //Returns 1 if discriminant and 0 if not.
 int isdisc(GEN D){
-  pari_sp top = avma;
-  if(typ(D)!=t_INT){//Checking integrality
-    avma=top;
-    return 0;
-  }
-  if(smodis(D,4)<2 && !Z_issquare(D)){//0,1 mod 4 and not a square.
-    avma=top;
-    return 1;
-  }
-  avma=top;
+  if(typ(D)!=t_INT) return 0;//Checking integrality
+  if(smodis(D, 4)<2 && !Z_issquare(D)) return 1;//0,1 mod 4 and not a square.
   return 0;
 }
 
 //Returns minimal positive solution [T,U] to T^2-DU^2=4
 GEN pell(GEN D){
-  pari_sp top = avma;
-  GEN u = quadunit0(D, -1);
-  if(gequalm1(quadnorm(u))) u = gsqr(u);//We need the smallest unit with norm 1, not -1
+  pari_sp top=avma;
+  if(!isdisc(D)) pari_err_TYPE("Please input a positive discriminant", D);
+  if(signe(D)==-1) pari_err_TYPE("Please input a positive discriminant", D);
+  GEN u=quadunit0(D, -1);
+  if(gequalm1(quadnorm(u))) u=gsqr(u);//We need the smallest unit with norm 1, not -1
   if(smodis(D, 2)==1){//D is odd
-    GEN a = shifti(greal(u),1);//a,b are guarenteed integers since the input is a t_QUAD, and a/2+b*omega=u, omega=(D%2+sqrt(D))/2
-    GEN rvec = cgetg(3, t_VEC);
-    gel(rvec, 2) = gimag(u);
-    gel(rvec, 1) = addii(a,gel(rvec,2));
-    return gerepileupto(top,rvec);
+    GEN a=shifti(real_i(u), 1);//a,b are guarenteed integers since the input is a t_QUAD, and a/2+b*omega=u, omega=(D%2+sqrt(D))/2
+    GEN rvec=cgetg(3, t_VEC);
+    gel(rvec, 2)=gimag(u);//Must copy
+    gel(rvec, 1)=addii(a, gel(rvec, 2));
+    return gerepileupto(top, rvec);
   }
   else{//D is even
-    GEN a = greal(u);
-    GEN rvec = cgetg(3, t_VEC);
-    gel(rvec, 1) = shifti(a,1);
-    gel(rvec, 2) = gimag(u);
-    return gerepileupto(top,rvec);
+    GEN a=real_i(u);
+    GEN rvec=cgetg(3, t_VEC);
+    gel(rvec, 1)=shifti(a, 1);
+    gel(rvec, 2)=gimag(u);//Must copy
+    return gerepileupto(top, rvec);
   }
-}
-
-//pell, but checks for D>0 discriminant first.
-GEN pell_tc(GEN D){
-  if(!isdisc(D)) pari_err_TYPE("pell, not a positive discriminant",D);
-  if(signe(D)==-1) pari_err_TYPE("pell, not a positive discriminant",D);
-  return pell(D);
 }
 
 //Returns log(epsilon(D)), where epsilon(D) is the fundamental unit of positive norm.
 GEN posreg(GEN D, long prec){
   pari_sp top = avma;
-  if(gequalm1(quadnorm(quadunit(D)))) return gerepileupto(top,gmulsg(2,quadregulator(D, prec)));
-  return gerepileupto(top,quadregulator(D, prec));
-}
-
-//posreg, but checks for D>0 discriminant first.
-GEN posreg_tc(GEN D, long prec){
-  if(!isdisc(D)) pari_err_TYPE("posreg, not a positive discriminant",D);
-  if(signe(D)==-1) pari_err_TYPE("posreg, not a positive discriminant",D);
-  return posreg(D,prec);
+  if(!isdisc(D)) pari_err_TYPE("posreg, not a positive discriminant", D);
+  if(signe(D)==-1) pari_err_TYPE("posreg, not a positive discriminant", D);
+  if(gequalm1(quadnorm(quadunit(D)))) return gerepileupto(top, gmulsg(2, quadregulator(D, prec)));
+  return gerepileupto(top, quadregulator(D, prec));
 }
 
 //Returns sqrt(D) of type t_QUAD
 GEN quadroot(GEN D){
   pari_sp top = avma;
+  if(typ(D)!=t_INT) pari_err_TYPE("Please enter a non-square INTEGER", D);
+  if(Z_issquare(D)) pari_err_TYPE("Please enter a NON-SQUARE integer", D);
   return gerepileupto(top, quadgen0(shifti(D, 2), -1));//Just do quadgen on 4D
-}
-
-//quadroot but does type check.
-GEN quadroot_tc(GEN D){
-	if(typ(D)!=t_INT) pari_err_TYPE("Please enter a non-square INTEGER", D);
-    if(Z_issquare(D)) pari_err_TYPE("Please enter a NON-SQUARE integer", D);
-    return quadroot(D);
 }
 
 
