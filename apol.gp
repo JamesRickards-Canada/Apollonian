@@ -122,6 +122,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(mat_toibqf, "Inputs: mtx, a hyperbolic matrix in SL(2,Z).\n This returns the PIBQF for which it is the ibqf_automorph, namely [c,d-a,-b]/gcd(c,d-a,b) if mtx=[a,b;c,d].");
 
 	\\CLASS GROUPS AND COMPOSITION OF FORMS
+		install("bqf_allforms","Gp","bqf_allforms","./libapol.so");
+		addhelp(bqf_allforms,"Input D, a proper discriminant.\n Returns the set of equivalence classes of quadratic forms of discriminant D, including the non-primitive forms. The forms are reduced.");
 		install("bqf_comp_tc","GGD1,L,p","bqf_comp","./libapol.so");
 		addhelp(bqf_comp,"Inputs q1, q2, {tored=1}: BQFs q1, q2 of the same discriminant, tored=0, 1.\n Returns the composition of q1 and q2, reduced if tored=1.");
 		install("bqf_identify_tc","GGp","bqf_identify","./libapol.so");
@@ -152,7 +154,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(disc,"disclist, discprimeindex, discsuperorders, isdisc, pell, posreg, quadroot.");
 		addhelp(bqfbasic,"bqf_automorph, bqf_disc, bqf_isequiv, bqf_isreduced, bqf_random, bqf_random_D, bqf_red, bqf_roots, bqf_trans, bqf_trans_coprime, ideal_tobqf.");
 		addhelp(ibqf,"ibqf_isrecip, ibqf_leftnbr, ibqf_redorbit, ibqf_rightnbr, ibqf_river, ibqf_riverforms, ibqf_symmetricarc, mat_toibqf.");
-		addhelp(bqfclass,"bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");
+		addhelp(bqfclass,"bqf_allforms, bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");
 		addhelp(bqfsolve,"bqf_bigreps, bqf_linearsolve, bqf_reps.");
 
 \\hist.c

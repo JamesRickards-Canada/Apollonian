@@ -1736,45 +1736,63 @@ GEN ibqf_isequiv_set_byS_tmat_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD){
 
 
 
+//Computes all equiv classes forms of disc D, including non-primitive forms.
+GEN bqf_allforms(GEN D, long prec){
+  pari_sp top=avma;
+  GEN discs=discsuperorders(D);//Possible discriminants
+  long ld;
+  GEN forms=cgetg_copy(discs, &ld);
+  for(long i=1;i<ld;i++){
+	gel(forms, i)=gel(bqf_ncgp_lexic(gel(discs, i), prec), 3);//The forms.
+	GEN scale=sqrti(diviiexact(D, gel(discs, i)));//What we must scale the forms by.
+	if(!equali1(scale)){//If scale=1, no scaling!
+	  for(long j=1;j<lg(gel(forms, i));j++){
+		for(int k=1;k<=3;k++) gmael3(forms, i, j, k)=mulii(gmael3(forms, i, j, k), scale);//Scale up!
+	  }
+	}
+  }
+  return gerepileupto(top, gconcat1(forms));
+}
+
 //Composes q1, q2. Code adapted from "static void qfb_comp(GEN z, GEN x, GEN y)" in Qfb.c
 GEN bqf_comp(GEN q1, GEN q2){
   pari_sp top=avma;
   GEN n, c, d, y1, v1, v2, c3, m, p1, r;
-  if(ZV_equal(q1,q2)) return bqf_square(q1);
-  n=shifti(subii(gel(q2,2),gel(q1,2)), -1);
-  v1=gel(q1,1);
-  v2=gel(q2,1);
-  c =gel(q2,3);
-  d =bezout(v2,v1,&y1,NULL);
-  if (equali1(d)) m = mulii(y1,n);
+  if(ZV_equal(q1, q2)) return bqf_square(q1);
+  n=shifti(subii(gel(q2, 2), gel(q1, 2)), -1);
+  v1=gel(q1, 1);
+  v2=gel(q2, 1);
+  c=gel(q2, 3);
+  d=bezout(v2, v1, &y1, NULL);
+  if (equali1(d)) m=mulii(y1, n);
   else{
-    GEN s = subii(gel(q2,2), n);
-    GEN x2, y2, d1 = bezout(s,d,&x2,&y2); /* x2 s + y2 (x1 v1 + y1 v2) = d1 */
+    GEN s = subii(gel(q2, 2), n);
+    GEN x2, y2, d1=bezout(s, d, &x2, &y2); /* x2 s + y2 (x1 v1 + y1 v2) = d1 */
     if(!equali1(d1)){
-      v1 = diviiexact(v1,d1);
-      v2 = diviiexact(v2,d1); // gcd = 1 iff q1 or q2 primitive
-      v1 = mulii(v1, gcdii(c,gcdii(gel(q1,3),gcdii(d1,n))));
-      c = mulii(c, d1);
+      v1=diviiexact(v1, d1);
+      v2=diviiexact(v2, d1); // gcd = 1 iff q1 or q2 primitive
+      v1=mulii(v1, gcdii(c, gcdii(gel(q1, 3), gcdii(d1, n))));
+      c=mulii(c, d1);
     }
-    m = addii(mulii(mulii(y1,y2),n), mulii(gel(q2,3),x2));
+    m=addii(mulii(mulii(y1, y2), n), mulii(gel(q2, 3), x2));
   }
   togglesign(m);
-  r = modii(m, v1);
-  p1 = mulii(r, v2);
-  c3 = addii(c, mulii(r,addii(gel(q2,2),p1)));
-  p1=shifti(p1,1);
-  GEN z=cgetg(4,t_VEC);
-  gel(z,1) = mulii(v1,v2);
-  gel(z,2) = addii(gel(q2,2), p1);
-  gel(z,3) = diviiexact(c3,v1); 
-  return gerepileupto(top,z);
+  r=modii(m, v1);
+  p1=mulii(r, v2);
+  c3=addii(c, mulii(r, addii(gel(q2, 2), p1)));
+  p1=shifti(p1, 1);
+  GEN z=cgetg(4, t_VEC);
+  gel(z,1)=mulii(v1, v2);
+  gel(z,2)=addii(gel(q2, 2), p1);
+  gel(z,3)=diviiexact(c3, v1); 
+  return gerepileupto(top, z);
 }
 
 //bqf_comp with reduction. If D<0, can pass rootD as NULL
 GEN bqf_comp_red(GEN q1, GEN q2, GEN rootD, int Dsign){
   pari_sp top=avma;
-  GEN qcomp=bqf_comp(q1,q2);
-  return gerepileupto(top,bqf_red(qcomp,rootD,Dsign,0));
+  GEN qcomp=bqf_comp(q1, q2);
+  return gerepileupto(top, bqf_red(qcomp, rootD, Dsign, 0));
 }
 
 //bqf_comp_red with typecheck
@@ -1798,18 +1816,18 @@ GEN bqf_idelt(GEN D){
   pari_sp top = avma;
   if(smodis(D, 2)==0){//D even
     GEN nD=negi(D);
-    GEN q=cgetg(4,t_VEC);
-    gel(q,1)=gen_1;
-    gel(q,2)=gen_0;
-    gel(q,3)=shifti(nD,-2);//-D/4
-    return gerepileupto(top,q);
+    GEN q=cgetg(4, t_VEC);
+    gel(q, 1)=gen_1;
+    gel(q, 2)=gen_0;
+    gel(q, 3)=shifti(nD, -2);//-D/4
+    return gerepileupto(top, q);
   }//Now D is odd
-  GEN omD=subii(gen_1,D);
-  GEN q=cgetg(4,t_VEC);
-  gel(q,1)=gen_1;
-  gel(q,2)=gen_1;
-  gel(q,3)=shifti(omD,-2);//(1-D)/4
-  return gerepileupto(top,q);
+  GEN omD=subsi(1, D);
+  GEN q=cgetg(4, t_VEC);
+  gel(q, 1)=gen_1;
+  gel(q, 2)=gen_1;
+  gel(q, 3)=shifti(omD, -2);//(1-D)/4
+  return gerepileupto(top, q);
 }
 
 //Identifies q in terms of the given basis. Must pass in the lexicographic ncgp. If doing this on a large set, should sort this first, and use a set search.
@@ -1852,10 +1870,10 @@ GEN bqf_ncgp(GEN D, long prec){
     GEN field=Buchall(gsub(gsqr(pol_x(0)), D), 0, prec);//The field Q(sqrt(D))
 	GEN gpclgp=bnfnarrow(field);//The narrow class group of the maximal order
     if(equali1(gel(gpclgp, 1))){//Class number 1, may as well do this separately
-      GEN rvec=cgetg(4,t_VEC);
-      gel(rvec,1)=gen_1;
-      gel(rvec,2)=mkvecsmall(1);
-      gel(rvec,3)=cgetg(2,t_VEC);
+      GEN rvec=cgetg(4, t_VEC);
+      gel(rvec, 1)=gen_1;
+      gel(rvec, 2)=mkvecsmall(1);
+      gel(rvec, 3)=cgetg(2, t_VEC);
       gmael(rvec, 3, 1)=bqf_idelt(D);
       return gerepileupto(top, rvec);
     }
@@ -1867,8 +1885,8 @@ GEN bqf_ncgp(GEN D, long prec){
     GEN rvec=cgetg(4, t_VEC);
     gel(rvec, 1)=icopy(gel(gpclgp, 1));//clgp size
 	gel(rvec, 2)=cgetg(lg(gel(gpclgp, 3)), t_VECSMALL);//Shape of group
-    gel(rvec, 3)=cgetg_copy(gel(gpclgp,3),&lx);//Generators
-    for(long i=1;i<=ngens;++i){//Inputting backwards, as bnfnarrow does the reverse order to what we want.
+    gel(rvec, 3)=cgetg_copy(gel(gpclgp, 3), &lx);//Generators
+    for(long i=1;i<=ngens;i++){//Inputting backwards, as bnfnarrow does the reverse order to what we want.
       j--;
       gel(rvec, 2)[i]=itos(gmael(gpclgp, 2, j));
       gmael(rvec, 3, i)=bqf_red(gel(idtobqf, j), rootD, signe(D), 0);
@@ -1884,18 +1902,18 @@ GEN bqf_ncgp(GEN D, long prec){
     GEN rvec=cgetg(4, t_VEC);
     gel(rvec, 1)=gen_1;
     gel(rvec, 2)=mkvecsmall(1);//Universal object, okay
-    gel(rvec, 3)=cgetg(2,t_VEC);
+    gel(rvec, 3)=cgetg(2, t_VEC);
     gmael(rvec, 3, 1)=bqf_idelt(D);
     return gerepileupto(top, rvec);
   }
   newgens=cgetg_copy(gel(FULLgp, 3), &lx);
   for(long i=1;i<lg(gel(FULLgp, 3));i++){
-	temp=gtovec(gel(gel(FULLgp, 3),i));
+	temp=gtovec(gmael(FULLgp, 3, i));
 	setlg(temp, 4);//Truncate
 	gel(newgens, i)=bqf_red(temp, rootD, signe(D), 0);
   }
   GEN rvec=cgetg(4, t_VEC);
-  gel(rvec, 1)=icopy(gel(FULLgp,1));//Size
+  gel(rvec, 1)=icopy(gel(FULLgp, 1));//Size
   gel(rvec, 2)=cgetg(lg(gel(FULLgp, 2)), t_VECSMALL);
   gel(rvec, 3)=cgetg_copy(gel(FULLgp, 3), &lx);
   long j=lx;
@@ -2054,11 +2072,11 @@ GEN bqf_ncgp_lexic(GEN D, long prec){
 //q^n without reduction
 GEN bqf_pow(GEN q, GEN n){
   pari_sp top=avma;
-  if(gequal0(n)){GEN D=bqf_disc(q);return gerepileupto(top,bqf_idelt(D));}
+  if(gequal0(n)){GEN D=bqf_disc(q);return gerepileupto(top, bqf_idelt(D));}
   GEN qpow=ZV_copy(q);
   if(signe(n)==-1){
-	togglesign_safe(&gel(qpow,2));//Taking the inverse
-	if(equalis(n,-1)) return qpow;
+	togglesign_safe(&gel(qpow, 2));//Taking the inverse
+	if(equalis(n, -1)) return qpow;
 	q=qpow;//Need to repoint q to here
 	n=negi(n);
   }
@@ -2066,29 +2084,29 @@ GEN bqf_pow(GEN q, GEN n){
   GEN nbin=binary_zv(n);
   for(long i=2;i<lg(nbin);i++){
 	qpow=bqf_square(qpow);
-	if(nbin[i]==1) qpow=bqf_comp(qpow,q);
+	if(nbin[i]==1) qpow=bqf_comp(qpow, q);
   }
-  return gerepileupto(top,qpow);
+  return gerepileupto(top, qpow);
 }
 
 //q^n with reduction
 GEN bqf_pow_red(GEN q, GEN n, GEN rootD, int Dsign){
   pari_sp top=avma;
-  if(gequal0(n)){GEN D=bqf_disc(q);return gerepileupto(top,bqf_idelt(D));}
+  if(gequal0(n)){GEN D=bqf_disc(q);return gerepileupto(top, bqf_idelt(D));}
   GEN qpow=ZV_copy(q);
   if(signe(n)==-1){
-	togglesign_safe(&gel(qpow,2));//Taking the inverse
-	if(equalis(n,-1)) return gerepileupto(top,bqf_red(qpow, rootD, Dsign, 0));
+	togglesign_safe(&gel(qpow, 2));//Taking the inverse
+	if(equalis(n, -1)) return gerepileupto(top, bqf_red(qpow, rootD, Dsign, 0));
 	q=qpow;//Need to repoint q to here
 	n=negi(n);
   }
-  else if(equali1(n)) return gerepileupto(top,bqf_red(qpow, rootD, Dsign, 0));
+  else if(equali1(n)) return gerepileupto(top, bqf_red(qpow, rootD, Dsign, 0));
   GEN nbin=binary_zv(n);
   for(long i=2;i<lg(nbin);i++){
 	qpow=bqf_square_red(qpow, rootD, Dsign);
 	if(nbin[i]==1) qpow=bqf_comp_red(qpow, q, rootD, Dsign);
   }
-  return gerepileupto(top,qpow);
+  return gerepileupto(top, qpow);
 }
 
 //bqf_pow_red with typecheck
@@ -2097,44 +2115,44 @@ GEN bqf_pow_tc(GEN q, GEN n, int tored, long prec){
   if(typ(n)!=t_INT) pari_err_TYPE("Please enter an integer n", n);
   if(tored==1){
     GEN D=bqf_checkdisc(q);
-    if(signe(D)==1) return gerepileupto(top,bqf_pow_red(q, n, gsqrt(D,prec),1));
+    if(signe(D)==1) return gerepileupto(top, bqf_pow_red(q, n, gsqrt(D, prec), 1));
     avma=top;
     return bqf_pow_red(q, n, NULL, -1);
   }//Now no reduction
   bqf_check(q);
-  return bqf_pow(q,n);
+  return bqf_pow(q, n);
 }
 
 //Squares the bqf q; code adapted from the PARI function "static void qfb_sqr(GEN z, GEN x)" in Qfb.c
 GEN bqf_square(GEN q){
   pari_sp top=avma;
   GEN c, d1, x2, v1, v2, c3, m, p1, r;
-  d1=bezout(gel(q,2),gel(q,1),&x2, NULL);//d1=gcd(A,B)
-  c=gel(q,3);
-  m=mulii(c,x2);
-  if(equali1(d1)) v1=v2=gel(q,1);
+  d1=bezout(gel(q,2), gel(q,1), &x2, NULL);//d1=gcd(A,B)
+  c=gel(q, 3);
+  m=mulii(c, x2);
+  if(equali1(d1)) v1=v2=gel(q, 1);
   else{
-    v1=diviiexact(gel(q,1),d1);
-    v2=mulii(v1,gcdii(d1,c)); // = v1 iff q primitive 
-    c=mulii(c,d1);
+    v1=diviiexact(gel(q,1), d1);
+    v2=mulii(v1, gcdii(d1,c)); // = v1 iff q primitive 
+    c=mulii(c, d1);
   }
   togglesign(m);
-  r = modii(m,v2);
+  r = modii(m, v2);
   p1 = mulii(r, v1);
-  c3 = addii(c, mulii(r,addii(gel(q,2),p1)));
-  p1=shifti(p1,1);
-  GEN z=cgetg(4,t_VEC);
-  gel(z,1) = mulii(v1,v2);
-  gel(z,2) = addii(gel(q,2), p1);
-  gel(z,3) = diviiexact(c3,v2);
-  return gerepileupto(top,z);
+  c3 = addii(c, mulii(r, addii(gel(q, 2), p1)));
+  p1=shifti(p1, 1);
+  GEN z=cgetg(4, t_VEC);
+  gel(z,1) = mulii(v1, v2);
+  gel(z,2) = addii(gel(q, 2), p1);
+  gel(z,3) = diviiexact(c3, v2);
+  return gerepileupto(top, z);
 }
 
 //bqf_square with reduction. If D<0, can pass rootD as NULL
 GEN bqf_square_red(GEN q, GEN rootD, int Dsign){
   pari_sp top=avma;
   GEN qsqr=bqf_square(q);
-  return gerepileupto(top,bqf_red(qsqr,rootD,Dsign,0));
+  return gerepileupto(top, bqf_red(qsqr, rootD, Dsign, 0));
 }
 
 //bqf_square_red with typecheck
@@ -2142,9 +2160,9 @@ GEN bqf_square_tc(GEN q, int tored, long prec){
   pari_sp top=avma;
   if(tored==1){
     GEN D=bqf_checkdisc(q);
-    if(signe(D)==1) return gerepileupto(top,bqf_square_red(q,gsqrt(D,prec),1));
+    if(signe(D)==1) return gerepileupto(top, bqf_square_red(q, gsqrt(D,prec), 1));
     avma=top;
-    return bqf_square_red(q,NULL,-1);
+    return bqf_square_red(q, NULL, -1);
   }
   bqf_check(q);
   return bqf_square(q);
@@ -2161,28 +2179,28 @@ GEN ideal_tobqf(GEN numf, GEN ideal){
   GEN a1 = lift(gmodulo(gmul(alph1, alph2conj), member_pol(numf))); //a1=alph1*conj(alph2)=u*sqrt(D)+b
   GEN A, C;
   if(gcmpgs(polcoef_i(a1, 1, varno), 0) > 0){//if >0 we are not properly ordered (we require (conj(a1)-a1)/sqrt(D)>0), and must swap alph1,alph2; */
-    A=nfnorm(numf,alph2);
-    C=nfnorm(numf,alph1);
+    A=nfnorm(numf, alph2);
+    C=nfnorm(numf, alph1);
   }
   else{
-    A=nfnorm(numf,alph1);
-    C=nfnorm(numf,alph2);
+    A=nfnorm(numf, alph1);
+    C=nfnorm(numf, alph2);
   }
-  GEN B=gmul(polcoef_i(a1,0,varno),gen_2);//B/2 may be a half integer, so can't use shifti or mulii sadly
+  GEN B=gmul(polcoef_i(a1, 0, varno), gen_2);//B/2 may be a half integer, so can't use shifti or mulii sadly
   togglesign_safe(&B);//Negate B in place
-  GEN d=gcdii(gcdii(A,B),C);
-  GEN Q=cgetg(4,t_VEC);
+  GEN d=gcdii(gcdii(A, B), C);
+  GEN Q=cgetg(4, t_VEC);
   if(equali1(d)){
     gel(Q,1)=icopy(A);
     gel(Q,2)=icopy(B);
     gel(Q,3)=icopy(C);
   }
   else{
-    gel(Q,1)=diviiexact(A,d);
-    gel(Q,2)=diviiexact(B,d);
-    gel(Q,3)=diviiexact(C,d);
+    gel(Q,1)=diviiexact(A, d);
+    gel(Q,2)=diviiexact(B, d);
+    gel(Q,3)=diviiexact(C, d);
   }
-  return gerepileupto(top,Q);
+  return gerepileupto(top, Q);
 }
 
 
