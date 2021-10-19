@@ -1736,22 +1736,26 @@ GEN ibqf_isequiv_set_byS_tmat_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD){
 
 
 
-//Computes all equiv classes forms of disc D, including non-primitive forms. If GL=1, we take up to GL-equivalence.
-GEN bqf_allforms(GEN D, int GL, long prec){
+//Computes all equiv classes forms of disc D. If prim=0, we include non-primitive forms. If GL=1, we take up to GL-equivalence. This relies on bqf_ncgp_lexic.
+GEN bqf_allforms(GEN D, int prim, int GL, long prec){
   pari_sp top=avma;
-  GEN discs=discsuperorders(D);//Possible discriminants
-  long ld;
-  GEN forms=cgetg_copy(discs, &ld);
-  for(long i=1;i<ld;i++){
-	gel(forms, i)=gel(bqf_ncgp_lexic(gel(discs, i), prec), 3);//The forms.
-	GEN scale=sqrti(diviiexact(D, gel(discs, i)));//What we must scale the forms by.
-	if(!equali1(scale)){//If scale=1, no scaling!
-	  for(long j=1;j<lg(gel(forms, i));j++){
-		for(int k=1;k<=3;k++) gmael3(forms, i, j, k)=mulii(gmael3(forms, i, j, k), scale);//Scale up!
+  GEN forms;
+  if(prim) forms=gel(bqf_ncgp_lexic(D, prec), 3);//Just primitive
+  else{
+    GEN discs=discsuperorders(D);//Possible discriminants
+    long ld;
+    forms=cgetg_copy(discs, &ld);
+    for(long i=1;i<ld;i++){
+	  gel(forms, i)=gel(bqf_ncgp_lexic(gel(discs, i), prec), 3);//The forms.
+	  GEN scale=sqrti(diviiexact(D, gel(discs, i)));//What we must scale the forms by.
+	  if(!equali1(scale)){//If scale=1, no scaling!
+	    for(long j=1;j<lg(gel(forms, i));j++){
+		  for(int k=1;k<=3;k++) gmael3(forms, i, j, k)=mulii(gmael3(forms, i, j, k), scale);//Scale up!
+	    }
 	  }
-	}
+    }
+    forms=shallowconcat1(forms);
   }
-  forms=shallowconcat1(forms);
   GEN newforms=forms;
   if(GL){
 	if(signe(D)==1) pari_warn(warner, "GL not yet implemented for D>0");

@@ -176,7 +176,7 @@ GEN ibqf_isequiv_set_byS_tmat_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD);
 
 
 //CLASS GROUPS AND COMPOSITION OF FORMS
-GEN bqf_allforms(GEN D, int GL, long prec);
+GEN bqf_allforms(GEN D, int prim, int GL, long prec);
 GEN bqf_comp(GEN q1, GEN q2);
 GEN bqf_comp_red(GEN q1, GEN q2, GEN rootD, int Dsign);
 GEN bqf_comp_tc(GEN q1, GEN q2, int tored, long prec);

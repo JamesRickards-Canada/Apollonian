@@ -122,8 +122,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(mat_toibqf, "Inputs: mtx, a hyperbolic matrix in SL(2,Z).\n This returns the PIBQF for which it is the ibqf_automorph, namely [c,d-a,-b]/gcd(c,d-a,b) if mtx=[a,b;c,d].");
 
 	\\CLASS GROUPS AND COMPOSITION OF FORMS
-		install("bqf_allforms","GD0,L,p","bqf_allforms","./libapol.so");
-		addhelp(bqf_allforms,"Input D, {GL=0}: D a proper discriminant.\n Returns the set of equivalence classes of quadratic forms of discriminant D, including the non-primitive forms. The forms are reduced. If GL=1, we take the GL-equivalence classes, else we take SL-equivalence classes.");
+		install("bqf_allforms","GD0,L,D0,L,p","bqf_allforms","./libapol.so");
+		addhelp(bqf_allforms,"Input D, {prim=0}, {GL=0}: D a proper discriminant.\n Returns the set of equivalence classes of quadratic forms of discriminant D. The returned forms are reduced. If prim=0, we include the non-primitive forms. If GL=1, we take the GL-equivalence classes, else we take SL-equivalence classes.");
 		install("bqf_comp_tc","GGD1,L,p","bqf_comp","./libapol.so");
 		addhelp(bqf_comp,"Inputs q1, q2, {tored=1}: BQFs q1, q2 of the same discriminant, tored=0, 1.\n Returns the composition of q1 and q2, reduced if tored=1.");
 		install("bqf_identify_tc","GGp","bqf_identify","./libapol.so");
