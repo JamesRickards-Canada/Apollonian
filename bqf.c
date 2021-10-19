@@ -131,35 +131,21 @@ GEN disclist(GEN D1, GEN D2, int fund, GEN cop){
 
 //Generate the list of primes dividing D for which D/p^2 is a discriminant, can pass in facs=factorization of D
 GEN discprimeindex(GEN D, GEN facs){
-  pari_sp top = avma;
-  if(gequal0(facs)) facs = Z_factor(D);
-  glist *S=NULL;//Pointer to the list start
-  long numprimes=itos(gel(matsize(facs),1));
-  long i;
-  long count=0;//Counts how many
-  GEN curp=gen_0;
-  GEN curexp=gen_0;
-  GEN four=stoi(4);
-  for(i=1;i<=numprimes;++i){//Run through the primes, test if we can divide out or not.
-    curp=gcoeff(facs,i,1);
-    curexp=gcoeff(facs,i,2);
-    if(cmpii(curexp,gen_2)>=0){//Exponent needs to be at least 2
-      if(cmpii(curp,gen_2)>0){//If p>2 we are good
-        glist_putstart(&S,curp);
-        count++;
-      }
-      else if(cmpii(curexp,four)>=0){//Power of 2 is at least 4=good
-        glist_putstart(&S,curp);
-        count++;
-      }
-      else if(cmpii(curexp,gen_2)==0 && gequal1(modii(diviiexact(D,four),four))){//4*1 mod 4
-        glist_putstart(&S,curp);
-        count++;
-      }
+  pari_sp top=avma;
+  if(gequal0(facs)) facs=Z_factor(D);
+  long numprimes=itos(gel(matsize(facs), 1));
+  GEN curp=gen_0, curexp=gen_0;
+  GEN plist=vectrunc_init(numprimes+1);
+  for(long i=1;i<=numprimes;i++){//Run through the primes, test if we can divide out or not.
+    curp=gcoeff(facs, i, 1);
+    curexp=gcoeff(facs, i, 2);
+    if(cmpis(curexp, 2)>=0){//Exponent needs to be at least 2
+      if(cmpis(curp, 2)>0) vectrunc_append(plist, curp);//If p>2 we are good
+      else if(cmpis(curexp, 4)>=0) vectrunc_append(plist, curp);//Power of 2 is at least 4=good
+      else if(equalis(curexp, 2) && equali1(modis(shifti(D, -2), 4))) vectrunc_append(plist, curp);//4*1 mod 4
     }
   }
-  GEN Svec=glist_togvec(S, count, -1);
-  return gerepileupto(top, Svec);
+  return gerepilecopy(top, plist);
 }
 
 //discprimeindex but also checks D is a discriminant
