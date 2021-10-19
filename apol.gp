@@ -166,7 +166,17 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("hist_rescale","GGLp","hist_rescale","./libapol.so");
 		addhelp(hist_rescale,"Inputs data, histdata, scale: the sorted data, the length 8 vector output of a hist_ method, and scale=0, 1.\n If scale=1 scales the data so the total area is 1, and if scale=0 uses the absolute count for the y-axis. Returns the updated histdata.");
 
+	\\REGRESSIONS & PLOTS
+		install("OLS","GGD1,L,","OLS","./libapol.so");
+		addhelp(OLS,"Inputs X, y, {retrsqr=1}:  m*n matrix X with top row being all 1's, length n column vector y, retrsqr=0, 1.\n Performs ordinary least squares regression on the data, where the n inputs are the columns of X, and the outputs are the entries of y. We must include a constant term, hence why the first row of X must be all 1's. If retrsqr=1, returns [pararms, R^2], and otherwise returns params, where params is the length m column vector of best fit parameters.");
+		install("OLS_nointercept","GGD1,L,","OLS_nointercept","./libapol.so");
+		addhelp(OLS_nointercept,"Inputs X, y, {retrsqr=1}: vector X, column vector y (of same length), retrsqr=0, 1.\n Performs ordinary least squares regression on the data assuming that y[i]=c*X[i], i.e. the y-intercept is 0. Returns c if retrsqr=0, or [c, R^2] otherwise.");
+		install("OLS_single","GGD1,L,","OLS_single","./libapol.so");
+		addhelp(OLS_single,"Inputs x, y, {retrsqr=1}: vector x, column vector y, retrsqr=0, 1. Performs linear regression for a single variable (essentially a macro for OLS with y=mx+b.");
+		install("rsquared","GGG","rsquared","./libapol.so");
+		addhelp(rsquared,"Inputs X, y, fit: X and y data supplied to OLS, and fit the proposed fit (a column vector of parameters). This returns the R^2 value for this proposal.");
+
 	\\GENERAL HELP
-		addhelp(hist,"This package deals with visualizing data. Installed methods:\n hist_make, hist_rebin, hist_recompile, hist_rerange, hist_rescale.");
+		addhelp(hist,"This package deals with visualizing data. Installed methods:\n hist_make, hist_rebin, hist_recompile, hist_rerange, hist_rescale, OLS, OLS_nointercept, OLS_single, rsquared.");
 
 default(parisize, "4096M");\\Must come at the end

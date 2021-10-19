@@ -229,3 +229,9 @@ GEN hist_rebin(GEN data, GEN histdata, GEN nbins, long prec);
 void hist_recompile(GEN histdata);
 GEN hist_rerange(GEN data, GEN histdata, GEN minx, GEN maxx, long prec);
 GEN hist_rescale(GEN data, GEN histdata, int scale, long prec);
+
+//REGRESSIONS
+GEN OLS(GEN X, GEN y, int retrsqr);
+GEN OLS_nointercept(GEN X, GEN y, int retrsqr);
+GEN OLS_single(GEN x, GEN y, int retrsqr);
+GEN rsquared(GEN X, GEN y, GEN fit);
