@@ -1736,8 +1736,8 @@ GEN ibqf_isequiv_set_byS_tmat_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD){
 
 
 
-//Computes all equiv classes forms of disc D, including non-primitive forms.
-GEN bqf_allforms(GEN D, long prec){
+//Computes all equiv classes forms of disc D, including non-primitive forms. If GL=1, we take up to GL-equivalence.
+GEN bqf_allforms(GEN D, int GL, long prec){
   pari_sp top=avma;
   GEN discs=discsuperorders(D);//Possible discriminants
   long ld;
@@ -1751,7 +1751,19 @@ GEN bqf_allforms(GEN D, long prec){
 	  }
 	}
   }
-  return gerepileupto(top, gconcat1(forms));
+  forms=shallowconcat1(forms);
+  GEN newforms=forms;
+  if(GL){
+	if(signe(D)==1) pari_warn(warner, "GL not yet implemented for D>0");
+	else{
+	  long lf=lg(forms);
+	  newforms=vectrunc_init(lf);
+	  for(long i=1;i<lf;i++){
+		if(signe(gmael(forms, i, 2))!=-1) vectrunc_append(newforms, gel(forms, i));//Only keep B>=0.
+	  }
+	}
+  }
+  return gerepilecopy(top, newforms);
 }
 
 //Composes q1, q2. Code adapted from "static void qfb_comp(GEN z, GEN x, GEN y)" in Qfb.c
