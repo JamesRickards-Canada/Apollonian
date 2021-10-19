@@ -2207,14 +2207,14 @@ GEN ideal_tobqf(GEN numf, GEN ideal){
   GEN d=gcdii(gcdii(A, B), C);
   GEN Q=cgetg(4, t_VEC);
   if(equali1(d)){
-    gel(Q,1)=icopy(A);
-    gel(Q,2)=icopy(B);
-    gel(Q,3)=icopy(C);
+    gel(Q, 1)=icopy(A);
+    gel(Q, 2)=icopy(B);
+    gel(Q, 3)=icopy(C);
   }
   else{
-    gel(Q,1)=diviiexact(A, d);
-    gel(Q,2)=diviiexact(B, d);
-    gel(Q,3)=diviiexact(C, d);
+    gel(Q, 1)=diviiexact(A, d);
+    gel(Q, 2)=diviiexact(B, d);
+    gel(Q, 3)=diviiexact(C, d);
   }
   return gerepileupto(top, Q);
 }
@@ -3036,11 +3036,9 @@ static GEN bqf_linearsolve_zquad(GEN yzsols, GEN n2, GEN Minv){
 
 //Checks that an input is an integral bqf (does NOT check discriminant!=square), and produces a pari_error if not. Used for not getting segmentation faults from a GP interface user. 
 void bqf_check(GEN q){
-  if(typ(q)!=t_VEC) pari_err(e_TYPE,"bqf: please input a length 3 integral VECTOR",q);
-  if(lg(q)!=4) pari_err(e_TYPE,"bqf: please input a LENGTH 3 integral vector",q);
-  if(typ(gel(q,1))!=t_INT) pari_err(e_TYPE,"bqf: please input a length 3 INTEGRAL vector",q);
-  if(typ(gel(q,2))!=t_INT) pari_err(e_TYPE,"bqf: please input a length 3 INTEGRAL vector",q);
-  if(typ(gel(q,3))!=t_INT) pari_err(e_TYPE,"bqf: please input a length 3 INTEGRAL vector",q);
+  if(typ(q)!=t_VEC) pari_err_TYPE("Please input a length 3 integral VECTOR", q);
+  if(lg(q)!=4) pari_err_TYPE("Please input a LENGTH 3 integral vector", q);
+  for(int i=1;i<=3;i++) if(typ(gel(q, i))!=t_INT) pari_err_TYPE("Please input a length 3 INTEGRAL vector", q);
 }
 
 //Checks that an input is an integral bqf with disc!=square and produces a pari_error if not. Returns the discriminant
@@ -3048,18 +3046,15 @@ GEN bqf_checkdisc(GEN q){
   bqf_check(q);
   GEN D=bqf_disc(q);
   if(isdisc(D)) return D;
-  pari_err(e_TYPE,"bqf: please input a bqf with non-square discriminant",q);
+  pari_err(e_TYPE,"bqf: please input a bqf with non-square discriminant", q);
   return gen_0;
 }
 
 //Checks that an input is an integral 2x2 matrix, and produces a pari_error if not. Used for not getting segmentation faults from a GP interface user. 
 void intmatrix_check(GEN mtx){
-  if(typ(mtx)!=t_MAT) pari_err(e_TYPE,"mat: please input a hyberbolic two x two intgral MATRIX",mtx);
-  if(lg(mtx)!=3) pari_err(e_TYPE,"mat: please input a hyberbolic two x TWO intgral matrix",mtx);
-  if(lg(gel(mtx,1))!=3) pari_err(e_TYPE,"mat: please input a hyberbolic TWO x two intgral matrix",mtx);
-  if(typ(gcoeff(mtx,1,1))!=t_INT) pari_err(e_TYPE,"mat: please input a hyberbolic two x two INTEGRAL matrix",mtx);
-  if(typ(gcoeff(mtx,1,2))!=t_INT) pari_err(e_TYPE,"mat: please input a hyberbolic two x two INTEGRAL matrix",mtx);
-  if(typ(gcoeff(mtx,2,1))!=t_INT) pari_err(e_TYPE,"mat: please input a hyberbolic two x two INTEGRAL matrix",mtx);
-  if(typ(gcoeff(mtx,2,2))!=t_INT) pari_err(e_TYPE,"mat: please input a hyberbolic two x two INTEGRAL matrix",mtx);
+  if(typ(mtx)!=t_MAT) pari_err(e_TYPE, "Please input a 2x2 intgral MATRIX", mtx);
+  if(lg(mtx)!=3) pari_err(e_TYPE, "Please input a 2x2 intgral matrix", mtx);
+  if(lg(gel(mtx, 1))!=3) pari_err(e_TYPE, "Please input a 2x2 intgral matrix", mtx);
+  for(int i=1;i<=2;i++) for(int j=1;j<=2;j++) if(typ(gcoeff(mtx, i, j))!=t_INT) pari_err(e_TYPE, "Please input a 2x2 INTEGRAL matrix", mtx);
 }
 

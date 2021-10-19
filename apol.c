@@ -102,7 +102,7 @@ GEN apol_move(GEN v, int ind){
 //Computes apol_ncgpforms, and returns the depths of the corresponding circles of curvature n.
 GEN apol_ncgp_depths(GEN n, long prec){
   pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, 0, 1, prec);//The forms
+  GEN forms=apol_ncgp_forms(n, 1, 0, prec);//The forms
   long maxdepth=0, lf=lg(forms);
   GEN depths=cgetg(lf, t_VECSMALL);
   for(long i=1;i<lf;i++){//Computing depths
@@ -116,7 +116,7 @@ GEN apol_ncgp_depths(GEN n, long prec){
 }
 
 //Computes ncgp(-4n^2), and output the ACP's created from these quadratic forms with apol_make_qf. We only count ambiguous forms ONCE.
-GEN apol_ncgp_forms(GEN n, int pos, int red, int include2torsion, long prec){
+GEN apol_ncgp_forms(GEN n, int pos, int red, long prec){
   pari_sp top=avma;
   GEN D=mulis(sqri(n), -4);
   GEN U=bqf_ncgp_lexic(D, prec);
@@ -126,16 +126,15 @@ GEN apol_ncgp_forms(GEN n, int pos, int red, int include2torsion, long prec){
   for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
     GEN q=gel(forms, i);
 	if(signe(gel(q, 2))==-1) continue;
-	if(include2torsion==0 && (gequal0(gel(q, 2)) || equalii(gel(q, 1), gel(q, 3)) || equalii(gel(q, 1), gel(q, 2)))) continue;//Order <=2, equivalent to A=B or A=C or B=0
 	vectrunc_append(quads, apol_make_fromqf(q, pos, red));
   }
   return gerepileupto(top, quads);
 }
 
 //Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative). If red=0, we actually just take the data as is, and output the smallest curvature in each of the quadruples (no negation).
-GEN apol_ncgp_smallcurve(GEN n, int red, int include2torsion, long prec){
+GEN apol_ncgp_smallcurve(GEN n, int red, long prec){
   pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, red, include2torsion, prec);
+  GEN forms=apol_ncgp_forms(n, 1, red, prec);
   long lf;
   GEN curves=cgetg_copy(forms, &lf);
   for(long i=1;i<lf;i++){
@@ -148,7 +147,7 @@ GEN apol_ncgp_smallcurve(GEN n, int red, int include2torsion, long prec){
 //apol_ncgp_smallcurve, but we only reduce maxsteps steps.
 GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec){
   pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, 0, 1, prec);
+  GEN forms=apol_ncgp_forms(n, 1, 0, prec);
   long lf;
   GEN curves=cgetg_copy(forms, &lf);
   for(long i=1;i<lf;i++){
