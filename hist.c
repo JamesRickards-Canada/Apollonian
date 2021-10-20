@@ -66,7 +66,7 @@ void hist_compile(char *imagename, char *autoname, int open){
 }
 
 //Makes a histogram with the inputs, defaulting to the defaults. Adjust it to your liking with the hist_re-methods. Should only be called once with the given data.
-GEN hist_make(GEN data, char *imagename, char *autofile, int compilenew, char *plotoptions, int open, long prec){
+GEN hist_make(GEN data, char *imagename, char *autofile, int compilenew, int open, char *plotoptions, long prec){
   return hist_tobins_defaultbins(data, gel(data, 1), gel(data, lg(data)-1), 0, compilenew, imagename, autofile, plotoptions, open, prec);
 }
 

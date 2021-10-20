@@ -220,7 +220,7 @@ void intmatrix_check(GEN mtx);
 //HISTOGRAMS
 void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *autofile, char *plotoptions, int open);
 void hist_compile(char *imagename, char *autoname, int open);
-GEN hist_make(GEN data, char *imagename, char *autofile, int compilenew, char *plotoptions, int open, long prec);
+GEN hist_make(GEN data, char *imagename, char *autofile, int compilenew, int open, char *plotoptions, long prec);
 GEN hist_tobins(GEN data, GEN minx, GEN maxx, GEN nbins, int toscale, int compilenew, char *imagename, char *autofile, char *plotoptions, int open, long prec);
 GEN hist_tobins_defaultbins(GEN data, GEN minx, GEN maxx, int toscale, int compilenew, char *imagename, char *autofile, char *plotoptions, int open, long prec);
 GEN hist_rebin(GEN data, GEN histdata, GEN nbins, long prec);
