@@ -23,8 +23,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_ncgp_smallcurve_bsteps,"Input n, maxsteps.\n Does apol_ncgp_smallcurve, but does NOT reduce the forms; instead, we reduce them by at most maxsteps only. We then return the raw data of the smallest element (without negating the curvature).");
 		install("apol_orbit","GLD0,G,","apol_orbit","./libapol.so");
 		addhelp(apol_orbit,"Inputs v, depth, {bound=0}: vector v representing an ACP, positive integer depth, bound>=0.\n Returns a sorted list of curvatures of circles up to depth depth, i.e. we do up to depth circle replacements. If bound!=0, we only count those of curvature <=bound. The length of the list (before removing repeated terms, and assuming bound=0) is 2*(3^depth+1).");
-		install("apol_orbit_1","GLD1,L,","apol_orbit_1","./libapol.so");
-		addhelp(apol_orbit_1,"Inputs v, depth, {ind=1}: vector v representing an ACP, positive integer depth, 1<=ind<=4.\n Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 3*2^depth.");
+		install("apol_orbit_1","GD1,L,LD0,G,","apol_orbit_1","./libapol.so");
+		addhelp(apol_orbit_1,"Inputs v, {ind=1}, depth, {bound=0}: vector v representing an ACP, 1<=ind<=4, positive integer depth, bound>=0.\n Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. If bound!=0, we only count those of curvature <=bound. The length of the list (before removing repeated terms, and assuming bound=0) is 3*2^depth.");
 		install("apol_qf", "GD1,L,", "apol_qf", "./libapol.so");
 		addhelp(apol_qf, "Inputs v, {ind=1}: vector v representing an ACP, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
 		install("apol_quaddepth","lG","apol_quaddepth","./libapol.so");

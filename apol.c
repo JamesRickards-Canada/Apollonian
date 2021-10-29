@@ -157,7 +157,7 @@ GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec){
   return gerepileupto(top, ZV_sort(curves));
 }
 
-//Returns a sorted list of curvatures of circles, where we go to depth depth, i.e. we do up to depth circle replacements. I may have to do some careful garbage collection for high depths. We also only retrieve curvatures <=bound, if this is passed in as non-zero.
+//Returns a sorted list of curvatures of circles, where we go to depth depth, i.e. we do up to depth circle replacements. We also only retrieve curvatures <=bound, if this is passed in as non-zero.
 GEN apol_orbit(GEN v, int depth, GEN bound){
   pari_sp top=avma;
   int ind=1;//We reuse ind to track which depth we are going towards.
@@ -167,11 +167,16 @@ GEN apol_orbit(GEN v, int depth, GEN bound){
   int forward=1, usebound=1-gequal0(bound);//Tracks if we are going forward or not.
   long Nreps;
   if(gequal0(bound)) Nreps=2*(itos(powuu(3, depth))+1)+1;
-  else Nreps=itos(bound);//If bound!=0, the depth we need may be super large.
+  else Nreps=itos(bound);//If bound!=0, and depth is large, the previous Nreps definition may be too large
   GEN reps=vectrunc_init(Nreps);
-  for(int i=1;i<=4;i++) vectrunc_append(reps, gel(v, i));//First 4 reps
+  if(usebound){
+	for(int i=1;i<=4;i++) if(cmpii(gel(v, i), bound)<=0) vectrunc_append(reps, gel(v, i));//First 4 reps
+  }
+  else{
+    for(int i=1;i<=4;i++) vectrunc_append(reps, gel(v, i));//First 4 reps
+  }
   do{//1<=ind<=depth is assumed.
-    if(lg(reps)==Nreps){//We don't have enough space!
+    if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
 	  long newNreps=2*Nreps-1;
 	  GEN newreps=vectrunc_init(newNreps);
 	  for(long i=1;i<Nreps;i++) vectrunc_append(newreps, gel(reps, i));//Append the old list
@@ -198,8 +203,8 @@ GEN apol_orbit(GEN v, int depth, GEN bound){
   return gerepileupto(top, ZV_sort(reps));
 }
 
-//Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. I may have to do some careful garbage collection for high depths.
-GEN apol_orbit_1(GEN v, int depth, int ind){
+//Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements.
+GEN apol_orbit_1(GEN v, int ind, int depth, GEN bound){
   pari_sp top=avma;
   GEN v1;
   if(ind==1) v1=v;
@@ -214,23 +219,40 @@ GEN apol_orbit_1(GEN v, int depth, int ind){
   GEN W=zerovec(depth);//Tracks the sequence of APC's; W[ind] is at ind-1 depth
   gel(W, 1)=v1;//The first one.
   GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
-  int forward=1;//Tracks if we are going forward or not.
-  long Nreps=3*itos(int2n(depth))+1, ireps=4;
-  GEN reps=cgetg(Nreps, t_VEC);
-  for(int i=2;i<=4;i++) gel(reps, i-1)=gel(v, i);//First 3 reps
+  int forward=1, usebound=1-gequal0(bound);//Tracks if we are going forward or not.
+  long Nreps;
+  if(gequal0(bound)) Nreps=3*itos(int2n(depth))+1;
+  else Nreps=itos(bound);//If bound!=0, and depth is large, the previous Nreps definition may be too large
+  GEN reps=vectrunc_init(Nreps);
+  if(usebound){
+	for(int i=2;i<=4;i++) if(cmpii(gel(v1, i), bound)<=0) vectrunc_append(reps, gel(v1, i));//First 3 reps
+  }
+  else{
+    for(int i=2;i<=4;i++) vectrunc_append(reps, gel(v1, i));//First 3 reps
+  }
   do{//1<=ind<=depth is assumed.
+	if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
+	  long newNreps=2*Nreps-1;
+	  GEN newreps=vectrunc_init(newNreps);
+	  for(long i=1;i<Nreps;i++) vectrunc_append(newreps, gel(reps, i));//Append the old list
+	  Nreps=newNreps;
+	  reps=newreps;
+	}
     I[ind]=forward? 2:I[ind]+1;
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
 	if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
 	//At this point, we can go on with valid and new inputs
 	GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
-	gel(reps, ireps)=gel(newv, I[ind]);//Add the new element
-	ireps++;//Increment ireps
-	if(ind==depth) forward=0;
-	else{//We can keep going forward
-      ind++;
-	  gel(W, ind)=newv;
-	  forward=1;
+	GEN elt=gel(newv, I[ind]);//The new element
+	if(usebound && cmpii(elt, bound)==1) forward=0;//Must go back, elt too big
+	else{
+	  vectrunc_append(reps, elt);//Add the new element
+	  if(ind==depth) forward=0;
+	  else{//We can keep going forward
+        ind++;
+	    gel(W, ind)=newv;
+	    forward=1;
+	  }
 	}
   }while(ind>0);
   return gerepileupto(top, ZV_sort(reps));
