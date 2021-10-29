@@ -165,7 +165,7 @@ GEN hist_rescale(GEN data, GEN histdata, int scale, long prec){
 
 
 
-//3: REGRESSIONS
+//REGRESSIONS
 
 
 
@@ -227,5 +227,29 @@ GEN rsquared(GEN X, GEN y, GEN fit){
 	ssres=gadd(ssres, gsqr(gsub(gel(y, i), gel(predicted, i))));
   }
   return gerepileupto(top, gsubsg(1, gdiv(ssres, sstot)));
+}
+
+
+
+//DATA
+
+
+
+//Returns [vsort, count], where vsort is the sorted vector v with duplicates removed, and count is the Vecsmall of corresponding number of each in the original vector v. This is not the most efficient, but is fine.
+GEN veccount(GEN v){
+  pari_sp top=avma;
+  GEN vsort=sort(v);//Sort it.
+  long lv=lg(vsort);
+  GEN uniq=vectrunc_init(lv), count=vecsmalltrunc_init(lv);
+  vectrunc_append(uniq, gel(vsort, 1));
+  long run=1;
+  for(long i=2;i<lv;i++){
+	if(gequal(gel(vsort, i), gel(vsort, i-1))){run++;continue;}//Go on
+	vecsmalltrunc_append(count, run);//run is over.
+	run=1;
+	vectrunc_append(uniq, gel(vsort, i));//Add the new number in.
+  }
+  vecsmalltrunc_append(count, run);
+  return gerepilecopy(top, mkvec2(uniq, count));
 }
 

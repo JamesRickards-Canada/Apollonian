@@ -31,7 +31,7 @@ GEN apol_ncgp_depths(GEN n, long prec);
 GEN apol_ncgp_forms(GEN n, int pos, int red, long prec);
 GEN apol_ncgp_smallcurve(GEN n, int red, long prec);
 GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
-GEN apol_orbit(GEN v, int depth);
+GEN apol_orbit(GEN v, int depth, GEN bound);
 GEN apol_orbit_1(GEN v, int depth, int ind);
 GEN apol_qf(GEN v, int ind);
 GEN apol_red(GEN v, int seq);
@@ -233,3 +233,6 @@ GEN OLS(GEN X, GEN y, int retrsqr);
 GEN OLS_nointercept(GEN X, GEN y, int retrsqr);
 GEN OLS_single(GEN x, GEN y, int retrsqr);
 GEN rsquared(GEN X, GEN y, GEN fit);
+
+//DATA
+GEN veccount(GEN v);

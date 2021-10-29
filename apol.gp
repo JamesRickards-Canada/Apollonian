@@ -21,8 +21,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_ncgp_smallcurve,"Input n, {red=1}: n a positive integer.\n Computes apol_ncgp_forms(n, 1, red), takes the corresponding smallest curvatures and returns the sorted list. If red=1, we reduce the quadruples, and negate the curvature (since it is <=0 always). If red=0, we do not do so, since it could be positive or negative. The return vector has length h^{+/-}(-4n^2), and each entry is from the set {0,1,...,n-1}.");
 		install("apol_ncgp_smallcurve_bsteps","GLp","apol_ncgp_smallcurve_bsteps","./libapol.so");
 		addhelp(apol_ncgp_smallcurve_bsteps,"Input n, maxsteps.\n Does apol_ncgp_smallcurve, but does NOT reduce the forms; instead, we reduce them by at most maxsteps only. We then return the raw data of the smallest element (without negating the curvature).");
-		install("apol_orbit","GL","apol_orbit","./libapol.so");
-		addhelp(apol_orbit,"Inputs v, depth: vector v representing an ACP, positive integer depth.\n Returns a sorted list of curvatures of circles up to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 2*(3^depth+1).");
+		install("apol_orbit","GLD0,G,","apol_orbit","./libapol.so");
+		addhelp(apol_orbit,"Inputs v, depth, {bound=0}: vector v representing an ACP, positive integer depth, bound>=0.\n Returns a sorted list of curvatures of circles up to depth depth, i.e. we do up to depth circle replacements. If bound!=0, we only count those of curvature <=bound. The length of the list (before removing repeated terms, and assuming bound=0) is 2*(3^depth+1).");
 		install("apol_orbit_1","GLD1,L,","apol_orbit_1","./libapol.so");
 		addhelp(apol_orbit_1,"Inputs v, depth, {ind=1}: vector v representing an ACP, positive integer depth, 1<=ind<=4.\n Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. The length of the list (before removing repeated terms) is 3*2^depth.");
 		install("apol_qf", "GD1,L,", "apol_qf", "./libapol.so");
@@ -180,7 +180,11 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("rsquared","GGG","rsquared","./libapol.so");
 		addhelp(rsquared,"Inputs X, y, fit: X and y data supplied to OLS, and fit the proposed fit (a column vector of parameters). This returns the R^2 value for this proposal.");
 
+	\\DATA
+		install("veccount","G","veccount","./libapol.so");
+		addhelp(veccount,"Input v, a vector.\n Returns [uniq, count], where uniq is the sorted vector v with repeats removed, and count is the corresponding number of times they appear in v.");
+
 	\\GENERAL HELP
-		addhelp(hist,"This package deals with visualizing data. Installed methods:\n hist_make, hist_rebin, hist_recompile, hist_rerange, hist_rescale, OLS, OLS_nointercept, OLS_single, rsquared.");
+		addhelp(hist,"This package deals with visualizing data. Installed methods:\n hist_make, hist_rebin, hist_recompile, hist_rerange, hist_rescale, OLS, OLS_nointercept, OLS_single, rsquared, veccount.");
 
 default(parisize, "4096M");\\Must come at the end
