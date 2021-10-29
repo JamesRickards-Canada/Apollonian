@@ -203,7 +203,7 @@ GEN apol_orbit(GEN v, int depth, GEN bound){
   return gerepileupto(top, ZV_sort(reps));
 }
 
-//Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements.
+//Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. We also only retrieve curvatures <=bound, if this is passed in as non-zero.
 GEN apol_orbit_1(GEN v, int ind, int depth, GEN bound){
   pari_sp top=avma;
   GEN v1;
@@ -346,7 +346,8 @@ GEN apol_search(GEN v, GEN N, int depth, int rqf){
 	if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
 	//At this point, we can go on with valid and new inputs
 	GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
-	if(equalii(N, gel(newv, I[ind]))){//Found it!
+	int comp=cmpii(N, gel(newv, I[ind]));//Comparing the new element to N.
+	if(comp==0){//Found it!
 	  if(rqf==0) glist_putstart(&S, gcopy(newv));
 	  else{
 		GEN q=apol_qf(newv, I[ind]);
@@ -355,7 +356,7 @@ GEN apol_search(GEN v, GEN N, int depth, int rqf){
 	  }
 	  Nfound++;
 	}
-	if(ind==depth) forward=0;
+	if(ind==depth || comp<=0) forward=0;//Max depth OR the number is too big; once we reach or pass N, we cannot get N anymore.
 	else{//We can keep going forward
       ind++;
 	  gel(W, ind)=newv;
