@@ -30,21 +30,6 @@ int apol_check(GEN v){
   return gc_int(top, equalii(L, R)? 1:0);
 }
 
-//Returns the depth of v, i.e. the minimal number of swaps requried to reach a quadruple with negative curvature.
-long apol_quaddepth(GEN v){
-  pari_sp top=avma;
-  long ind, step=0;
-  ind=ZV_minind(v);
-  if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
-  for(;;){
-    step++;
-    ind=ZV_maxind(v);
-    v=apol_move(v, ind);
-	ind=ZV_minind(v);
-	if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
-  }
-}
-
 //Returns all primitive Apollonian root quadruples using the construction from x^2+m^2=d_1d_2 (page 19 of GLMWY Number Theory). This has first entry x=-n.
 GEN apol_make(GEN n, GEN m, int red){
   pari_sp top=avma;
@@ -84,6 +69,18 @@ GEN apol_make_fromqf(GEN q, int pos, int red){
   GEN v=mkvec4(a, Ama, subii(gel(q, 3), a), addii(Ama, subii(gel(q, 3), gel(q, 2))));//The APC
   if(red) v=apol_red(v, 0);
   return gerepileupto(top, ZV_sort(v));
+}
+
+//Returns the set of admissible residues modulo 24. There are 38 possible primitive sets: [[0, 1, 3, 4, 6, 9, 10, 12, 16, 18, 19, 22], [0, 1, 4, 6, 7, 9, 10, 12, 15, 16, 18, 22], [0, 1, 4, 9, 12, 13, 16, 21], [0, 1, 4, 9, 12, 16], [0, 2, 3, 5, 6, 8, 11, 12, 14, 18, 20, 21], [0, 2, 3, 6, 8, 9, 11, 12, 14, 17, 18, 20], [0, 2, 5, 6, 8, 12, 14, 15, 18, 20, 21, 23], [0, 2, 6, 8, 9, 12, 14, 15, 17, 18, 20, 23], [0, 3, 4, 6, 10, 12, 13, 16, 18, 19, 21, 22], [0, 3, 4, 7, 12, 15, 16, 19], [0, 3, 4, 12, 16, 19], [0, 3, 8, 11, 12, 15, 20, 23], [0, 3, 8, 11, 12, 20], [0, 4, 6, 7, 10, 12, 13, 15, 16, 18, 21, 22], [0, 4, 7, 12, 15, 16], [0, 4, 12, 13, 16, 21], [0, 5, 8, 9, 12, 17, 20, 21], [0, 5, 8, 12, 20, 21], [0, 8, 9, 12, 17, 20], [0, 8, 12, 15, 20, 23], [1, 3, 7, 9, 13, 15, 19, 21], [1, 6, 9, 10, 13, 18, 21, 22], [1, 6, 9, 10, 18, 22], [1, 9, 13, 21], [2, 3, 6, 11, 14, 15, 18, 23], [2, 3, 6, 11, 14, 18], [2, 5, 6, 9, 14, 17, 18, 21], [2, 5, 6, 14, 18, 21], [2, 6, 9, 14, 17, 18], [2, 6, 14, 15, 18, 23], [3, 5, 9, 11, 15, 17, 21, 23], [3, 6, 7, 10, 15, 18, 19, 22], [3, 6, 10, 18, 19, 22], [3, 7, 15, 19], [3, 11, 15, 23], [5, 9, 17, 21], [6, 7, 10, 15, 18, 22], [6, 10, 13, 18, 21, 22]]
+//The lengths are 4 (4x), 6 (16x), 8 (10x), and 12 (8x). You ONLY need to go to depth 3 to find which class we are (proven by brute force check).
+GEN apol_mod24(GEN v){
+  pari_sp top=avma;
+  long lv;
+  GEN v24=cgetg_copy(v, &lv), tw4=stoi(24);//lv=5
+  for(long i=1;i<lv;i++) gel(v24, i)=Fp_red(gel(v, i), tw4);
+  GEN orb=apol_orbit(v24, 3, gen_0);//Only need depth 3
+  for(long i=1;i<lg(orb);i++) gel(orb, i)=Fp_red(gel(orb, i), tw4);//Reduce modulo 24.
+  return gerepileupto(top, ZV_sort_uniq(orb));//Sort the result.
 }
 
 //Returns the set of four curvatures when we replace circle i.
@@ -271,6 +268,21 @@ GEN apol_qf(GEN v, int ind){
   gel(q, 2)=subii(apbpc, gel(v, is[4]));//a+b+c-d
   gel(q, 3)=addii(gel(v, is[1]), gel(v, is[3]));//a+c
   return gerepileupto(top, q);
+}
+
+//Returns the depth of v, i.e. the minimal number of swaps requried to reach a quadruple with negative curvature.
+long apol_quaddepth(GEN v){
+  pari_sp top=avma;
+  long ind, step=0;
+  ind=ZV_minind(v);
+  if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
+  for(;;){
+    step++;
+    ind=ZV_maxind(v);
+    v=apol_move(v, ind);
+	ind=ZV_minind(v);
+	if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
+  }
 }
 
 //Returns the reduction of v. If seq=1, also returns a VECSMALL of the sequence of indices swapped to reduce.

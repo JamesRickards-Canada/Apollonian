@@ -11,6 +11,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_make,"Inputs n, m, {red=1}: positive integers n and m.\n Returns the primitive Apollonian circle quadruples constructed from n^2+m^2=d_1d_2; they all have first entry -n. If red=1, we only return the reduced ones. If red=2, we find all forms and reduce them (may be repeats, and won't be in order a<=b<=c<=d)");
 		install("apol_make_fromqf","GD1,L,D1,L,","apol_make_fromqf","./libapol.so");
 		addhelp(apol_make_fromqf,"Input q, {pos=1}, {red=1}; q a quadratic form of discriminant -4n^2.\n Returns the root quadruple of the APC it corresponds to. If pos=0, the root quadruple starts with -n<0. Else, the form has a +n circle. If red=1 we reduce the form, otherwise we don't.");
+		install("apol_mod24","G","apol_mod24","./libapol.so");
+		addhelp(apol_mod24,"Input v, an ACP.\n Returns the set of curvatures modulo 24 possible in the correponding ACP. There are 38 possible primitive sets.");
 		install("apol_move", "GL", "apol_move", "./libapol.so");
 		addhelp(apol_move, "Inputs v, ind: vector v representing an ACP, 1<=ind<=4.\n Returns the ACP where we replace circle i with the other possible circle.");
 		install("apol_ncgp_depths","Gp","apol_ncgp_depths","./libapol.so");
@@ -39,7 +41,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(ZV_countnonpos,"Input v, a sorted vector of integers.\n Returns the number of entries that are nonpositive.");
 
 	\\GENERAL HELP
-		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_make_fromqf, apol_move, apol_ncgp_depths, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_1, apol_qf, apol_quaddepth, apol_red, apol_search, ZV_countnonpos.");
+		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_make, apol_make_fromqf, apol_move, apol_ncgp_depths, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_1, apol_qf, apol_quaddepth, apol_red, apol_red_bsteps, apol_search, ZV_countnonpos.");
 
 \\base.c
 
