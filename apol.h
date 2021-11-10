@@ -23,6 +23,8 @@ typedef struct listtype3{//A generic linked list of longs, stores data and next 
 
 
 int apol_check(GEN v);
+GEN apol_dpair_circle(GEN L);
+GEN apol_getmatrices();
 GEN apol_make(GEN n, GEN m, int red);
 GEN apol_make_fromqf(GEN q, int pos, int red);
 GEN apol_mod24(GEN v);

@@ -7,6 +7,10 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\MAIN METHODS
 		install("apol_check", "iG", "apol_check", "./libapol.so");
 		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this generates an ACP, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
+		install("apol_dpair_circle","G","apol_dpair_circle","./libapol.so");
+		addhelp(apol_dpair_circle,"Input L, an integer between 1 and 4, or a vector/vecsmall of integers between 1 and 4.\n Returns [a, b, r], where the depth pairing corresponding to L is given by the circle (x-a)^2+(y-b)^2=r^2. If L is an integer, this corresponds to (Id, L). If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]). If a=r=oo, this corresponds to the line y=b.");
+		install("apol_getmatrices","","apol_getmatrices","./libapol.so");
+		addhelp(apol_getmatrices, "Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]).");
 		install("apol_make","GGD1,L,","apol_make","./libapol.so");
 		addhelp(apol_make,"Inputs n, m, {red=1}: positive integers n and m.\n Returns the primitive Apollonian circle quadruples constructed from n^2+m^2=d_1d_2; they all have first entry -n. If red=1, we only return the reduced ones. If red=2, we find all forms and reduce them (may be repeats, and won't be in order a<=b<=c<=d)");
 		install("apol_make_fromqf","GD1,L,D1,L,","apol_make_fromqf","./libapol.so");
