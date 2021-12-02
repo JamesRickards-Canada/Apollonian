@@ -1958,7 +1958,7 @@ static GEN bqf_ncgp_nonfundnarrow(GEN cgp, GEN D, GEN rootD){
     GEN rvec=cgetg(4, t_VEC);
     gel(rvec, 1)=gen_2;
     gel(rvec, 2)=mkvecsmall(2);
-    gel(rvec, 3)=cgetg(2,t_VEC);
+    gel(rvec, 3)=cgetg(2, t_VEC);
     gmael(rvec, 3, 1)=ZV_copy(minus1);
     return gerepileupto(top, rvec);
   }
@@ -1996,7 +1996,7 @@ static GEN bqf_ncgp_nonfundnarrow(GEN cgp, GEN D, GEN rootD){
 	}//OK, now there is an odd number.
 	GEN rvec=cgetg(4, t_VEC);
 	long j=lx-1;
-	gel(rvec, 1)=shifti(gel(cgp, 1),1);
+	gel(rvec, 1)=shifti(gel(cgp, 1), 1);
 	gel(rvec, 2)=cgetg(lx, t_VECSMALL);
 	gel(rvec, 3)=cgetg_copy(newgens, &lx);
 	for(long i=1;i<lastodd;i++){
@@ -2048,7 +2048,7 @@ static GEN bqf_ncgp_nonfundnarrow(GEN cgp, GEN D, GEN rootD){
   long j=lx-1;
   gel(rvec, 1)=shifti(gel(cgp, 1), 1);
   gel(rvec, 2)=cgetg(lx, t_VECSMALL);
-  gel(rvec, 3)=cgetg_copy(newgens,&lx);
+  gel(rvec, 3)=cgetg_copy(newgens, &lx);
   for(long i=1;i<lx;i++){
 	gel(rvec, 2)[j]=itos(gel(neworder, i));
 	gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));

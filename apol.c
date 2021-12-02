@@ -13,6 +13,7 @@
 #endif
 
 //STATIC DECLARATIONS
+static int cmp_apol(void *data, GEN v1, GEN v2);
 static long ZV_maxind(GEN v);
 static long ZV_minind(GEN v);
 
@@ -69,6 +70,9 @@ GEN apol_getmatrices(){
   GEN K=mkmat4(mkcol4s(1, -1, -1, -1), mkcol4s(0, 1, 0, 1), mkcol4s(0, 0, 0, -1), mkcol4s(0, 0, 1, 1));
   return gerepilecopy(top, mkvec5(S1, S2, S3, S4, K));
 }
+
+//Returns the possible obstructions modulo 24 of a primitive ACP, sorted by length (shortest to longest) and then lexicographically. They are stored in obstructions.dat
+GEN apol_getobstructions(){return gp_readvec_file("obstructions.dat");}
 
 //Returns all primitive Apollonian root quadruples using the construction from x^2+m^2=d_1d_2 (page 19 of GLMWY Number Theory). This has first entry x=-n.
 GEN apol_make(GEN n, GEN m, int red){
@@ -418,6 +422,16 @@ GEN apol_search(GEN v, GEN N, int depth, int rqf){
   }while(ind>0);
   return gerepileupto(top, glist_togvec(S, Nfound, -1));
 }
+
+//Sorts vectors, first by length, then by lexicographic
+static int cmp_apol(void *data, GEN v1, GEN v2){
+  long l1=lg(v1), l2=lg(v2);
+  if(l1==l2) return lexcmp(v1, v2);
+  return (l1>l2)?1:-1;
+}
+
+//Given the list L of mod24 obstructions, this returns the index for v.
+long mod24_search(GEN L, GEN v){return gen_search(L, v, 0, NULL, &cmp_apol);}
 
 //Given a sorted ZV, counts how many entries are non-positive.
 long ZV_countnonpos(GEN v){
