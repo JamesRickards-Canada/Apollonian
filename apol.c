@@ -152,6 +152,12 @@ void printcircles_desmos(GEN c){
   for(long i=1;i<lg(c);i++) pari_printf("(x-%Ps)^2+(y-%Ps)^2=1/(%Ps)^2\n", gmael(c, i, 3), gmael(c, i, 4), gmael(c, i, 1));
 }
 
+//Given a list of circles, this prints them to the tex file images/build/imagename_build.tex using tikz. If compile=1, we compile and move the output up to images/imagename.pdf. If open=1, we also open the file. WSL=1 assumes we are working with WSL, and WSL=0 assumes we are working with linux.
+void printcircles_tex(GEN c, char *imagename, int compile, int open, int WSL, long prec){
+  pari_sp top=avma;
+  avma=top;
+}
+
 //Add tex and python methods
 
 //Returns [a, b, r], where the depth pairing corresponding to L is given by the circle (x-a)^2+(y-b)^2=r^2. If L is an integer, this corresponds to (Id, L). If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]). If a=r=oo, this corresponds to the line y=b.

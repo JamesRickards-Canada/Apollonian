@@ -173,16 +173,16 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 
 \\hist.c
 	\\HISTOGRAMS
-		install("hist_make","GrrD0,L,D0,L,Drp","hist_make","./libapol.so");
-		addhelp(hist_make,"Inputs data, imagename, filename, {compilenew=0}, {open=0}, {plotoptions=NULL}: sorted list of real numbers data, name of the tikz picture, name of the LaTeX file (without .tex), {compilenew=0, 1}, {open=0, 1}, {plotoptions=NULL, string}.\n Automatically bins the data, and creates a pdf of the histogram using tikz and externalize. The output is in the folder /images, with the build file (named filename) being in the folder /images/build. If compilenew=0 assumes the LaTeX document to compile the plot is pre-made, and otherwise this method automatically writes it. If additionally, plotoptions!=NULL, this string is inserted in between \\begin{axis} and \\end{axis} in the LaTeX document (allowing one to customize how the histogram looks). If open=1, the pdf is automatically opened (only works with Linux subsystem for Windows). The returned value is used to modify the histogram, e.g. changing the bins, scaling it, and changing the range.");
+		install("hist_make","GrD0,L,D0,L,Drp","hist_make","./libapol.so");
+		addhelp(hist_make,"Inputs data, imagename, {compilenew=0}, {open=0}, {plotoptions=NULL}: sorted list of real numbers data, name of the tikz picture, {compilenew=0, 1}, {open=0, 1}, {plotoptions=NULL, string}.\n Automatically bins the data, and creates a pdf of the histogram using tikz and externalize. The output is in the folder /images, with the build file (named imagename_build.tex) being in the folder /images/build. If compilenew=0 assumes the LaTeX document to compile the plot is pre-made, and otherwise this method automatically writes it. If additionally, plotoptions!=NULL, this string is inserted in between \\begin{axis} and \\end{axis} in the LaTeX document (allowing one to customize how the histogram looks). If open=1, the pdf is automatically opened (only works with Linux subsystem for Windows). The returned value is used to modify the histogram, e.g. changing the bins, scaling it, and changing the range.");
 		install("hist_rebin","GGGp","hist_rebin","./libapol.so");
-		addhelp(hist_rebin,"Inputs data, histdata, nbins: the sorted data, the length 8 vector output of a hist_ method, the number of bins.\n Rebins the data according to the new number of bins, and updates histdata.");
+		addhelp(hist_rebin,"Inputs data, histdata, nbins: the sorted data, the length 7 vector output of a hist_ method, the number of bins.\n Rebins the data according to the new number of bins, and updates histdata.");
 		install("hist_recompile","vG","hist_recompile","./libapol.so");
-		addhelp(hist_recompile,"Input histdata, the length 8 vector output of a hist_ method.\n Recompiles the histogram, returning nothing. This is used when you edit the LaTeX document by hand.");
+		addhelp(hist_recompile,"Input histdata, the length 7 vector output of a hist_ method.\n Recompiles the histogram, returning nothing. This is used when you edit the LaTeX document by hand.");
 		install("hist_rerange","GGGGp","hist_rerange","./libapol.so");
-		addhelp(hist_rerange,"Inputs data, histdata, minx, maxx: the sorted data, the length 8 vector output of a hist_ method, minimum x-value, maximum x-value.\n Rebins the data according to the new minimum and maximum value. This is useful when there are outliers that skew the look of the graph. Returns the updated histdata.");
+		addhelp(hist_rerange,"Inputs data, histdata, minx, maxx: the sorted data, the length 7 vector output of a hist_ method, minimum x-value, maximum x-value.\n Rebins the data according to the new minimum and maximum value. This is useful when there are outliers that skew the look of the graph. Returns the updated histdata.");
 		install("hist_rescale","GGLp","hist_rescale","./libapol.so");
-		addhelp(hist_rescale,"Inputs data, histdata, scale: the sorted data, the length 8 vector output of a hist_ method, and scale=0, 1.\n If scale=1 scales the data so the total area is 1, and if scale=0 uses the absolute count for the y-axis. Returns the updated histdata.");
+		addhelp(hist_rescale,"Inputs data, histdata, scale: the sorted data, the length 7 vector output of a hist_ method, and scale=0, 1.\n If scale=1 scales the data so the total area is 1, and if scale=0 uses the absolute count for the y-axis. Returns the updated histdata.");
 
 	\\REGRESSIONS & PLOTS
 		install("OLS","GGD1,L,","OLS","./libapol.so");
