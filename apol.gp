@@ -7,6 +7,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\MAIN METHODS
 		install("apol_check", "iG", "apol_check", "./libapol.so");
 		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this generates an ACP, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
+		install("apol_circles","GGLp","apol_circles","./libapol.so");
+		addhelp(apol_circles, "Inputs v, maxcurv, maxdepth: bounded ACP v, positive integers maxcurv and maxdepth.\n Computes all circles with curvature <=maxcurv in v that occur in depth<=maxdepth. Returns the list, where each element is of the form [curvature, radius, x, y], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle.");
 		install("apol_dpair_circle","G","apol_dpair_circle","./libapol.so");
 		addhelp(apol_dpair_circle,"Input L, an integer between 1 and 4, or a vector/vecsmall of integers between 1 and 4.\n Returns [a, b, r], where the depth pairing corresponding to L is given by the circle (x-a)^2+(y-b)^2=r^2. If L is an integer, this corresponds to (Id, L). If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]). If a=r=oo, this corresponds to the line y=b.");
 		install("apol_getmatrices","","apol_getmatrices","./libapol.so");
@@ -45,11 +47,13 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_search,"Inputs v, N, depth, {rqf=0}: ACP v, positive integer N, depth>0.\n Returns the ACP's with an N inside them up to depth depth. If rqf=1, returns the qf's. If rqf=2, returns [ACP's, qfs].");
 		install("mod24_search","iGG","mod24_search","./libapol.so");
 		addhelp(mod24_search,"Input L, v, L the sorted list of possible ACP's modulo 24, and v is a specific one.\n Finds the index of v in L.");
+		install("printcircles_desmos","vG","printcircles_desmos","./libapol.so");
+		addhelp(printcircles_desmos,"Input c, a list of circles.\n Prints to the screen the list of equations of the circles, suitable for copying and pasting into Desmos.");
 		install("ZV_countnonpos","lG","ZV_countnonpos","./libapol.so");
 		addhelp(ZV_countnonpos,"Input v, a sorted vector of integers.\n Returns the number of entries that are nonpositive.");
 
 	\\GENERAL HELP
-		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_dpair_circle, apol_getmatrices, apol_getobstructions, apol_make, apol_make_fromqf, apol_mod24, apol_move, apol_ncgp_depths, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_1, apol_qf, apol_quaddepth, apol_red, apol_red_bsteps, apol_search, mod24_search, ZV_countnonpos.");
+		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_circles, apol_dpair_circle, apol_getmatrices, apol_getobstructions, apol_make, apol_make_fromqf, apol_mod24, apol_move, apol_ncgp_depths, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_1, apol_qf, apol_quaddepth, apol_red, apol_red_bsteps, apol_search, mod24_search, printcircles_desmos, ZV_countnonpos.");
 
 \\base.c
 

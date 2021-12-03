@@ -13,6 +13,7 @@
 #endif
 
 //STATIC DECLARATIONS
+static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long prec);
 static long ZV_maxind(GEN v);
 static long ZV_minind(GEN v);
 
@@ -29,6 +30,129 @@ int apol_check(GEN v){
   R=sqri(R);
   return gc_int(top, equalii(L, R)? 1:0);
 }
+
+//GEN apol_circles(GEN v, GEN maxcurv, GEN circlewidth, char *imagename, int open, long prec)
+
+//Given a BOUNDED ACP, this returns the circles with curvatures <=maxcurv at depth<=depth.
+//If we have inexact starting entries, this may not work; would have to modify it appropriately to account for the possible x!=x due to precision loss.
+GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec){
+  pari_sp top=avma;
+  GEN vred=apol_red(v, 0);
+  ZV_sort_inplace(vred);//So the minimal curvature occurs first.
+  if(gequal0(gel(vred, 1))) pari_err_TYPE("Cannot be the strip packing", v);
+  long maxcircs=10;//Stores the maximal number of circles+1, double it every time we try to go over.
+  GEN clist=vectrunc_init(maxcircs);//Stores the cicles. Each entry is [[curvature, radius, x, y], previous indices], where previous index is the 3 previous circles it is tangent to (after the first four).
+  GEN c1=gel(v, 1), c2=gel(v, 2), c3=gel(v, 3), c4=gel(v, 4);//Starting curvatures.
+  GEN r1=Qdivii(gen_1, c1), r2=Qdivii(gen_1, c2);
+  GEN circ1=mkvec4(c1, r1, gen_0, gen_0);//Outer circle
+  vectrunc_append(clist, circ1);
+  GEN circ2=mkvec4(c2, r2, gen_0, gneg(gadd(r1, r2)));//first inner circle, placed vertically at the top.
+  vectrunc_append(clist, circ2);
+  GEN circ3=thirdtangent(circ1, circ2, c3, c4, 0, prec);//Third circle goes left.
+  vectrunc_append(clist, circ3);
+  GEN circ4=thirdtangent(circ2, circ3, c4, c1, 0, prec);//Fourth circle is left of circ2 ->circ3.
+  vectrunc_append(clist, circ4);
+  long clistind=5;
+  
+  //Now we go down! Adopts the code of apol_search
+  int ind=1;//We ind to track which depth we are going towards.
+  GEN W=zerovec(depth);//Tracks the sequence of ACP's; W[ind] is at ind-1 depth
+  GEN Winds=zerovec(depth);//Tracks the corresponding indices in clist
+  gel(W, 1)=v;//The first one.
+  gel(Winds, 1)=mkvecsmall4(1, 2, 3, 4);
+  GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
+  int forward=1;//Tracks if we are going forward or not.
+  do{//1<=ind<=depth is assumed.
+    I[ind]=forward? 1:I[ind]+1;
+    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
+	if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+	//At this point, we can go on with valid and new inputs
+	GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+	GEN newc=gel(newv, I[ind]);
+	GEN newvecsmall=gen_0;//Need this to be accessible to the next if/else block
+	int comp=cmpii(maxcurv, newc);//Comparing the new element to maxcurv.
+	if(comp>=0){//Small enough!
+	  int is[3]={0, 0, 0};
+	  int isind=0;
+	  for(int i=1;i<=4;i++){
+		if(I[ind]==i) continue;
+		is[isind]=i;
+		isind++;
+	  }//is are the three non-I[ind] indices in {1, 2, 3, 4}.
+	  GEN oldcirc1=gel(clist, gel(Winds, ind)[is[0]]);//One of the old circles
+	  GEN oldcirc2=gel(clist, gel(Winds, ind)[is[1]]);//One of the old circles
+	  GEN newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 1, prec);//The new circle, if it is to the right of newcirc1 ->newcirc2.
+	  GEN prevcirc=gel(clist, gel(Winds, ind)[I[ind]]);//The circle we are "replacing"
+	  if(gequal(newcirc, prevcirc)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0, prec);//If the two curvatures were the same, this could trigger. If we lack oo precision, this could not work, and must be changed slightly.
+	  else{//This block must also be updated if there is not oo precision.
+	    GEN oldcirc3=gel(clist, gel(Winds, ind)[is[2]]);//The unused old circle. Our newcirc must be tangent to it.
+	    GEN rsums=gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));//(r1+r2)^2
+	    GEN dcentres=gadd(gsqr(gsub(gel(oldcirc3, 3), gel(newcirc, 3))), gsqr(gsub(gel(oldcirc3, 4), gel(newcirc, 4))));//dist(centres)^2
+	    if(!gequal(rsums, dcentres)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0, prec);//Must be the other side.
+	  }
+	  //Now we update things in clist.
+	  if(clistind==maxcircs){//Double the size
+		maxcircs=2*maxcircs;
+		GEN oldclist=clist;
+		clist=vectrunc_init(maxcircs);
+		vectrunc_append_batch(clist, oldclist);//Put the old circles back.
+	  }
+	  newvecsmall=cgetg(5, t_VECSMALL);
+	  for(int i=1;i<=4;i++){
+		if(I[ind]==i) newvecsmall[i]=clistind;
+		else newvecsmall[i]=gel(Winds, ind)[i];
+	  }
+	  vectrunc_append(clist, newcirc);
+	  clistind++;
+	}
+	if(ind==depth || comp<=0) forward=0;//Max depth OR the number is too big; once we reach or pass N, we cannot get N anymore.
+	else{//We can keep going forward
+      ind++;
+	  gel(W, ind)=newv;
+	  gel(Winds, ind)=newvecsmall;
+	  forward=1;
+	}
+  }while(ind>0);
+  return gerepilecopy(top, clist);  
+}
+
+//Store a circle as [curvature, radius, x, y]. Given two tangent circles and a third curvature, this finds this third circle that is tangent to the first two. For internal tangency, we need a negative radius & curvature. There are always 2 places to put the circle: left or right of the line from circ1 to circ2. If right=1, we put it right, else we put it left. c4 is one of the curvatures to complete an Apollonian quadruple (supplying it allows us to always work with exact numbers in the case of integral ACPs).
+static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long prec){
+  pari_sp top=avma;
+  //The centres form a circle with sides r1+r2, r1+r3, r2+r3, or -r1-r2, -r1-r3, r2+r3 (if internal tangency). Let theta be the angle at the centre of c1.
+  GEN c1=gel(circ1, 1), c2=gel(circ2, 1);//Curvatures
+  GEN c1pc2=gadd(c1, c2), c1pc3=gadd(c1, c3);
+  GEN denom=gmul(c1pc2, c1pc3);
+  GEN costheta=gsubsg(1, gdiv(gmulsg(2, gsqr(c1)), denom));//1-2c1^2/((c1+c2)(c1+c3))
+  GEN sintheta=gdiv(gabs(gmul(c1, gadd(c1pc2, gsub(c3, c4))), prec), denom);//|c1(c1+c2+c3-c4)|/((c1+c2)(c1+c3))
+  GEN r1=gel(circ1, 2), r2=gel(circ2, 2), r3=gdivsg(1, c3);//The radii
+  GEN x1=gel(circ1, 3), y1=gel(circ1, 4), x2=gel(circ2, 3), y2=gel(circ2, 4);
+  //We need alpha, the angle to the centre of c2 from the centre of c1.
+  GEN r1pr2=gadd(r1, r2);
+  GEN cosalpha=gdiv(gsub(x2, x1), r1pr2);
+  GEN sinalpha=gdiv(gsub(y2, y1), r1pr2);//cos and sin of alpha.
+  //If right=1, we have angle alpha-theta, and if right=0, we have angle alpha+theta. We derive the new coordinates from the (co)sine addition/subtraction formulae.
+  GEN relcos, relsin;
+  if(right==1){//cos(alpha-theta), sin(alpha-theta)
+	relcos=gadd(gmul(cosalpha, costheta), gmul(sinalpha, sintheta));
+    relsin=gsub(gmul(sinalpha, costheta), gmul(cosalpha, sintheta));
+  }
+  else{//cos(alpha+theta), sin(alpha+theta)
+	relcos=gsub(gmul(cosalpha, costheta), gmul(sinalpha, sintheta));
+	relsin=gadd(gmul(sinalpha, costheta), gmul(cosalpha, sintheta));
+  }
+  GEN r1pr3=gadd(r1, r3);
+  GEN x=gadd(x1, gmul(r1pr3, relcos));
+  GEN y=gadd(y1, gmul(r1pr3, relsin));
+  return gerepilecopy(top, mkvec4(c3, r3, x, y));
+}
+
+//Given a list of circles, this prints them to the screen in a format suitable for Desmos.
+void printcircles_desmos(GEN c){
+  for(long i=1;i<lg(c);i++) pari_printf("(x-%Ps)^2+(y-%Ps)^2=1/(%Ps)^2\n", gmael(c, i, 3), gmael(c, i, 4), gmael(c, i, 1));
+}
+
+//Add tex and python methods
 
 //Returns [a, b, r], where the depth pairing corresponding to L is given by the circle (x-a)^2+(y-b)^2=r^2. If L is an integer, this corresponds to (Id, L). If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]). If a=r=oo, this corresponds to the line y=b.
 GEN apol_dpair_circle(GEN L){

@@ -23,6 +23,8 @@ typedef struct listtype3{//A generic linked list of longs, stores data and next 
 
 
 int apol_check(GEN v);
+GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec);
+void printcircles_desmos(GEN c);
 GEN apol_dpair_circle(GEN L);
 GEN apol_getmatrices();
 GEN apol_getobstructions();
