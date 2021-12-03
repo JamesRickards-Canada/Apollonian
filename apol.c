@@ -65,53 +65,53 @@ GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec){
   do{//1<=ind<=depth is assumed.
     I[ind]=forward? 1:I[ind]+1;
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
-	if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
-	//At this point, we can go on with valid and new inputs
-	GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
-	GEN newc=gel(newv, I[ind]);
-	GEN newvecsmall=gen_0;//Need this to be accessible to the next if/else block
-	int comp=cmpii(maxcurv, newc);//Comparing the new element to maxcurv.
-	if(comp>=0){//Small enough!
-	  int is[3]={0, 0, 0};
-	  int isind=0;
-	  for(int i=1;i<=4;i++){
-		if(I[ind]==i) continue;
-		is[isind]=i;
-		isind++;
-	  }//is are the three non-I[ind] indices in {1, 2, 3, 4}.
-	  GEN oldcirc1=gel(clist, gel(Winds, ind)[is[0]]);//One of the old circles
-	  GEN oldcirc2=gel(clist, gel(Winds, ind)[is[1]]);//One of the old circles
-	  GEN newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 1, prec);//The new circle, if it is to the right of newcirc1 ->newcirc2.
-	  GEN prevcirc=gel(clist, gel(Winds, ind)[I[ind]]);//The circle we are "replacing"
-	  if(gequal(newcirc, prevcirc)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0, prec);//If the two curvatures were the same, this could trigger. If we lack oo precision, this could not work, and must be changed slightly.
-	  else{//This block must also be updated if there is not oo precision.
-	    GEN oldcirc3=gel(clist, gel(Winds, ind)[is[2]]);//The unused old circle. Our newcirc must be tangent to it.
-	    GEN rsums=gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));//(r1+r2)^2
-	    GEN dcentres=gadd(gsqr(gsub(gel(oldcirc3, 3), gel(newcirc, 3))), gsqr(gsub(gel(oldcirc3, 4), gel(newcirc, 4))));//dist(centres)^2
-	    if(!gequal(rsums, dcentres)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0, prec);//Must be the other side.
-	  }
-	  //Now we update things in clist.
-	  if(clistind==maxcircs){//Double the size
-		maxcircs=2*maxcircs;
-		GEN oldclist=clist;
-		clist=vectrunc_init(maxcircs);
-		vectrunc_append_batch(clist, oldclist);//Put the old circles back.
-	  }
-	  newvecsmall=cgetg(5, t_VECSMALL);
-	  for(int i=1;i<=4;i++){
-		if(I[ind]==i) newvecsmall[i]=clistind;
-		else newvecsmall[i]=gel(Winds, ind)[i];
-	  }
-	  vectrunc_append(clist, newcirc);
-	  clistind++;
-	}
-	if(ind==depth || comp<=0) forward=0;//Max depth OR the number is too big; once we reach or pass N, we cannot get N anymore.
-	else{//We can keep going forward
+    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+    //At this point, we can go on with valid and new inputs
+    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    GEN newc=gel(newv, I[ind]);
+    GEN newvecsmall=gen_0;//Need this to be accessible to the next if/else block
+    int comp=cmpii(maxcurv, newc);//Comparing the new element to maxcurv.
+    if(comp>=0){//Small enough!
+      int is[3]={0, 0, 0};
+      int isind=0;
+      for(int i=1;i<=4;i++){
+        if(I[ind]==i) continue;
+        is[isind]=i;
+        isind++;
+      }//is are the three non-I[ind] indices in {1, 2, 3, 4}.
+      GEN oldcirc1=gel(clist, gel(Winds, ind)[is[0]]);//One of the old circles
+      GEN oldcirc2=gel(clist, gel(Winds, ind)[is[1]]);//One of the old circles
+      GEN newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 1, prec);//The new circle, if it is to the right of newcirc1 ->newcirc2.
+      GEN prevcirc=gel(clist, gel(Winds, ind)[I[ind]]);//The circle we are "replacing"
+      if(gequal(newcirc, prevcirc)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0, prec);//If the two curvatures were the same, this could trigger. If we lack oo precision, this could not work, and must be changed slightly.
+      else{//This block must also be updated if there is not oo precision.
+        GEN oldcirc3=gel(clist, gel(Winds, ind)[is[2]]);//The unused old circle. Our newcirc must be tangent to it.
+        GEN rsums=gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));//(r1+r2)^2
+        GEN dcentres=gadd(gsqr(gsub(gel(oldcirc3, 3), gel(newcirc, 3))), gsqr(gsub(gel(oldcirc3, 4), gel(newcirc, 4))));//dist(centres)^2
+        if(!gequal(rsums, dcentres)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0, prec);//Must be the other side.
+      }
+      //Now we update things in clist.
+      if(clistind==maxcircs){//Double the size
+        maxcircs=2*maxcircs;
+        GEN oldclist=clist;
+        clist=vectrunc_init(maxcircs);
+        vectrunc_append_batch(clist, oldclist);//Put the old circles back.
+      }
+      newvecsmall=cgetg(5, t_VECSMALL);
+      for(int i=1;i<=4;i++){
+        if(I[ind]==i) newvecsmall[i]=clistind;
+        else newvecsmall[i]=gel(Winds, ind)[i];
+      }
+      vectrunc_append(clist, newcirc);
+      clistind++;
+    }
+    if(ind==depth || comp<=0) forward=0;//Max depth OR the number is too big; once we reach or pass N, we cannot get N anymore.
+    else{//We can keep going forward
       ind++;
-	  gel(W, ind)=newv;
-	  gel(Winds, ind)=newvecsmall;
-	  forward=1;
-	}
+      gel(W, ind)=newv;
+      gel(Winds, ind)=newvecsmall;
+      forward=1;
+    }
   }while(ind>0);
   return gerepilecopy(top, clist);  
 }
@@ -134,12 +134,12 @@ static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long pr
   //If right=1, we have angle alpha-theta, and if right=0, we have angle alpha+theta. We derive the new coordinates from the (co)sine addition/subtraction formulae.
   GEN relcos, relsin;
   if(right==1){//cos(alpha-theta), sin(alpha-theta)
-	relcos=gadd(gmul(cosalpha, costheta), gmul(sinalpha, sintheta));
+    relcos=gadd(gmul(cosalpha, costheta), gmul(sinalpha, sintheta));
     relsin=gsub(gmul(sinalpha, costheta), gmul(cosalpha, sintheta));
   }
   else{//cos(alpha+theta), sin(alpha+theta)
-	relcos=gsub(gmul(cosalpha, costheta), gmul(sinalpha, sintheta));
-	relsin=gadd(gmul(sinalpha, costheta), gmul(cosalpha, sintheta));
+    relcos=gsub(gmul(cosalpha, costheta), gmul(sinalpha, sintheta));
+    relsin=gadd(gmul(sinalpha, costheta), gmul(cosalpha, sintheta));
   }
   GEN r1pr3=gadd(r1, r3);
   GEN x=gadd(x1, gmul(r1pr3, relcos));
@@ -164,17 +164,17 @@ void printcircles_tex(GEN c, char *imagename, int compile, int open, int WSL, lo
 GEN apol_dpair_circle(GEN L){
   pari_sp top=avma;
   if(typ(L)==t_INT){
-	int sL=itos(L);
-	switch(sL){
-	  case 1:
-		return gerepilecopy(top, mkvec3(mkoo(), gen_0, mkoo()));
-	  case 2:
-		return gerepilecopy(top, mkvec3(mkoo(), gen_1, mkoo()));
-	  case 3:
-		return mkvec3(gen_0, ghalf, ghalf);
-	  default://i.e. case 4
-		return mkvec3(gen_m1, ghalf, ghalf);
-	}
+    int sL=itos(L);
+    switch(sL){
+      case 1:
+        return gerepilecopy(top, mkvec3(mkoo(), gen_0, mkoo()));
+      case 2:
+        return gerepilecopy(top, mkvec3(mkoo(), gen_1, mkoo()));
+      case 3:
+        return mkvec3(gen_0, ghalf, ghalf);
+      default://i.e. case 4
+        return mkvec3(gen_m1, ghalf, ghalf);
+    }
   }
   if(typ(L)==t_VEC) L=gtovecsmall(L);
   GEN M=apol_getmatrices();
@@ -214,14 +214,14 @@ GEN apol_make(GEN n, GEN m, int red){
   long ndivs=lg(divs);
   GEN apols=vectrunc_init(ndivs);
   for(long i=1;i<=(ndivs-1)/2;i++){
-	GEN d1=gel(divs, i);
-	if(red==1 && cmpii(twom, d1)==1) continue;//For root quadruple, we require -n<0<=2m<=d1<=d2
-	GEN d2=gel(divs, ndivs-i);
-	if(!equali1(gcdii(gcdii(d1, n), d2))) continue;
-	GEN d1px=addii(d1, n);
-	GEN v=mkvec4(mn, d1px, addii(d2, n), addii(d1px, subii(d2, twom)));
-	if(red==2) vectrunc_append(apols, apol_red(v, 0));
-	else vectrunc_append(apols, v);
+    GEN d1=gel(divs, i);
+    if(red==1 && cmpii(twom, d1)==1) continue;//For root quadruple, we require -n<0<=2m<=d1<=d2
+    GEN d2=gel(divs, ndivs-i);
+    if(!equali1(gcdii(gcdii(d1, n), d2))) continue;
+    GEN d1px=addii(d1, n);
+    GEN v=mkvec4(mn, d1px, addii(d2, n), addii(d1px, subii(d2, twom)));
+    if(red==2) vectrunc_append(apols, apol_red(v, 0));
+    else vectrunc_append(apols, v);
   }
   return gerepilecopy(top, apols);
 }
@@ -284,9 +284,9 @@ GEN apol_ncgp_depths(GEN n, long prec){
   long maxdepth=0, lf=lg(forms);
   GEN depths=cgetg(lf, t_VECSMALL);
   for(long i=1;i<lf;i++){//Computing depths
-	long d=apol_quaddepth(gel(forms, i));
-	depths[i]=d;
-	if(d>maxdepth) maxdepth=d;
+    long d=apol_quaddepth(gel(forms, i));
+    depths[i]=d;
+    if(d>maxdepth) maxdepth=d;
   }
   GEN dcount=zero_zv(maxdepth+1);//Depths 0 through d.
   for(long i=1;i<lf;i++) dcount[depths[i]+1]++;//Counting.
@@ -303,8 +303,8 @@ GEN apol_ncgp_forms(GEN n, int pos, int red, long prec){
   GEN quads=vectrunc_init(lf);
   for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
     GEN q=gel(forms, i);
-	if(signe(gel(q, 2))==-1) continue;
-	vectrunc_append(quads, apol_make_fromqf(q, pos, red));
+    if(signe(gel(q, 2))==-1) continue;
+    vectrunc_append(quads, apol_make_fromqf(q, pos, red));
   }
   return gerepileupto(top, quads);
 }
@@ -316,8 +316,8 @@ GEN apol_ncgp_smallcurve(GEN n, int red, long prec){
   long lf;
   GEN curves=cgetg_copy(forms, &lf);
   for(long i=1;i<lf;i++){
-	gel(curves, i)=gmael(forms, i, 1);
-	if(red) togglesign_safe(&gel(curves, i));
+    gel(curves, i)=gmael(forms, i, 1);
+    if(red) togglesign_safe(&gel(curves, i));
   }
   return gerepileupto(top, ZV_sort(curves));
 }
@@ -329,8 +329,8 @@ GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec){
   long lf;
   GEN curves=cgetg_copy(forms, &lf);
   for(long i=1;i<lf;i++){
-	GEN q=apol_red_bsteps(gel(forms, i), maxsteps);
-	gel(curves, i)=gel(q, ZV_minind(q));
+    GEN q=apol_red_bsteps(gel(forms, i), maxsteps);
+    gel(curves, i)=gel(q, ZV_minind(q));
   }
   return gerepileupto(top, ZV_sort(curves));
 }
@@ -348,34 +348,34 @@ GEN apol_orbit(GEN v, int depth, GEN bound){
   else Nreps=itos(bound);//If bound!=0, and depth is large, the previous Nreps definition may be too large
   GEN reps=vectrunc_init(Nreps);
   if(usebound){
-	for(int i=1;i<=4;i++) if(cmpii(gel(v, i), bound)<=0) vectrunc_append(reps, gel(v, i));//First 4 reps
+    for(int i=1;i<=4;i++) if(cmpii(gel(v, i), bound)<=0) vectrunc_append(reps, gel(v, i));//First 4 reps
   }
   else{
     for(int i=1;i<=4;i++) vectrunc_append(reps, gel(v, i));//First 4 reps
   }
   do{//1<=ind<=depth is assumed.
     if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
-	  long newNreps=2*Nreps-1;
-	  GEN newreps=vectrunc_init(newNreps);
-	  for(long i=1;i<Nreps;i++) vectrunc_append(newreps, gel(reps, i));//Append the old list
-	  Nreps=newNreps;
-	  reps=newreps;
-	}
+      long newNreps=2*Nreps-1;
+      GEN newreps=vectrunc_init(newNreps);
+      for(long i=1;i<Nreps;i++) vectrunc_append(newreps, gel(reps, i));//Append the old list
+      Nreps=newNreps;
+      reps=newreps;
+    }
     I[ind]=forward? 1:I[ind]+1;
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
-	if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
-	//At this point, we can go on with valid and new inputs
-	GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
-	GEN elt=gel(newv, I[ind]);//The new element
-	if(usebound && cmpii(elt, bound)==1) forward=0;//Must go back, elt too big
-	else{
-	  vectrunc_append(reps, elt);//Add the new element
-	  if(ind==depth) forward=0;
-	  else{//We can keep going forward
+    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+    //At this point, we can go on with valid and new inputs
+    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    GEN elt=gel(newv, I[ind]);//The new element
+    if(usebound && cmpii(elt, bound)==1) forward=0;//Must go back, elt too big
+    else{
+      vectrunc_append(reps, elt);//Add the new element
+      if(ind==depth) forward=0;
+      else{//We can keep going forward
         ind++;
-	    gel(W, ind)=newv;
-	    forward=1;
-	  }
+        gel(W, ind)=newv;
+        forward=1;
+      }
     }
   }while(ind>0);
   return gerepileupto(top, ZV_sort(reps));
@@ -388,10 +388,10 @@ GEN apol_orbit_1(GEN v, int ind, int depth, GEN bound){
   if(ind==1) v1=v;
   else{//Just shifting it so we are replacing v[1]
     long l;
-	v1=cgetg_copy(v, &l);//l=5 now
-	gel(v1, 1)=gel(v, ind);
-	gel(v1, ind)=gel(v, 1);
-	for(int i=2;i<=4;i++) if(i!=ind) gel(v1, i)=gel(v, i);//We don't copy, so v1 is not a safe vector.
+    v1=cgetg_copy(v, &l);//l=5 now
+    gel(v1, 1)=gel(v, ind);
+    gel(v1, ind)=gel(v, 1);
+    for(int i=2;i<=4;i++) if(i!=ind) gel(v1, i)=gel(v, i);//We don't copy, so v1 is not a safe vector.
   }
   ind=1;//We reuse ind to track which depth we are going towards.
   GEN W=zerovec(depth);//Tracks the sequence of APC's; W[ind] is at ind-1 depth
@@ -403,35 +403,35 @@ GEN apol_orbit_1(GEN v, int ind, int depth, GEN bound){
   else Nreps=itos(bound);//If bound!=0, and depth is large, the previous Nreps definition may be too large
   GEN reps=vectrunc_init(Nreps);
   if(usebound){
-	for(int i=2;i<=4;i++) if(cmpii(gel(v1, i), bound)<=0) vectrunc_append(reps, gel(v1, i));//First 3 reps
+    for(int i=2;i<=4;i++) if(cmpii(gel(v1, i), bound)<=0) vectrunc_append(reps, gel(v1, i));//First 3 reps
   }
   else{
     for(int i=2;i<=4;i++) vectrunc_append(reps, gel(v1, i));//First 3 reps
   }
   do{//1<=ind<=depth is assumed.
-	if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
-	  long newNreps=2*Nreps-1;
-	  GEN newreps=vectrunc_init(newNreps);
-	  for(long i=1;i<Nreps;i++) vectrunc_append(newreps, gel(reps, i));//Append the old list
-	  Nreps=newNreps;
-	  reps=newreps;
-	}
+    if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
+      long newNreps=2*Nreps-1;
+      GEN newreps=vectrunc_init(newNreps);
+      for(long i=1;i<Nreps;i++) vectrunc_append(newreps, gel(reps, i));//Append the old list
+      Nreps=newNreps;
+      reps=newreps;
+    }
     I[ind]=forward? 2:I[ind]+1;
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
-	if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
-	//At this point, we can go on with valid and new inputs
-	GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
-	GEN elt=gel(newv, I[ind]);//The new element
-	if(usebound && cmpii(elt, bound)==1) forward=0;//Must go back, elt too big
-	else{
-	  vectrunc_append(reps, elt);//Add the new element
-	  if(ind==depth) forward=0;
-	  else{//We can keep going forward
+    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+    //At this point, we can go on with valid and new inputs
+    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    GEN elt=gel(newv, I[ind]);//The new element
+    if(usebound && cmpii(elt, bound)==1) forward=0;//Must go back, elt too big
+    else{
+      vectrunc_append(reps, elt);//Add the new element
+      if(ind==depth) forward=0;
+      else{//We can keep going forward
         ind++;
-	    gel(W, ind)=newv;
-	    forward=1;
-	  }
-	}
+        gel(W, ind)=newv;
+        forward=1;
+      }
+    }
   }while(ind>0);
   return gerepileupto(top, ZV_sort(reps));
 }
@@ -461,8 +461,8 @@ long apol_quaddepth(GEN v){
     step++;
     ind=ZV_maxind(v);
     v=apol_move(v, ind);
-	ind=ZV_minind(v);
-	if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
+    ind=ZV_minind(v);
+    if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
   }
 }
 
@@ -472,22 +472,22 @@ GEN apol_red(GEN v, int seq){
   long ind;
   GEN dold;
   if(!seq){
-	do{
-	  ind=ZV_maxind(v);
-	  dold=gel(v, ind);
-	  v=apol_move(v, ind);
-	}while(cmpii(gel(v, ind), dold)==-1);
+    do{
+      ind=ZV_maxind(v);
+      dold=gel(v, ind);
+      v=apol_move(v, ind);
+    }while(cmpii(gel(v, ind), dold)==-1);
     return gerepileupto(top, apol_move(v, ind));//Must go back one!
   }
   //Now keep track of the sequence
   llist *S=NULL;
   long len=-1;//We don't count the last move.
   do{
-	len++;
-	ind=ZV_maxind(v);
+    len++;
+    ind=ZV_maxind(v);
     dold=gel(v, ind);
     v=apol_move(v, ind);
-	llist_putstart(&S, ind);
+    llist_putstart(&S, ind);
   }while(cmpii(gel(v, ind), dold)==-1);
   llist_pop(&S);//Remove last move.
   return gerepilecopy(top, mkvec2(apol_move(v, ind), llist_tovecsmall(S, len, -1)));
@@ -505,7 +505,7 @@ GEN apol_red_bsteps(GEN v, long maxsteps){
     ind=ZV_maxind(v);
     dold=gel(v, ind);
     v=apol_move(v, ind);
-	if(cmpii(gel(v, ind), dold)!=-1){mstepsreached=0;break;}//We are reduced if we go back one.
+    if(cmpii(gel(v, ind), dold)!=-1){mstepsreached=0;break;}//We are reduced if we go back one.
   }while(step<maxsteps);
   if(mstepsreached) return gerepilecopy(top, v);
   else return gerepileupto(top, apol_move(v, ind));//Must go back one!
@@ -522,39 +522,39 @@ GEN apol_search(GEN v, GEN N, int depth, int rqf){
   int forward=1;//Tracks if we are going forward or not.
   long Nfound=0;
   for(int i=1;i<=4;i++){
-	if(equalii(N, gel(v, i))){//Found one!
+    if(equalii(N, gel(v, i))){//Found one!
       if(rqf==0) glist_putstart(&S, gcopy(v));
-	  else{
-		GEN q=apol_qf(v, i);
-		if(rqf==1) glist_putstart(&S, q);
-		else glist_putstart(&S, mkvec2(gcopy(v), q));
-	  }
-	  Nfound++;
-	  break;
-	}
+      else{
+        GEN q=apol_qf(v, i);
+        if(rqf==1) glist_putstart(&S, q);
+        else glist_putstart(&S, mkvec2(gcopy(v), q));
+      }
+      Nfound++;
+      break;
+    }
   }
   do{//1<=ind<=depth is assumed.
     I[ind]=forward? 1:I[ind]+1;
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
-	if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
-	//At this point, we can go on with valid and new inputs
-	GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
-	int comp=cmpii(N, gel(newv, I[ind]));//Comparing the new element to N.
-	if(comp==0){//Found it!
-	  if(rqf==0) glist_putstart(&S, gcopy(newv));
-	  else{
-		GEN q=apol_qf(newv, I[ind]);
-		if(rqf==1) glist_putstart(&S, q);
-		else glist_putstart(&S, mkvec2(newv, q));
-	  }
-	  Nfound++;
-	}
-	if(ind==depth || comp<=0) forward=0;//Max depth OR the number is too big; once we reach or pass N, we cannot get N anymore.
-	else{//We can keep going forward
+    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+    //At this point, we can go on with valid and new inputs
+    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    int comp=cmpii(N, gel(newv, I[ind]));//Comparing the new element to N.
+    if(comp==0){//Found it!
+      if(rqf==0) glist_putstart(&S, gcopy(newv));
+      else{
+        GEN q=apol_qf(newv, I[ind]);
+        if(rqf==1) glist_putstart(&S, q);
+        else glist_putstart(&S, mkvec2(newv, q));
+      }
+      Nfound++;
+    }
+    if(ind==depth || comp<=0) forward=0;//Max depth OR the number is too big; once we reach or pass N, we cannot get N anymore.
+    else{//We can keep going forward
       ind++;
-	  gel(W, ind)=newv;
-	  forward=1;
-	}
+      gel(W, ind)=newv;
+      forward=1;
+    }
   }while(ind>0);
   return gerepileupto(top, glist_togvec(S, Nfound, -1));
 }
@@ -568,9 +568,9 @@ long ZV_countnonpos(GEN v){
   if(signe(gel(v, i1))==1) return 0;//None <=0
   if(signe(gel(v, i2))!=1) return i2;//All <=0
   while(i1+1<i2){
-	i=(i1+i2)/2;//Floor
-	if(signe(gel(v, i))==1) i2=i;//v[i]>0
-	else i1=i;//v[i]<=0
+    i=(i1+i2)/2;//Floor
+    if(signe(gel(v, i))==1) i2=i;//v[i]>0
+    else i1=i;//v[i]<=0
   }
   return i1;
 }

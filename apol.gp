@@ -1,5 +1,5 @@
 print("\n\nType '?apol' for help.\n\n");
-addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apollonian \n base \n bqf \n hist");
+addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apollonian \n base \n bqf \n visual");
 
 \\apol.c
 
@@ -171,14 +171,16 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(bqfclass,"bqf_allforms, bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");
 		addhelp(bqfsolve,"bqf_bigreps, bqf_linearsolve, bqf_reps.");
 
-\\hist.c
+\\visual.c
+	\\DATA
+		install("veccount","G","veccount","./libapol.so");
+		addhelp(veccount,"Input v, a vector.\n Returns [uniq, count], where uniq is the sorted vector v with repeats removed, and count is the corresponding number of times they appear in v.");
+		
 	\\HISTOGRAMS
 		install("hist_make","GrD0,L,D0,L,Drp","hist_make","./libapol.so");
 		addhelp(hist_make,"Inputs data, imagename, {compilenew=0}, {open=0}, {plotoptions=NULL}: sorted list of real numbers data, name of the tikz picture, {compilenew=0, 1}, {open=0, 1}, {plotoptions=NULL, string}.\n Automatically bins the data, and creates a pdf of the histogram using tikz and externalize. The output is in the folder /images, with the build file (named imagename_build.tex) being in the folder /images/build. If compilenew=0 assumes the LaTeX document to compile the plot is pre-made, and otherwise this method automatically writes it. If additionally, plotoptions!=NULL, this string is inserted in between \\begin{axis} and \\end{axis} in the LaTeX document (allowing one to customize how the histogram looks). If open=1, the pdf is automatically opened (only works with Linux subsystem for Windows). The returned value is used to modify the histogram, e.g. changing the bins, scaling it, and changing the range.");
 		install("hist_rebin","GGGp","hist_rebin","./libapol.so");
 		addhelp(hist_rebin,"Inputs data, histdata, nbins: the sorted data, the length 7 vector output of a hist_ method, the number of bins.\n Rebins the data according to the new number of bins, and updates histdata.");
-		install("hist_recompile","vG","hist_recompile","./libapol.so");
-		addhelp(hist_recompile,"Input histdata, the length 7 vector output of a hist_ method.\n Recompiles the histogram, returning nothing. This is used when you edit the LaTeX document by hand.");
 		install("hist_rerange","GGGGp","hist_rerange","./libapol.so");
 		addhelp(hist_rerange,"Inputs data, histdata, minx, maxx: the sorted data, the length 7 vector output of a hist_ method, minimum x-value, maximum x-value.\n Rebins the data according to the new minimum and maximum value. This is useful when there are outliers that skew the look of the graph. Returns the updated histdata.");
 		install("hist_rescale","GGLp","hist_rescale","./libapol.so");
@@ -194,11 +196,15 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("rsquared","GGG","rsquared","./libapol.so");
 		addhelp(rsquared,"Inputs X, y, fit: X and y data supplied to OLS, and fit the proposed fit (a column vector of parameters). This returns the R^2 value for this proposal.");
 
-	\\DATA
-		install("veccount","G","veccount","./libapol.so");
-		addhelp(veccount,"Input v, a vector.\n Returns [uniq, count], where uniq is the sorted vector v with repeats removed, and count is the corresponding number of times they appear in v.");
+	\\TEX
+		install("tex_recompile","vG","tex_recompile","./libapol.so");
+		addhelp(tex_recompile,"Input data, the output of a tex image creation call.\n Recompiles the image, returning nothing. This is used when you edit the LaTeX document by hand.");
 
 	\\GENERAL HELP
-		addhelp(hist,"This package deals with visualizing data. Installed methods:\n hist_make, hist_rebin, hist_recompile, hist_rerange, hist_rescale, OLS, OLS_nointercept, OLS_single, rsquared, veccount.");
+		addhelp(visual,"This package deals with visualizing data. Subtopics:\n Data (data)\n Histograms (hist)\n Regressions/plots (reg)\\ Tex (tex)");
+		addhelp(data,"veccount.");
+		addhelp(hist,"Installed methods:\n hist_make, hist_rebin, hist_recompile, hist_rerange, hist_rescale.");
+		addhelp(reg,"OLS, OLS_nointercept, OLS_single, rsquared.");
+		addhelp(tex,"tex_recompile");
 
 default(parisize, "4096M");\\Must come at the end

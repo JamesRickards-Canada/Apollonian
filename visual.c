@@ -16,21 +16,40 @@
 #include <stdlib.h>
 #endif
 
-
 //Should also write the data to a file and offer ways to make the histogram from a file of data.
 
 
+//DATA
+
+
+//Returns [vsort, count], where vsort is the sorted vector v with duplicates removed, and count is the Vecsmall of corresponding number of each in the original vector v. This is not the most efficient, but is fine.
+GEN veccount(GEN v){
+  pari_sp top=avma;
+  GEN vsort=sort(v);//Sort it.
+  long lv=lg(vsort);
+  GEN uniq=vectrunc_init(lv), count=vecsmalltrunc_init(lv);
+  vectrunc_append(uniq, gel(vsort, 1));
+  long run=1;
+  for(long i=2;i<lv;i++){
+    if(gequal(gel(vsort, i), gel(vsort, i-1))){run++;continue;}//Go on
+    vecsmalltrunc_append(count, run);//run is over.
+    run=1;
+    vectrunc_append(uniq, gel(vsort, i));//Add the new number in.
+  }
+  vecsmalltrunc_append(count, run);
+  return gerepilecopy(top, mkvec2(uniq, count));
+}
+
 
 //HISTOGRAMS
-
 
 
 //Creates LaTeX document and compiles the histogram. If plotoptions!=NULL, adds this between begin and end tikzpicture
 void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *plotoptions, int open){
   pari_sp top=avma;
   if(!pari_is_dir("images/build")){
-	int s=system("mkdir -p images/build");
-	if(s==-1) pari_err(e_MISC, "ERROR CREATING DIRECTORY images/build");
+    int s=system("mkdir -p images/build");
+    if(s==-1) pari_err(e_MISC, "ERROR CREATING DIRECTORY images/build");
   }
   char *autofilestr=pari_sprintf("images/build/%s_build.tex", imagename);
   FILE *f=fopen(autofilestr, "w");
@@ -43,26 +62,8 @@ void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *plotoptions, in
   else pari_fprintf(f, "%s\n", plotoptions);//Printing plotoptions instead
   pari_fprintf(f, "  \\end{axis}\n\\end{tikzpicture}\n\\end{document}");
   fclose(f);
-  hist_compile(imagename, open);
+  tex_compile(imagename, open);
   avma=top;
-}
-
-//Compiles the latex file specified by imagename
-void hist_compile(char *imagename, int open){
-  char *line=pari_sprintf("(cd ./images/build && pdflatex --interaction=batchmode -shell-escape %s_build.tex)", imagename);
-  int s=system(line);
-  if(s==-1) pari_err(e_MISC, "ERROR EXECUTING COMMAND");
-  pari_free(line);
-  line=pari_sprintf("mv -f ./images/build/%s.pdf ./images/", imagename);//Move the file
-  s=system(line);
-  if(s==-1) pari_err(e_MISC, "ERROR EXECUTING COMMAND");
-  pari_free(line);
-  if(open){
-    line=pari_sprintf("cmd.exe /C start images/%s.pdf", imagename);//Open the file
-    s=system(line);
-	if(s==-1) pari_err(e_MISC, "ERROR EXECUTING COMMAND");
-	pari_free(line);
-  }
 }
 
 //Makes a histogram with the inputs, defaulting to the defaults. Adjust it to your liking with the hist_re-methods. Should only be called once with the given data.
@@ -76,7 +77,7 @@ GEN hist_tobins(GEN data, GEN minx, GEN maxx, GEN nbins, int toscale, int compil
   //Start with the file things
   if(!pari_is_dir("images/build")){
     int s=system("mkdir -p images/build");
-	if(s==-1) pari_err(e_MISC, "ERROR CREATING DIRECTORY images/build");
+    if(s==-1) pari_err(e_MISC, "ERROR CREATING DIRECTORY images/build");
   }
   char *filetitle=pari_sprintf("images/build/%s.dat",imagename);
   FILE *f=fopen(filetitle, "w");
@@ -95,39 +96,39 @@ GEN hist_tobins(GEN data, GEN minx, GEN maxx, GEN nbins, int toscale, int compil
   long ind=1, ninbin, totinbin=0;
   if(toscale==0){
     for(long binno=0;binno<nbinslong;binno++){
-	  ninbin=0;
-	  while(ind<lg(data) && gcmp(gel(data, ind), bmax)<=0){ind++;ninbin++;}
-	  pari_fprintf(f, "%d\n%lf ", ninbin, rtodbl(bmax));
-	  bmax=gadd(bmax, binlen);
-	  totinbin=totinbin+ninbin;
+      ninbin=0;
+      while(ind<lg(data) && gcmp(gel(data, ind), bmax)<=0){ind++;ninbin++;}
+      pari_fprintf(f, "%d\n%lf ", ninbin, rtodbl(bmax));
+      bmax=gadd(bmax, binlen);
+      totinbin=totinbin+ninbin;
     }
     totinbin=lg(data)-1-totinbin;
     pari_fprintf(f, "%d", totinbin);//The last outliers
   }
   else{
-	GEN rescalefactor=gdivsg(1,gmulgs(binlen,(lg(data)-1)));//Rescaling factor for area 1
+    GEN rescalefactor=gdivsg(1,gmulgs(binlen,(lg(data)-1)));//Rescaling factor for area 1
     for(long binno=0;binno<nbinslong;binno++){
-	  ninbin=0;
-	  while(ind<lg(data) && gcmp(gel(data, ind), bmax)<=0){ind++;ninbin++;}
-	  pari_fprintf(f, "%lf\n%lf ", rtodbl(gmulsg(ninbin, rescalefactor)), rtodbl(bmax));
-	  bmax=gadd(bmax, binlen);
-	  totinbin=totinbin+ninbin;
+      ninbin=0;
+      while(ind<lg(data) && gcmp(gel(data, ind), bmax)<=0){ind++;ninbin++;}
+      pari_fprintf(f, "%lf\n%lf ", rtodbl(gmulsg(ninbin, rescalefactor)), rtodbl(bmax));
+      bmax=gadd(bmax, binlen);
+      totinbin=totinbin+ninbin;
     }
     totinbin=lg(data)-1-totinbin;
     pari_fprintf(f, "%lf", rtodbl(gmulsg(totinbin, rescalefactor)));//The last outliers
   }
   fclose(f);
   if(compilenew) hist_autocompile(minx, maxx, imagename, plotoptions, open);//Making new LaTeX document and compiling it
-  else hist_compile(imagename, open);//Just recompiling the old LaTeX file
+  else tex_compile(imagename, open);//Just recompiling the old LaTeX file
   pari_printf("%d total data points\n%d total bins", lg(data)-1, nbinslong);
   GEN histprop=cgetg(8, t_VEC);
-  gel(histprop, 1)=gcopy(minx);gel(histprop, 2)=gcopy(maxx);
-  gel(histprop, 3)=icopy(nbins);gel(histprop, 4)=stoi(toscale);
-  gel(histprop, 5)=strtoGENstr(imagename);
-  if(plotoptions==NULL) gel(histprop, 6)=gen_0;
-  else gel(histprop, 6)=strtoGENstr(plotoptions);
-  if(open==0) gel(histprop, 7)=gen_0;
-  else gel(histprop, 7)=gen_1;
+  gel(histprop, 1)=strtoGENstr(imagename);
+  if(open==0) gel(histprop, 2)=gen_0;
+  else gel(histprop, 2)=gen_1;
+  gel(histprop, 3)=gcopy(minx);gel(histprop, 4)=gcopy(maxx);
+  gel(histprop, 5)=icopy(nbins);gel(histprop, 6)=stoi(toscale);
+  if(plotoptions==NULL) gel(histprop, 7)=gen_0;
+  else gel(histprop, 7)=strtoGENstr(plotoptions);
   return gerepileupto(top, histprop);
 }
 
@@ -142,31 +143,24 @@ GEN hist_tobins_defaultbins(GEN data, GEN minx, GEN maxx, int toscale, int compi
 
 //Remake the histogram with the new bin count
 GEN hist_rebin(GEN data, GEN histdata, GEN nbins, long prec){
-	if(gequal0(gel(histdata, 6))) return hist_tobins(data, gel(histdata, 1), gel(histdata, 2), nbins, itos(gel(histdata, 4)), 0, GENtostr_unquoted(gel(histdata, 5)), NULL, itos(gel(histdata, 7)), prec);
-	return hist_tobins(data, gel(histdata, 1), gel(histdata, 2), nbins, itos(gel(histdata, 4)), 0, GENtostr_unquoted(gel(histdata, 5)), GENtostr_unquoted(gel(histdata, 6)), itos(gel(histdata, 7)), prec);
-}
-
-//Recompile the histogram with the histdata. Used when we modify the TEX document explicitly, and then want to recompile it.
-void hist_recompile(GEN histdata){
-  hist_compile(GENtostr_unquoted(gel(histdata, 5)), itos(gel(histdata, 7)));
+    if(gequal0(gel(histdata, 7))) return hist_tobins(data, gel(histdata, 3), gel(histdata, 4), nbins, itos(gel(histdata, 6)), 0, GENtostr_unquoted(gel(histdata, 1)), NULL, itos(gel(histdata, 2)), prec);
+    return hist_tobins(data, gel(histdata, 3), gel(histdata, 4), nbins, itos(gel(histdata, 6)), 0, GENtostr_unquoted(gel(histdata, 1)), GENtostr_unquoted(gel(histdata, 7)), itos(gel(histdata, 2)), prec);
 }
 
 //Remake the histogram with new minx and maxx
 GEN hist_rerange(GEN data, GEN histdata, GEN minx, GEN maxx, long prec){
-	if(gequal0(gel(histdata, 6))) return hist_tobins(data, minx, maxx, gel(histdata, 3), itos(gel(histdata, 4)), 1, GENtostr_unquoted(gel(histdata, 5)), NULL, itos(gel(histdata, 7)), prec);
-	return hist_tobins(data, minx, maxx, gel(histdata, 3), itos(gel(histdata, 4)), 1, GENtostr_unquoted(gel(histdata, 5)), GENtostr_unquoted(gel(histdata, 6)), itos(gel(histdata, 7)), prec);
+    if(gequal0(gel(histdata, 7))) return hist_tobins(data, minx, maxx, gel(histdata, 5), itos(gel(histdata, 6)), 1, GENtostr_unquoted(gel(histdata, 1)), NULL, itos(gel(histdata, 2)), prec);
+    return hist_tobins(data, minx, maxx, gel(histdata, 5), itos(gel(histdata, 6)), 1, GENtostr_unquoted(gel(histdata, 1)), GENtostr_unquoted(gel(histdata, 7)), itos(gel(histdata, 2)), prec);
 }
 
 //Remake the histogram with the new scale
 GEN hist_rescale(GEN data, GEN histdata, int scale, long prec){
-	if(gequal0(gel(histdata, 6))) return hist_tobins(data, gel(histdata, 1), gel(histdata, 2), gel(histdata, 3), scale, 1, GENtostr_unquoted(gel(histdata, 5)), NULL, itos(gel(histdata, 7)), prec);
-	return hist_tobins(data, gel(histdata, 1), gel(histdata, 2), gel(histdata, 3), scale, 1, GENtostr_unquoted(gel(histdata, 5)), GENtostr_unquoted(gel(histdata, 6)), itos(gel(histdata, 7)), prec);
+    if(gequal0(gel(histdata, 7))) return hist_tobins(data, gel(histdata, 3), gel(histdata, 4), gel(histdata, 5), scale, 1, GENtostr_unquoted(gel(histdata, 1)), NULL, itos(gel(histdata, 2)), prec);
+    return hist_tobins(data, gel(histdata, 3), gel(histdata, 4), gel(histdata, 5), scale, 1, GENtostr_unquoted(gel(histdata, 1)), GENtostr_unquoted(gel(histdata, 7)), itos(gel(histdata, 2)), prec);
 }
 
 
-
 //REGRESSIONS
-
 
 
 /*Perform ordinary least squares regression. X is a matrix whose columns are the parameters, and y is a column vector of results. Must include linear term as first variable of X.
@@ -191,8 +185,8 @@ GEN OLS_nointercept(GEN X, GEN y, int retrsqr){
   GEN xysum=gen_0, xsqrsum=gen_0;
   if(lg(X)!=lg(y)) pari_err_TYPE("The inputs must have the same length.", mkvec2(X, y));
   for(long i=1;i<lg(X);i++){
-	xysum=gadd(xysum, gmul(gel(X, i), gel(y, i)));
-	xsqrsum=gadd(xsqrsum, gsqr(gel(X, i)));
+    xysum=gadd(xysum, gmul(gel(X, i), gel(y, i)));
+    xsqrsum=gadd(xsqrsum, gsqr(gel(X, i)));
   }
   GEN fit=gdiv(xysum, xsqrsum);
   if(!retrsqr) return gerepileupto(top, fit);
@@ -223,33 +217,38 @@ GEN rsquared(GEN X, GEN y, GEN fit){
   GEN sstot=gen_0;
   GEN ssres=gen_0;
   for(long i=1;i<=n;i++){
-	sstot=gadd(sstot, gsqr(gsub(gel(y, i), yavg)));
-	ssres=gadd(ssres, gsqr(gsub(gel(y, i), gel(predicted, i))));
+    sstot=gadd(sstot, gsqr(gsub(gel(y, i), yavg)));
+    ssres=gadd(ssres, gsqr(gsub(gel(y, i), gel(predicted, i))));
   }
   return gerepileupto(top, gsubsg(1, gdiv(ssres, sstot)));
 }
 
 
 
-//DATA
+//TEX
 
 
+//In general, an image created from a file will have a GP return value. The first entry is the image name, and the second is whether we want to open it every time or not (i.e. if we are on WSL or not). The rest of the entries will depend on the type of image.
 
-//Returns [vsort, count], where vsort is the sorted vector v with duplicates removed, and count is the Vecsmall of corresponding number of each in the original vector v. This is not the most efficient, but is fine.
-GEN veccount(GEN v){
-  pari_sp top=avma;
-  GEN vsort=sort(v);//Sort it.
-  long lv=lg(vsort);
-  GEN uniq=vectrunc_init(lv), count=vecsmalltrunc_init(lv);
-  vectrunc_append(uniq, gel(vsort, 1));
-  long run=1;
-  for(long i=2;i<lv;i++){
-	if(gequal(gel(vsort, i), gel(vsort, i-1))){run++;continue;}//Go on
-	vecsmalltrunc_append(count, run);//run is over.
-	run=1;
-	vectrunc_append(uniq, gel(vsort, i));//Add the new number in.
+//Compiles the latex file specified by imagename
+void tex_compile(char *imagename, int open){
+  char *line=pari_sprintf("(cd ./images/build && pdflatex --interaction=batchmode -shell-escape %s_build.tex)", imagename);
+  int s=system(line);
+  if(s==-1) pari_err(e_MISC, "ERROR EXECUTING COMMAND");
+  pari_free(line);
+  line=pari_sprintf("mv -f ./images/build/%s.pdf ./images/", imagename);//Move the file
+  s=system(line);
+  if(s==-1) pari_err(e_MISC, "ERROR EXECUTING COMMAND");
+  pari_free(line);
+  if(open){
+    line=pari_sprintf("cmd.exe /C start images/%s.pdf", imagename);//Open the file
+    s=system(line);
+    if(s==-1) pari_err(e_MISC, "ERROR EXECUTING COMMAND");
+    pari_free(line);
   }
-  vecsmalltrunc_append(count, run);
-  return gerepilecopy(top, mkvec2(uniq, count));
 }
 
+//Recompile the image. Used when we modify the TEX document explicitly, and then want to recompile it.
+void tex_recompile(GEN data){
+  tex_compile(GENtostr_unquoted(gel(data, 1)), itos(gel(data, 2)));
+}
