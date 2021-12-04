@@ -252,3 +252,4 @@ void tex_compile(char *imagename, int open){
 void tex_recompile(GEN data){
   tex_compile(GENtostr_unquoted(gel(data, 1)), itos(gel(data, 2)));
 }
+

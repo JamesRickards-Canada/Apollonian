@@ -49,11 +49,13 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(mod24_search,"Input L, v, L the sorted list of possible ACP's modulo 24, and v is a specific one.\n Finds the index of v in L.");
 		install("printcircles_desmos","vG","printcircles_desmos","./libapol.so");
 		addhelp(printcircles_desmos,"Input c, a list of circles.\n Prints to the screen the list of equations of the circles, suitable for copying and pasting into Desmos.");
+		install("printcircles_tex","GrD1,L,D0,L,D0,L,p","printcircles_tex","./libapol.so");
+		addhelp(printcircles_tex,"Input c, imagename, {addnumbers=1}, {compile=0}, {open=0}: list of circles c, string imagename, addnumbers and compile and open =0, 1.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
 		install("ZV_countnonpos","lG","ZV_countnonpos","./libapol.so");
 		addhelp(ZV_countnonpos,"Input v, a sorted vector of integers.\n Returns the number of entries that are nonpositive.");
 
 	\\GENERAL HELP
-		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_circles, apol_dpair_circle, apol_getmatrices, apol_getobstructions, apol_make, apol_make_fromqf, apol_mod24, apol_move, apol_ncgp_depths, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_1, apol_qf, apol_quaddepth, apol_red, apol_red_bsteps, apol_search, mod24_search, printcircles_desmos, ZV_countnonpos.");
+		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_circles, apol_dpair_circle, apol_getmatrices, apol_getobstructions, apol_make, apol_make_fromqf, apol_mod24, apol_move, apol_ncgp_depths, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_1, apol_qf, apol_quaddepth, apol_red, apol_red_bsteps, apol_search, mod24_search, printcircles_desmos, printcircles_tex, ZV_countnonpos.");
 
 \\base.c
 
