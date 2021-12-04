@@ -172,34 +172,34 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int op
   GEN scalingfactor=gdiv(largestcirc, gneg(gmael(c, 1, 2)));//Scaling factor.
   gel(cscale, 1)=mkvec3(largestcirc, gen_0, gen_0);
   for(long i=2;i<lc;i++){
-	gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gmael(c, i, 3), scalingfactor), gmul(gmael(c, i, 4), scalingfactor));//r, x, y
+    gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gmael(c, i, 3), scalingfactor), gmul(gmael(c, i, 4), scalingfactor));//r, x, y
   }//Circles have been scaled!
   
   //Time to draw the circles
   char *drawoptions="[ultra thin]";
   for(long i=1;i<lc;i++){
-	pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+    pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
   }
   GEN ten=stoi(10);
   if(addnumbers){
-	for(long i=2;i<lc;i++){
-	  GEN curv=gmael(c, i, 1), scaleby;
-	  long ndigits=logint(curv, ten)+1;
-	  switch(ndigits){//Scaling the font.
-	    case 1:
-		  scaleby=dbltor(1.4);break;
-		case 2:
-		  scaleby=gen_1;break;
-	    case 3:
-		  scaleby=dbltor(0.8);break;
-		case 4:
-		  scaleby=dbltor(0.6);break;
-		case 5:
-		  scaleby=dbltor(0.5);break;
-		default:
-		  scaleby=gdivgs(gen_2, ndigits);
-	  }
-	  pari_fprintf(f, "  \\node[align=center] at (%P.10fin, %P.10fin) {\\fontsize{%P.10fin}{0in}\\selectfont %Pd};\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmul(gmael(cscale, i, 1), scaleby), curv);
+    for(long i=2;i<lc;i++){
+      GEN curv=gmael(c, i, 1), scaleby;
+      long ndigits=logint(curv, ten)+1;
+      switch(ndigits){//Scaling the font.
+        case 1:
+          scaleby=dbltor(1.4);break;
+        case 2:
+          scaleby=gen_1;break;
+        case 3:
+          scaleby=dbltor(0.8);break;
+        case 4:
+          scaleby=dbltor(0.6);break;
+        case 5:
+          scaleby=dbltor(0.5);break;
+        default:
+          scaleby=gdivgs(gen_2, ndigits);
+      }
+      pari_fprintf(f, "  \\node[align=center] at (%P.10fin, %P.10fin) {\\fontsize{%P.10fin}{0in}\\selectfont %Pd};\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmul(gmael(cscale, i, 1), scaleby), curv);
     }
   }
   
