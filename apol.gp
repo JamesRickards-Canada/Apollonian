@@ -10,7 +10,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("apol_circles","GGLp","apol_circles","./libapol.so");
 		addhelp(apol_circles, "Inputs v, maxcurv, maxdepth: bounded ACP v, positive integers maxcurv and maxdepth.\n Computes all circles with curvature <=maxcurv in v that occur in depth<=maxdepth. Returns the list, where each element is of the form [curvature, radius, x, y], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle.");
 		install("apol_dpair_circle","G","apol_dpair_circle","./libapol.so");
-		addhelp(apol_dpair_circle,"Input L, an integer between 1 and 4, or a vector/vecsmall of integers between 1 and 4.\n Returns [a, b, r], where the depth pairing corresponding to L is given by the circle (x-a)^2+(y-b)^2=r^2. If L is an integer, this corresponds to (Id, L). If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]). If a=r=oo, this corresponds to the line y=b.");
+		addhelp(apol_dpair_circle,"Input L, an integer between 1 and 4, or a vector/vecsmall of integers between 1 and 4.\n Returns [curvature, r, a, b], where the depth pairing corresponding to L is given by the circle (x-a)^2+(y-b)^2=r^2. If L is an integer, this corresponds to (Id, L). If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]). If a=r=oo, this corresponds to the line y=b.");
 		install("apol_getmatrices","","apol_getmatrices","./libapol.so");
 		addhelp(apol_getmatrices, "Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]).");
 		install("apol_getobstructions","","apol_getobstructions","./libapol.so");
@@ -203,7 +203,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(tex_recompile,"Input data, the output of a tex image creation call.\n Recompiles the image, returning nothing. This is used when you edit the LaTeX document by hand.");
 
 	\\GENERAL HELP
-		addhelp(visual,"This package deals with visualizing data. Subtopics:\n Data (data)\n Histograms (hist)\n Regressions/plots (reg)\\ Tex (tex)");
+		addhelp(visual,"This package deals with visualizing data. Subtopics:\n Data (data)\n Histograms (hist)\n Regressions/plots (reg)\n Tex (tex)");
 		addhelp(data,"veccount.");
 		addhelp(hist,"Installed methods:\n hist_make, hist_rebin, hist_recompile, hist_rerange, hist_rescale.");
 		addhelp(reg,"OLS, OLS_nointercept, OLS_single, rsquared.");

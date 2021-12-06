@@ -149,7 +149,10 @@ static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long pr
 
 //Given a list of circles, this prints them to the screen in a format suitable for Desmos.
 void printcircles_desmos(GEN c){
-  for(long i=1;i<lg(c);i++) pari_printf("(x-%Ps)^2+(y-%Ps)^2=1/(%Ps)^2\n", gmael(c, i, 3), gmael(c, i, 4), gmael(c, i, 1));
+  for(long i=1;i<lg(c);i++){
+    if(gequal0(gmael(c, i, 1))) pari_printf("y=%Ps\n", gmael(c, i, 4));//Horizontal line
+	else pari_printf("(x-%Ps)^2+(y-%Ps)^2=1/(%Ps)^2\n", gmael(c, i, 3), gmael(c, i, 4), gmael(c, i, 1));
+  }
 }
 
 //Given a list of circles, this prints them to the tex file images/build/imagename_build.tex using tikz. If compile=1, we compile and move the output up to images/imagename.pdf. If open=1, we also open the file, assuming we are working with WSL
@@ -212,33 +215,40 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int op
 
 //Add tex and python methods
 
-//Returns [a, b, r], where the depth pairing corresponding to L is given by the circle (x-a)^2+(y-b)^2=r^2. If L is an integer, this corresponds to (Id, L). If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]). If a=r=oo, this corresponds to the line y=b.
+//Returns [curvature, r, a, b], where the depth pairing corresponding to L is given by the circle (x-a)^2+(y-b)^2=r^2. If L is an integer, this corresponds to (Id, L). If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]). If a=r=oo, this corresponds to the line y=b.
 GEN apol_dpair_circle(GEN L){
   pari_sp top=avma;
-  if(typ(L)==t_INT){
-    int sL=itos(L);
-    switch(sL){
-      case 1:
-        return gerepilecopy(top, mkvec3(mkoo(), gen_0, mkoo()));
-      case 2:
-        return gerepilecopy(top, mkvec3(mkoo(), gen_1, mkoo()));
-      case 3:
-        return mkvec3(gen_0, ghalf, ghalf);
-      default://i.e. case 4
-        return mkvec3(gen_m1, ghalf, ghalf);
-    }
+  int t=typ(L);
+  switch(t){
+	case t_INT:;//Required to stop error with int sL
+      int sL=itos(L);
+      switch(sL){
+        case 1:
+          return gerepilecopy(top, mkvec4(gen_0, mkoo(), mkoo(), gen_0));
+        case 2:
+          return gerepilecopy(top, mkvec4(gen_0, mkoo(), mkoo(), gen_1));
+        case 3:
+          return mkvec4(gen_2, ghalf, gen_0, ghalf);
+        default://i.e. case 4
+          return mkvec4(gen_2, ghalf, gen_m1, ghalf);
+      }
+    case t_VEC:
+	  L=gtovecsmall(L);//Make it a vecsmall
+	case t_VECSMALL:
+	  break;
+	default:
+	  pari_err_TYPE("L needs to be an integer from 1 to 4, or a vecsmall/vector of such integers", L);
   }
-  if(typ(L)==t_VEC) L=gtovecsmall(L);
   GEN M=apol_getmatrices();
   GEN W=matid(4);
   for(long i=1;i<lg(L);i++) W=ZM_mul(W, gel(M, L[i]));
   W=ZM_mul(W, gel(M, 5));//Times k at the end
-  GEN mtuvw=row(W, L[1]);//[-t,u,v,w]
-  GEN twow=shifti(gel(mtuvw, 4), 1);//2w
+  GEN mtuvw=row(W, L[1]);//[-t, u, v, w]
+  GEN twow=shifti(gel(mtuvw, 4), 1);//2w=curvature
   GEN a=Qdivii(gel(mtuvw, 3), gel(mtuvw, 4));
   GEN b=Qdivii(negi(gel(mtuvw, 1)), twow);
   GEN r=Qdivii(gen_1, twow);
-  return gerepilecopy(top, mkvec3(a, b, r));
+  return gerepilecopy(top, mkvec4(twow, r, a, b));
 }
 
 //Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]).
