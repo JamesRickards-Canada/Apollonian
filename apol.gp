@@ -49,8 +49,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(mod24_search,"Input L, v, L the sorted list of possible ACP's modulo 24, and v is a specific one.\n Finds the index of v in L.");
 		install("printcircles_desmos","vG","printcircles_desmos","./libapol.so");
 		addhelp(printcircles_desmos,"Input c, a list of circles.\n Prints to the screen the list of equations of the circles, suitable for copying and pasting into Desmos.");
-		install("printcircles_tex","GrD1,L,D0,L,D0,L,p","printcircles_tex","./libapol.so");
-		addhelp(printcircles_tex,"Input c, imagename, {addnumbers=1}, {compile=0}, {open=0}: list of circles c, string imagename, addnumbers and compile and open =0, 1.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
+		install("printcircles_tex","GrD1,L,D1,L,D1,L,p","printcircles_tex","./libapol.so");
+		addhelp(printcircles_tex,"Input c, imagename, {basicscaling=1}, {addnumbers=1}, {compile=1}, {open=1}: list of circles c, string imagename, addnumbers and compile and open =0, 1.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
 		install("ZV_countnonpos","lG","ZV_countnonpos","./libapol.so");
 		addhelp(ZV_countnonpos,"Input v, a sorted vector of integers.\n Returns the number of entries that are nonpositive.");
 
@@ -173,10 +173,22 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(bqfclass,"bqf_allforms, bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");
 		addhelp(bqfsolve,"bqf_bigreps, bqf_linearsolve, bqf_reps.");
 
+\\farey.c
+		install("fareydenom_depths","L", ,"./libapol.so");
+		addhelp(fareydenom_depths,"Input n>1 an integer.\n Returns the set of fareydepth(i/n) for all 1<=i<n with gcd(n, i)=1.");
+		install("fareydenom_dmode","lL", ,"./libapol.so");
+		addhelp(fareydenom_dmode,"Input n>1 an integer.\n Returns the most common depth in fareydenom_depths(n).");
+		install("fareydepth","lG", ,"./libapol.so");
+		addhelp(fareydepth,"Input r, a rational number in (0, 1) or a Farey pair.\n Returns the depth of r in the Farey tree.");
+		install("fareyup","G", ,"./libapol.so");
+		addhelp(fareyup,"Input r, a rational number in (0, 1) or a Farey pair.\n Returns either the Farey pair with r as its mediant, or the (unique) Farey pair with one of the numbers as it's endpoint and the other as its mediant.");
+
 \\visual.c
 	\\DATA
-		install("veccount","G","veccount","./libapol.so");
+		install("veccount","G", ,"./libapol.so");
 		addhelp(veccount,"Input v, a vector.\n Returns [uniq, count], where uniq is the sorted vector v with repeats removed, and count is the corresponding number of times they appear in v.");
+		install("vecsmallcount","G", ,"./libapol.so");
+		addhelp(vecsmallcount,"Input v, a vecsmall.\n Returns [uniq, count], where uniq is the sorted vecsmall v with repeats removed, and count is the corresponding number of times they appear in v.");
 		
 	\\HISTOGRAMS
 		install("hist_make","GrD0,L,D0,L,Drp","hist_make","./libapol.so");

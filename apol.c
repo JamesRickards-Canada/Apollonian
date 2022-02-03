@@ -155,7 +155,7 @@ void printcircles_desmos(GEN c){
   }
 }
 
-//Given a list of circles, this prints them to the tex file images/build/imagename_build.tex using tikz. If compile=1, we compile and move the output up to images/imagename.pdf. If open=1, we also open the file, assuming we are working with WSL
+//Given a list of circles, this prints them to the tex file images/build/imagename_build.tex using tikz. If compile=1, we compile and move the output up to images/imagename.pdf. If open=1, we also open the file, assuming we are working with WSL. Assume the largest circle occurs first. This can take horizontal lines as well. Can supply the scalingfactor, or have the program auto-set it if NULL.
 GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int open, long prec){
   pari_sp top=avma;
   if(!pari_is_dir("images/build")){
@@ -170,23 +170,47 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int op
   
   //Now we treat the circles:
   long lc;
-  GEN cscale=cgetg_copy(c, &lc);//Scale it so the first circle has radius 3in and centre at (0, 0). The first circle is supposed to be the biggest, having negative curvature, and centre 0, 0.
+  GEN cscale=cgetg_copy(c, &lc);//Scale it so the first circle has radius 3in and centre at (0, 0). The first circle is supposed to be the biggest, having negative curvature, and centre 0, 0. If it is not the largest, we have some work to do.
   GEN largestcirc=stoi(3);//Radius of largest circle
-  GEN scalingfactor=gdiv(largestcirc, gneg(gmael(c, 1, 2)));//Scaling factor.
-  gel(cscale, 1)=mkvec3(largestcirc, gen_0, gen_0);
-  for(long i=2;i<lc;i++){
-    gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gmael(c, i, 3), scalingfactor), gmul(gmael(c, i, 4), scalingfactor));//r, x, y
-  }//Circles have been scaled!
+  if(gcmpgs(gmael(c, 1, 2), 0)<0){//First circle neg curvature, so everything is a circle.
+	GEN scalingfactor=gdiv(largestcirc, gneg(gmael(c, 1, 2)));//Scaling factor.
+    gel(cscale, 1)=mkvec3(largestcirc, gen_0, gen_0);
+    for(long i=2;i<lc;i++){
+      gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gmael(c, i, 3), scalingfactor), gmul(gmael(c, i, 4), scalingfactor));//r, x, y
+    }//Circles have been scaled!
+  }
+  else{//Strip packing, OR the largest curvature does not come first. The width should be at least as much as the height.
+	GEN minx=mkoo(), maxx=mkmoo();
+	for(long i=1;i<lc;i++){
+	  if(gequal0(gmael(c, i, 1))) continue;//Horizontal line.
+	  GEN circxmin=gsub(gmael(c, i, 3), gmael(c, i, 2));
+	  GEN circxmax=gadd(gmael(c, i, 3), gmael(c, i, 2));
+	  minx=gmin_shallow(minx, circxmin);
+	  maxx=gmax_shallow(maxx, circxmax);
+	}
+	if(typ(minx)==t_INFINITY || typ(maxx)==t_INFINITY) pari_err_TYPE("You don't have any circles", c);
+	GEN scalingfactor=gmulgs(gdiv(largestcirc, gsub(maxx, minx)), 2);
+	GEN horizshift=gdivgs(gadd(maxx, minx), 2);
+	for(long i=1;i<lc;i++){
+	  if(gequal0(gmael(c, i, 1))){//Horizontal line
+		gel(cscale, i)=mkvec3(mkoo(), largestcirc, gmul(gmael(c, i, 4), scalingfactor));//oo, "radius", y-intercept ("radius"=r means going from [-r, y] to [r, y])
+		continue;
+	  }
+	  gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gsub(gmael(c, i, 3), horizshift), scalingfactor), gmul(gmael(c, i, 4), scalingfactor));//r, x, y
+	}
+  }
   
   //Time to draw the circles
   char *drawoptions="[ultra thin]";
   for(long i=1;i<lc;i++){
-    pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+	if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", drawoptions, gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
+	else pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
   }
   GEN ten=stoi(10);
   if(addnumbers){
-    for(long i=2;i<lc;i++){
+    for(long i=1;i<lc;i++){
       GEN curv=gmael(c, i, 1), scaleby;
+	  if(gsigne(curv)!=1) continue;//Don't add numbers for curvatures <=0.
       long ndigits=logint(curv, ten)+1;
       switch(ndigits){//Scaling the font.
         case 1:

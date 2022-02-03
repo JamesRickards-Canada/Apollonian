@@ -222,10 +222,18 @@ GEN bqf_checkdisc(GEN q);
 void intmatrix_check(GEN mtx);
 
 
+//farey.c
+GEN fareydenom_depths(long n);
+long fareydenom_dmode(long n);
+long fareydepth(GEN r);
+GEN fareyup(GEN r);
+
+
 //visual.c
 
 //DATA
 GEN veccount(GEN v);
+GEN vecsmallcount(GEN v);
 
 //HISTOGRAMS
 void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *plotoptions, int open);
