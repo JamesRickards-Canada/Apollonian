@@ -509,6 +509,94 @@ GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound){
   return gerepileupto(top, ZV_sort(reps));
 }
 
+//Does apol_orbit_layers, but only retrieves the primes that are found (no repeats), NOT counting 2 or 3.
+GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound){
+  pari_sp top=avma, mid;
+  int ind=1;//We reuse ind to track which depth we are going towards.
+  int depth=10;//Initially we go up to depth 10, but this may change if we need to go deeper.
+  GEN W=zerovec(depth);//Tracks the sequence of APC's; W[ind] is at ind-1 depth
+  GEN Wlayers=zerovec(depth);//Tracks the layers.
+  gel(W, 1)=v;//The first one.
+  gel(Wlayers, 1)=mkvecsmalln(6, 0L, 1L, 1L, 1L, 0L, 1L);//First circles are in layers 0, 1, 1, 1; min 0 1 time (format is layer 1, layer 2, layer 3, layer 4, min, freq of min.
+  GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
+  int forward=1;//Tracks if we are going forward or not.
+  GEN m24=apol_mod24(v);
+  GEN rposs;//Residue classes possible.
+  switch(itos(gel(m24, 2))){//Uniquely determines the residue class
+	case 1:
+	  rposs=mkvecsmall(1);break;
+	case 4:
+	  rposs=mkvecsmall(13);break;
+	case 5:
+	  rposs=mkvecsmall(5);break;
+	case 8:
+	  rposs=mkvecsmall(17);break;
+	case 3:
+	  rposs=mkvecsmall2(11, 23);break;
+	default://Case 6
+	  rposs=mkvecsmall2(7, 19);
+  }
+  
+  long Nreps=itos(bound), lgrposs=lg(rposs), rem;
+  GEN reps=vectrunc_init(Nreps);//We may need to extend the length of reps later on.
+  for(int i=1;i<=4;i++){
+    if(cmpii(gel(v, i), bound)<=0){//First 4 reps
+	  rem=smodis(gel(v, i), 24);
+	  if((rem==rposs[1] || (lgrposs==3 && rem==rposs[2])) && isprime(gel(v, i))) vectrunc_append(reps, gel(v, i));
+    }
+  }
+  do{//1<=ind<=depth is assumed.
+    if(gc_needed(top, 2)){//Garbage day!
+	  GEN oldreps=reps;
+	  mid=avma;
+	  W=gcopy(W);
+	  Wlayers=gcopy(Wlayers);
+	  I=gcopy(I);
+	  reps=vectrunc_init(Nreps);
+	  for(long i=1;i<lg(oldreps);i++) vectrunc_append(reps, gcopy(gel(oldreps, i)));//Copying reps
+	  gerepileallsp(top, mid, 4, &W, &Wlayers, &I, &reps);
+	}
+    if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
+      Nreps=2*Nreps-1;
+      GEN newreps=vectrunc_init(Nreps);
+	  vectrunc_append_batch(newreps, reps);//Append the old list
+      reps=newreps;
+    }
+    I[ind]=forward? 1:I[ind]+1;
+    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
+    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+    //At this point, we can go on with valid and new inputs. Start with checking the layer.
+	GEN curlayer=gel(Wlayers, ind), nextlayer=vecsmall_copy(curlayer);
+	if(curlayer[I[ind]]==curlayer[5]){//Currently min. If max, it MUST be repeated, and does not change anything.
+	  if(curlayer[6]==1){nextlayer[I[ind]]=nextlayer[I[ind]]+2;nextlayer[5]++;nextlayer[6]=3;}//go from x, x+1, x+1, x+1 to x+2, x+1, x+1, x+1.
+	  else{nextlayer[I[ind]]++;nextlayer[6]--;}//Repeated minimum just moves up 1.
+	}
+	if(nextlayer[I[ind]]>maxlayers){forward=0;continue;}//Too many layers deep.
+    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    GEN elt=gel(newv, I[ind]);//The new element
+    if(cmpii(elt, bound)==1 || ZV_equal(gel(W, ind), newv)) forward=0;//Must go back, elt too big OR same thing (e.g. happens with strip packing)
+    else{
+	  rem=smodis(elt, 24);
+	  if((rem==rposs[1] || (lgrposs==3 && rem==rposs[2])) && isprime(elt)) vectrunc_append(reps, elt);//Add the new element
+      ind++;
+	  if(ind==depth){
+	    int newdepth=2*depth;
+		GEN newW=zerovec(newdepth), newWlayers=zerovec(newdepth), newI=vecsmall_ei(newdepth, 1);
+		for(long i=1;i<=depth;i++){gel(newW, i)=gel(W, i);gel(newWlayers, i)=gel(Wlayers, i);newI[i]=I[i];}//Copy them over.
+		W=newW;
+		Wlayers=newWlayers;
+		I=newI;
+		depth=newdepth;
+	  }
+      gel(W, ind)=newv;
+	  gel(Wlayers, ind)=nextlayer;
+      forward=1;
+    }
+  }while(ind>0);
+  return gerepileupto(top, ZV_sort_uniq(reps));
+}
+
+
 //Returns the quadratic form whose primitive values are the curvatures touching circle v[ind]. The formula is [a+b,a+b+c-d, a+c] if v=[a,b,c,d] and ind=1.
 GEN apol_qf(GEN v, int ind){
   pari_sp top=avma;

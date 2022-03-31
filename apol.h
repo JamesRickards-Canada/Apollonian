@@ -38,6 +38,7 @@ GEN apol_ncgp_smallcurve(GEN n, int red, long prec);
 GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
 GEN apol_orbit(GEN v, int depth, GEN bound);
 GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound);
+GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound);
 GEN apol_qf(GEN v, int ind);
 long apol_quaddepth(GEN v);
 GEN apol_red(GEN v, int seq);

@@ -33,6 +33,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_orbit,"Inputs v, depth, {bound=0}: vector v representing an ACP, positive integer depth, bound>=0.\n Returns a sorted list of curvatures of circles up to depth depth, i.e. we do up to depth circle replacements. If bound!=0, we only count those of curvature <=bound. The length of the list (before removing repeated terms, and assuming bound=0) is 2*(3^depth+1).");
 		install("apol_orbit_layers","GLG",,"./libapol.so");
 		addhelp(apol_orbit_layers,"Inputs v, maxlayers, bound.\n Returns the curvatures in the first maxlayers layers up to bound bound, with respect to the circle v[1].");
+		install("apol_orbit_primes","GLG",,"./libapol.so");
+		addhelp(apol_orbit_primes,"Inputs v, maxlayers, bound.\n Returns the prime curvatures in the first maxlayers layers up to bound bound, with respect to the circle v[1]. Does not include curvatures 2 or 3, and removes repeats.");
 		install("apol_qf","GD1,L,",,"./libapol.so");
 		addhelp(apol_qf, "Inputs v, {ind=1}: vector v representing an ACP, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
 		install("apol_quaddepth","lG",,"./libapol.so");
@@ -53,7 +55,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(ZV_countnonpos,"Input v, a sorted vector of integers.\n Returns the number of entries that are nonpositive.");
 
 	\\GENERAL HELP
-		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_circles, apol_dpair_circle, apol_getmatrices, apol_getobstructions, apol_make, apol_mod24, apol_move, apol_ncgp_depths, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_layers, apol_qf, apol_quaddepth, apol_red, apol_red_bsteps, apol_search, mod24_search, printcircles_desmos, printcircles_tex, ZV_countnonpos.");
+		addhelp(apollonian,"This package is a collection of methods used to deal with Apollonian circle packaings. Installed methods:\n apol_check, apol_circles, apol_dpair_circle, apol_getmatrices, apol_getobstructions, apol_make, apol_mod24, apol_move, apol_ncgp_depths, apol_ncgp_forms, apol_ncgp_smallcurve, apol_ncgp_smallcurve_bsteps, apol_orbit, apol_orbit_layers, apol_orbit_primes, apol_qf, apol_quaddepth, apol_red, apol_red_bsteps, apol_search, mod24_search, printcircles_desmos, printcircles_tex, ZV_countnonpos.");
 
 \\base.c
 
