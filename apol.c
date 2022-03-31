@@ -151,7 +151,7 @@ static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long pr
 void printcircles_desmos(GEN c){
   for(long i=1;i<lg(c);i++){
     if(gequal0(gmael(c, i, 1))) pari_printf("y=%Ps\n", gmael(c, i, 4));//Horizontal line
-	else pari_printf("(x-%Ps)^2+(y-%Ps)^2=1/(%Ps)^2\n", gmael(c, i, 3), gmael(c, i, 4), gmael(c, i, 1));
+    else pari_printf("(x-%Ps)^2+(y-%Ps)^2=1/(%Ps)^2\n", gmael(c, i, 3), gmael(c, i, 4), gmael(c, i, 1));
   }
 }
 
@@ -173,44 +173,44 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int op
   GEN cscale=cgetg_copy(c, &lc);//Scale it so the first circle has radius 3in and centre at (0, 0). The first circle is supposed to be the biggest, having negative curvature, and centre 0, 0. If it is not the largest, we have some work to do.
   GEN largestcirc=stoi(3);//Radius of largest circle
   if(gcmpgs(gmael(c, 1, 2), 0)<0){//First circle neg curvature, so everything is a circle.
-	GEN scalingfactor=gdiv(largestcirc, gneg(gmael(c, 1, 2)));//Scaling factor.
+    GEN scalingfactor=gdiv(largestcirc, gneg(gmael(c, 1, 2)));//Scaling factor.
     gel(cscale, 1)=mkvec3(largestcirc, gen_0, gen_0);
     for(long i=2;i<lc;i++){
       gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gmael(c, i, 3), scalingfactor), gmul(gmael(c, i, 4), scalingfactor));//r, x, y
     }//Circles have been scaled!
   }
   else{//Strip packing, OR the largest curvature does not come first. The width should be at least as much as the height.
-	GEN minx=mkoo(), maxx=mkmoo();
-	for(long i=1;i<lc;i++){
-	  if(gequal0(gmael(c, i, 1))) continue;//Horizontal line.
-	  GEN circxmin=gsub(gmael(c, i, 3), gmael(c, i, 2));
-	  GEN circxmax=gadd(gmael(c, i, 3), gmael(c, i, 2));
-	  minx=gmin_shallow(minx, circxmin);
-	  maxx=gmax_shallow(maxx, circxmax);
-	}
-	if(typ(minx)==t_INFINITY || typ(maxx)==t_INFINITY) pari_err_TYPE("You don't have any circles", c);
-	GEN scalingfactor=gmulgs(gdiv(largestcirc, gsub(maxx, minx)), 2);
-	GEN horizshift=gdivgs(gadd(maxx, minx), 2);
-	for(long i=1;i<lc;i++){
-	  if(gequal0(gmael(c, i, 1))){//Horizontal line
-		gel(cscale, i)=mkvec3(mkoo(), largestcirc, gmul(gmael(c, i, 4), scalingfactor));//oo, "radius", y-intercept ("radius"=r means going from [-r, y] to [r, y])
-		continue;
-	  }
-	  gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gsub(gmael(c, i, 3), horizshift), scalingfactor), gmul(gmael(c, i, 4), scalingfactor));//r, x, y
-	}
+    GEN minx=mkoo(), maxx=mkmoo();
+    for(long i=1;i<lc;i++){
+      if(gequal0(gmael(c, i, 1))) continue;//Horizontal line.
+      GEN circxmin=gsub(gmael(c, i, 3), gmael(c, i, 2));
+      GEN circxmax=gadd(gmael(c, i, 3), gmael(c, i, 2));
+      minx=gmin_shallow(minx, circxmin);
+      maxx=gmax_shallow(maxx, circxmax);
+    }
+    if(typ(minx)==t_INFINITY || typ(maxx)==t_INFINITY) pari_err_TYPE("You don't have any circles", c);
+    GEN scalingfactor=gmulgs(gdiv(largestcirc, gsub(maxx, minx)), 2);
+    GEN horizshift=gdivgs(gadd(maxx, minx), 2);
+    for(long i=1;i<lc;i++){
+      if(gequal0(gmael(c, i, 1))){//Horizontal line
+        gel(cscale, i)=mkvec3(mkoo(), largestcirc, gmul(gmael(c, i, 4), scalingfactor));//oo, "radius", y-intercept ("radius"=r means going from [-r, y] to [r, y])
+        continue;
+      }
+      gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gsub(gmael(c, i, 3), horizshift), scalingfactor), gmul(gmael(c, i, 4), scalingfactor));//r, x, y
+    }
   }
   
   //Time to draw the circles
   char *drawoptions="[ultra thin]";
   for(long i=1;i<lc;i++){
-	if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", drawoptions, gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
-	else pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+    if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", drawoptions, gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
+    else pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
   }
   GEN ten=stoi(10);
   if(addnumbers){
     for(long i=1;i<lc;i++){
       GEN curv=gmael(c, i, 1), scaleby;
-	  if(gsigne(curv)!=1) continue;//Don't add numbers for curvatures <=0.
+      if(gsigne(curv)!=1) continue;//Don't add numbers for curvatures <=0.
       long ndigits=logint(curv, ten)+1;
       switch(ndigits){//Scaling the font.
         case 1:
@@ -244,7 +244,7 @@ GEN apol_dpair_circle(GEN L){
   pari_sp top=avma;
   int t=typ(L);
   switch(t){
-	case t_INT:;//Required to stop error with int sL
+    case t_INT:;//Required to stop error with int sL
       int sL=itos(L);
       switch(sL){
         case 1:
@@ -257,11 +257,11 @@ GEN apol_dpair_circle(GEN L){
           return mkvec4(gen_2, ghalf, gen_m1, ghalf);
       }
     case t_VEC:
-	  L=gtovecsmall(L);//Make it a vecsmall
-	case t_VECSMALL:
-	  break;
-	default:
-	  pari_err_TYPE("L needs to be an integer from 1 to 4, or a vecsmall/vector of such integers", L);
+      L=gtovecsmall(L);//Make it a vecsmall
+    case t_VECSMALL:
+      break;
+    default:
+      pari_err_TYPE("L needs to be an integer from 1 to 4, or a vecsmall/vector of such integers", L);
   }
   GEN M=apol_getmatrices();
   GEN W=matid(4);
@@ -461,48 +461,48 @@ GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound){
   for(int i=1;i<=4;i++) if(cmpii(gel(v, i), bound)<=0) vectrunc_append(reps, gel(v, i));//First 4 reps
   do{//1<=ind<=depth is assumed.
     if(gc_needed(top, 2)){//Garbage day!
-	  GEN oldreps=reps;
-	  mid=avma;
-	  W=gcopy(W);
-	  Wlayers=gcopy(Wlayers);
-	  I=gcopy(I);
-	  reps=vectrunc_init(Nreps);
-	  for(long i=1;i<lg(oldreps);i++) vectrunc_append(reps, gcopy(gel(oldreps, i)));//Copying reps
-	  gerepileallsp(top, mid, 4, &W, &Wlayers, &I, &reps);
-	}
+      GEN oldreps=reps;
+      mid=avma;
+      W=gcopy(W);
+      Wlayers=gcopy(Wlayers);
+      I=gcopy(I);
+      reps=vectrunc_init(Nreps);
+      for(long i=1;i<lg(oldreps);i++) vectrunc_append(reps, gcopy(gel(oldreps, i)));//Copying reps
+      gerepileallsp(top, mid, 4, &W, &Wlayers, &I, &reps);
+    }
     if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
       Nreps=2*Nreps-1;
       GEN newreps=vectrunc_init(Nreps);
-	  vectrunc_append_batch(newreps, reps);//Append the old list
+      vectrunc_append_batch(newreps, reps);//Append the old list
       reps=newreps;
     }
     I[ind]=forward? 1:I[ind]+1;
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs. Start with checking the layer.
-	GEN curlayer=gel(Wlayers, ind), nextlayer=vecsmall_copy(curlayer);
-	if(curlayer[I[ind]]==curlayer[5]){//Currently min. If max, it MUST be repeated, and does not change anything.
-	  if(curlayer[6]==1){nextlayer[I[ind]]=nextlayer[I[ind]]+2;nextlayer[5]++;nextlayer[6]=3;}//go from x, x+1, x+1, x+1 to x+2, x+1, x+1, x+1.
-	  else{nextlayer[I[ind]]++;nextlayer[6]--;}//Repeated minimum just moves up 1.
-	}
-	if(nextlayer[I[ind]]>maxlayers){forward=0;continue;}//Too many layers deep.
+    GEN curlayer=gel(Wlayers, ind), nextlayer=vecsmall_copy(curlayer);
+    if(curlayer[I[ind]]==curlayer[5]){//Currently min. If max, it MUST be repeated, and does not change anything.
+      if(curlayer[6]==1){nextlayer[I[ind]]=nextlayer[I[ind]]+2;nextlayer[5]++;nextlayer[6]=3;}//go from x, x+1, x+1, x+1 to x+2, x+1, x+1, x+1.
+      else{nextlayer[I[ind]]++;nextlayer[6]--;}//Repeated minimum just moves up 1.
+    }
+    if(nextlayer[I[ind]]>maxlayers){forward=0;continue;}//Too many layers deep.
     GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
     GEN elt=gel(newv, I[ind]);//The new element
     if(cmpii(elt, bound)==1 || ZV_equal(gel(W, ind), newv)) forward=0;//Must go back, elt too big OR same thing (e.g. happens with strip packing)
     else{
       vectrunc_append(reps, elt);//Add the new element
       ind++;
-	  if(ind==depth){
-	    int newdepth=2*depth;
-		GEN newW=zerovec(newdepth), newWlayers=zerovec(newdepth), newI=vecsmall_ei(newdepth, 1);
-		for(long i=1;i<=depth;i++){gel(newW, i)=gel(W, i);gel(newWlayers, i)=gel(Wlayers, i);newI[i]=I[i];}//Copy them over.
-		W=newW;
-		Wlayers=newWlayers;
-		I=newI;
-		depth=newdepth;
-	  }
+      if(ind==depth){
+        int newdepth=2*depth;
+        GEN newW=zerovec(newdepth), newWlayers=zerovec(newdepth), newI=vecsmall_ei(newdepth, 1);
+        for(long i=1;i<=depth;i++){gel(newW, i)=gel(W, i);gel(newWlayers, i)=gel(Wlayers, i);newI[i]=I[i];}//Copy them over.
+        W=newW;
+        Wlayers=newWlayers;
+        I=newI;
+        depth=newdepth;
+      }
       gel(W, ind)=newv;
-	  gel(Wlayers, ind)=nextlayer;
+      gel(Wlayers, ind)=nextlayer;
       forward=1;
     }
   }while(ind>0);
@@ -523,73 +523,73 @@ GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound){
   GEN m24=apol_mod24(v);
   GEN rposs;//Residue classes possible.
   switch(itos(gel(m24, 2))){//Uniquely determines the residue class
-	case 1:
-	  rposs=mkvecsmall(1);break;
-	case 4:
-	  rposs=mkvecsmall(13);break;
-	case 5:
-	  rposs=mkvecsmall(5);break;
-	case 8:
-	  rposs=mkvecsmall(17);break;
-	case 3:
-	  rposs=mkvecsmall2(11, 23);break;
-	default://Case 6
-	  rposs=mkvecsmall2(7, 19);
+    case 1:
+      rposs=mkvecsmall(1);break;
+    case 4:
+      rposs=mkvecsmall(13);break;
+    case 5:
+      rposs=mkvecsmall(5);break;
+    case 8:
+      rposs=mkvecsmall(17);break;
+    case 3:
+      rposs=mkvecsmall2(11, 23);break;
+    default://Case 6
+      rposs=mkvecsmall2(7, 19);
   }
   
   long Nreps=itos(bound), lgrposs=lg(rposs), rem;
   GEN reps=vectrunc_init(Nreps);//We may need to extend the length of reps later on.
   for(int i=1;i<=4;i++){
     if(cmpii(gel(v, i), bound)<=0){//First 4 reps
-	  rem=smodis(gel(v, i), 24);
-	  if((rem==rposs[1] || (lgrposs==3 && rem==rposs[2])) && isprime(gel(v, i))) vectrunc_append(reps, gel(v, i));
+      rem=smodis(gel(v, i), 24);
+      if((rem==rposs[1] || (lgrposs==3 && rem==rposs[2])) && isprime(gel(v, i))) vectrunc_append(reps, gel(v, i));
     }
   }
   do{//1<=ind<=depth is assumed.
     if(gc_needed(top, 2)){//Garbage day!
-	  GEN oldreps=reps;
-	  mid=avma;
-	  W=gcopy(W);
-	  Wlayers=gcopy(Wlayers);
-	  I=gcopy(I);
-	  reps=vectrunc_init(Nreps);
-	  for(long i=1;i<lg(oldreps);i++) vectrunc_append(reps, gcopy(gel(oldreps, i)));//Copying reps
-	  gerepileallsp(top, mid, 4, &W, &Wlayers, &I, &reps);
-	}
+      GEN oldreps=reps;
+      mid=avma;
+      W=gcopy(W);
+      Wlayers=gcopy(Wlayers);
+      I=gcopy(I);
+      reps=vectrunc_init(Nreps);
+      for(long i=1;i<lg(oldreps);i++) vectrunc_append(reps, gcopy(gel(oldreps, i)));//Copying reps
+      gerepileallsp(top, mid, 4, &W, &Wlayers, &I, &reps);
+    }
     if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
       Nreps=2*Nreps-1;
       GEN newreps=vectrunc_init(Nreps);
-	  vectrunc_append_batch(newreps, reps);//Append the old list
+      vectrunc_append_batch(newreps, reps);//Append the old list
       reps=newreps;
     }
     I[ind]=forward? 1:I[ind]+1;
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs. Start with checking the layer.
-	GEN curlayer=gel(Wlayers, ind), nextlayer=vecsmall_copy(curlayer);
-	if(curlayer[I[ind]]==curlayer[5]){//Currently min. If max, it MUST be repeated, and does not change anything.
-	  if(curlayer[6]==1){nextlayer[I[ind]]=nextlayer[I[ind]]+2;nextlayer[5]++;nextlayer[6]=3;}//go from x, x+1, x+1, x+1 to x+2, x+1, x+1, x+1.
-	  else{nextlayer[I[ind]]++;nextlayer[6]--;}//Repeated minimum just moves up 1.
-	}
-	if(nextlayer[I[ind]]>maxlayers){forward=0;continue;}//Too many layers deep.
+    GEN curlayer=gel(Wlayers, ind), nextlayer=vecsmall_copy(curlayer);
+    if(curlayer[I[ind]]==curlayer[5]){//Currently min. If max, it MUST be repeated, and does not change anything.
+      if(curlayer[6]==1){nextlayer[I[ind]]=nextlayer[I[ind]]+2;nextlayer[5]++;nextlayer[6]=3;}//go from x, x+1, x+1, x+1 to x+2, x+1, x+1, x+1.
+      else{nextlayer[I[ind]]++;nextlayer[6]--;}//Repeated minimum just moves up 1.
+    }
+    if(nextlayer[I[ind]]>maxlayers){forward=0;continue;}//Too many layers deep.
     GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
     GEN elt=gel(newv, I[ind]);//The new element
     if(cmpii(elt, bound)==1 || ZV_equal(gel(W, ind), newv)) forward=0;//Must go back, elt too big OR same thing (e.g. happens with strip packing)
     else{
-	  rem=smodis(elt, 24);
-	  if((rem==rposs[1] || (lgrposs==3 && rem==rposs[2])) && isprime(elt)) vectrunc_append(reps, elt);//Add the new element
+      rem=smodis(elt, 24);
+      if((rem==rposs[1] || (lgrposs==3 && rem==rposs[2])) && isprime(elt)) vectrunc_append(reps, elt);//Add the new element
       ind++;
-	  if(ind==depth){
-	    int newdepth=2*depth;
-		GEN newW=zerovec(newdepth), newWlayers=zerovec(newdepth), newI=vecsmall_ei(newdepth, 1);
-		for(long i=1;i<=depth;i++){gel(newW, i)=gel(W, i);gel(newWlayers, i)=gel(Wlayers, i);newI[i]=I[i];}//Copy them over.
-		W=newW;
-		Wlayers=newWlayers;
-		I=newI;
-		depth=newdepth;
-	  }
+      if(ind==depth){
+        int newdepth=2*depth;
+        GEN newW=zerovec(newdepth), newWlayers=zerovec(newdepth), newI=vecsmall_ei(newdepth, 1);
+        for(long i=1;i<=depth;i++){gel(newW, i)=gel(W, i);gel(newWlayers, i)=gel(Wlayers, i);newI[i]=I[i];}//Copy them over.
+        W=newW;
+        Wlayers=newWlayers;
+        I=newI;
+        depth=newdepth;
+      }
       gel(W, ind)=newv;
-	  gel(Wlayers, ind)=nextlayer;
+      gel(Wlayers, ind)=nextlayer;
       forward=1;
     }
   }while(ind>0);

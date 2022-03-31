@@ -22,11 +22,11 @@
 GEN addoo(GEN a, GEN b){//No need to do garbage collection
   if(typ(a)==t_INFINITY){
     if(inf_get_sign(a)==1) return mkoo();
-	else return mkmoo();
+    else return mkmoo();
   }
   if(typ(b)==t_INFINITY){
     if(inf_get_sign(b)==1) return mkoo();
-	else return mkmoo();
+    else return mkmoo();
   }
   return gadd(a,b);
 }
@@ -38,8 +38,8 @@ GEN divoo(GEN a, GEN b){//No garbage collection necessary
     return mkmoo();
   }
   if(typ(a)==t_INFINITY){//a=+/-oo
-	if(gsigne(a)==gsigne(b)) return mkoo();
-	return mkmoo();
+    if(gsigne(a)==gsigne(b)) return mkoo();
+    return mkmoo();
   }
   if(typ(b)==t_INFINITY) return gen_0;
   return gdiv(a,b);
@@ -99,9 +99,9 @@ GEN FpM_eigenvecs(GEN M, GEN p){
   for(long i=1;i<nrts;i++) gel(shiftM, i)=FpM_sub(M, FpM_Fp_mul(id, gel(rts, i), p), p);//Stores M-eval*Id
   GEN ret=cgetg(nrts, t_VEC);
   for(long i=1;i<nrts;i++){
-	gel(ret, i)=cgetg(3, t_VEC);
-	gel(gel(ret, i), 1)=icopy(gel(rts, i));//Eigenvalue
-	gel(gel(ret, i), 2)=FpM_ker(gel(shiftM, i), p);//Eigenvectors
+    gel(ret, i)=cgetg(3, t_VEC);
+    gel(gel(ret, i), 1)=icopy(gel(rts, i));//Eigenvalue
+    gel(gel(ret, i), 2)=FpM_ker(gel(shiftM, i), p);//Eigenvectors
   }
   return gerepileupto(top, ret);
 }
@@ -114,8 +114,8 @@ GEN lin_intsolve(GEN A, GEN B, GEN n){
   g=gbezout(A,B,&X,&Y);//XA+YB=g now
   GEN scale=Qdivii(n,g);
   if(typ(scale)!=t_INT){//g does not divide n
-	avma=top;
-	return gen_0;
+    avma=top;
+    return gen_0;
   }
   GEN rvec=cgetg(3,t_VEC);//Creating the return vector
   gel(rvec,1)=cgetg(3,t_VEC);
@@ -124,15 +124,15 @@ GEN lin_intsolve(GEN A, GEN B, GEN n){
   gel(gel(rvec,2),2)=mulii(Y,scale);//Second part initialized
   if(gequal0(A)){
     gel(gel(rvec,1),1)=gen_1;
-	gel(gel(rvec,1),2)=gen_0;
+    gel(gel(rvec,1),2)=gen_0;
   }
   else if(gequal0(B)){
-	gel(gel(rvec,1),1)=gen_0;
-	gel(gel(rvec,1),2)=gen_1;
+    gel(gel(rvec,1),1)=gen_0;
+    gel(gel(rvec,1),2)=gen_1;
   }
   else{
-	gel(gel(rvec,1),1)=diviiexact(negi(B),g);
-	gel(gel(rvec,1),2)=diviiexact(A,g);
+    gel(gel(rvec,1),1)=diviiexact(negi(B),g);
+    gel(gel(rvec,1),2)=diviiexact(A,g);
   }
   return(gerepilecopy(top, rvec));
 }
@@ -156,21 +156,21 @@ GEN mat3_complete(GEN A, GEN B, GEN C){
   togglesign_safe(&v);//Now uA-vB+wC=g2=1 since gcd(A,B,C)=1. Write the bottom two rows as [d,f,g;g,h,i]
   GEN m;//We want to now solve ei-fh=u; di-fg=v; dh-eg=w.
   if(gequal0(u) && gequal0(v)){
-	m=zeromatcopy(3,3);
-	gcoeff(m,2,1)=gen_1;gcoeff(m,2,2)=gen_0;gcoeff(m,2,3)=gen_0;
+    m=zeromatcopy(3,3);
+    gcoeff(m,2,1)=gen_1;gcoeff(m,2,2)=gen_0;gcoeff(m,2,3)=gen_0;
     gcoeff(m,3,1)=gen_0;gcoeff(m,3,3)=gen_0;
-	if(equali1(w)) gcoeff(m,3,2)=gen_1;
-	else gcoeff(m,3,2)=gen_m1;//Making det 1
+    if(equali1(w)) gcoeff(m,3,2)=gen_1;
+    else gcoeff(m,3,2)=gen_m1;//Making det 1
   }
   else{
-	GEN p, q;
+    GEN p, q;
     g=bezout(u, v, &q, &p);
     GEN H=diviiexact(u, g);togglesign_safe(&H);//We use captials to represent the matrix elements now
     GEN G=diviiexact(v, g);togglesign_safe(&G);
     GEN E=mulii(p, w);
     GEN D=mulii(q, w);togglesign_safe(&D);//DH-EG=w, F=g and I=0
     m=zeromatcopy(3,3);
-	gcoeff(m,2,1)=icopy(D);gcoeff(m,2,2)=icopy(E);gcoeff(m,2,3)=icopy(g);
+    gcoeff(m,2,1)=icopy(D);gcoeff(m,2,2)=icopy(E);gcoeff(m,2,3)=icopy(g);
     gcoeff(m,3,1)=icopy(G);gcoeff(m,3,2)=icopy(H);gcoeff(m,3,3)=gen_0;
   }
   gcoeff(m,1,1)=icopy(A);gcoeff(m,1,2)=icopy(B);gcoeff(m,1,3)=icopy(C);
@@ -227,8 +227,8 @@ GEN primes_mod(GEN range, GEN residues, long modulus){
   pari_sp top=avma;
   if(typ(range)!=t_VEC || lg(range)<3) pari_err_TYPE("range should be a vector of length 2", range);
   if(typ(residues)!=t_VEC){
-	if(typ(residues)==t_INT) residues=mkvec(residues);
-	else pari_err_TYPE("residues should be a vector of integers, or a single integer", residues);
+    if(typ(residues)==t_INT) residues=mkvec(residues);
+    else pari_err_TYPE("residues should be a vector of integers, or a single integer", residues);
   }//Checking inputs, making a single residue a vector.
   long nres=lg(residues);
   GEN mods=cgetg(nres, t_VECSMALL);
@@ -238,9 +238,9 @@ GEN primes_mod(GEN range, GEN residues, long modulus){
   long np=lg(plist);
   GEN pmodlist=vectrunc_init(np);//List of primes in the correct residue classes.
   for(long i=1;i<np;i++){
-	GEN p=gel(plist, i);
-	long rem=smodis(p, modulus);
-	if(zv_search(mods, rem)) vectrunc_append(pmodlist, p);//non-zero, so the index was found!
+    GEN p=gel(plist, i);
+    long rem=smodis(p, modulus);
+    if(zv_search(mods, rem)) vectrunc_append(pmodlist, p);//non-zero, so the index was found!
   }
   return gerepilecopy(top, pmodlist);
 }
@@ -253,17 +253,7 @@ GEN primes_mod(GEN range, GEN residues, long modulus){
 //Returns a random element from the vector v. NOT STACK CLEAN
 GEN rand_elt(GEN v){
   if(typ(v)!=t_VEC) pari_err_TYPE("Not a vector", v);
-  long i=rand_l(lg(v)-1);
-  return gel(v,i);
-}
-
-//Returns random long from 1 to len
-long rand_l(long len){
-  pari_sp top=avma;
-  GEN ind=randomi(stoi(len));
-  long ret=itos(ind)+1;
-  avma=top;
-  return ret;
+  return gel(v, 1+random_Fl(lg(v)-1));
 }
 
 
@@ -277,9 +267,9 @@ long rand_l(long len){
 void glist_free(glist *l){
   glist *temp=l;
   while(l!=NULL){
-	temp=l;
-	l=l->next;
-	pari_free(temp);
+    temp=l;
+    l=l->next;
+    pari_free(temp);
   }
 }
 
@@ -303,64 +293,64 @@ void glist_putstart(glist **head_ref, GEN new_data){
 
 //dir=1 means forward, dir=-1 means backwards. Returns the list as a vector, makes a clean copy. This also frees the list, but we also need to clean up the list data at the list creation location. The passed in pointer to l should NOT be used as it no longer points to a valid address.
 GEN glist_togvec(glist *l, long length, int dir){
-	glist *lcopy=l;
-	GEN rvec=cgetg(length+1, t_VEC);
-	if(dir==1){
-	  long lind=1;
-	  while(l!=NULL && lind<=length){
-		  gel(rvec,lind)=gcopy(l->data);
-		  l=l->next;
-		  lind++;
-	  }
-	  if(lind<=length){//Couldn't finish.
-	    pari_err(e_MISC,"List length is too long");
-	  }
-	}
-	else{
+    glist *lcopy=l;
+    GEN rvec=cgetg(length+1, t_VEC);
+    if(dir==1){
+      long lind=1;
+      while(l!=NULL && lind<=length){
+          gel(rvec,lind)=gcopy(l->data);
+          l=l->next;
+          lind++;
+      }
+      if(lind<=length){//Couldn't finish.
+        pari_err(e_MISC,"List length is too long");
+      }
+    }
+    else{
       long lind=length;
-	  while(l!=NULL && lind>0){
-		gel(rvec,lind)=gcopy(l->data);
-		l=l->next;
-		lind--;
-	  }
-	  if(lind>0){//Couldn't finish.
-	    pari_err(e_MISC,"List length is too long");
-	  }
-	}
-	glist_free(lcopy);
-	return rvec;
+      while(l!=NULL && lind>0){
+        gel(rvec,lind)=gcopy(l->data);
+        l=l->next;
+        lind--;
+      }
+      if(lind>0){//Couldn't finish.
+        pari_err(e_MISC,"List length is too long");
+      }
+    }
+    glist_free(lcopy);
+    return rvec;
 }
 
 //Appends l to the end of v, returning a clean copy. dir=-1 means forward, dir=-1 backward. This also frees the list, but we also need to clean up the list data at the list creation location. The passed in pointer to l should NOT be used as it no longer points to a valid address.
 GEN glist_togvec_append(glist *l, GEN v, long length, int dir){
-	glist *lcopy=l;
-	long vlen=lg(v), rveclen=length+vlen;
-	GEN rvec=cgetg(rveclen, t_VEC);
-	for(long i=1;i<vlen;i++) gel(rvec, i)=gcopy(gel(v, i));//Copying v
-	if(dir==1){
-	  long lind=vlen;
-	  while(l!=NULL && lind<rveclen){
-		  gel(rvec,lind)=gcopy(l->data);
-		  l=l->next;
-		  lind++;
-	  }
-	  if(lind<rveclen){//Couldn't finish.
-	    pari_err(e_MISC,"List length is too long");
-	  }
-	}
-	else{
+    glist *lcopy=l;
+    long vlen=lg(v), rveclen=length+vlen;
+    GEN rvec=cgetg(rveclen, t_VEC);
+    for(long i=1;i<vlen;i++) gel(rvec, i)=gcopy(gel(v, i));//Copying v
+    if(dir==1){
+      long lind=vlen;
+      while(l!=NULL && lind<rveclen){
+          gel(rvec,lind)=gcopy(l->data);
+          l=l->next;
+          lind++;
+      }
+      if(lind<rveclen){//Couldn't finish.
+        pari_err(e_MISC,"List length is too long");
+      }
+    }
+    else{
       long lind=rveclen-1;
-	  while(l!=NULL && lind>=vlen){
-		gel(rvec,lind)=gcopy(l->data);
-		l=l->next;
-		lind--;
-	  }
-	  if(lind>=vlen){//Couldn't finish.
-	    pari_err(e_MISC,"List length is too long");
-	  }
-	}
-	glist_free(lcopy);
-	return rvec;
+      while(l!=NULL && lind>=vlen){
+        gel(rvec,lind)=gcopy(l->data);
+        l=l->next;
+        lind--;
+      }
+      if(lind>=vlen){//Couldn't finish.
+        pari_err(e_MISC,"List length is too long");
+      }
+    }
+    glist_free(lcopy);
+    return rvec;
 }
 
 
@@ -370,9 +360,9 @@ GEN glist_togvec_append(glist *l, GEN v, long length, int dir){
 void llist_free(llist *l){
   llist *temp=l;
   while(l!=NULL){
-	temp=l;
-	l=l->next;
-	pari_free(temp);
+    temp=l;
+    l=l->next;
+    pari_free(temp);
   }
 }
 
@@ -400,9 +390,9 @@ GEN llist_togvec(llist *l, long length, int dir){//No garbage collection necessa
   if(dir==1){
     long lind=1;
     while(l!=NULL && lind<=length){
-	  gel(rvec,lind)=stoi(l->data);
-	  l=l->next;
-	  lind++;
+      gel(rvec,lind)=stoi(l->data);
+      l=l->next;
+      lind++;
     }
     if(lind<=length){//Couldn't finish.
       pari_err(e_MISC,"List length is too long");
@@ -412,8 +402,8 @@ GEN llist_togvec(llist *l, long length, int dir){//No garbage collection necessa
     long lind=length;
     while(l!=NULL && lind>0){
       gel(rvec,lind)=stoi(l->data);
-	  l=l->next;
-	  lind--;
+      l=l->next;
+      lind--;
     }
     if(lind>0){//Couldn't finish.
       pari_err(e_MISC,"List length is too long");
@@ -430,9 +420,9 @@ GEN llist_tovecsmall(llist *l, long length, int dir){//No garbage collection nec
   if(dir==1){
     long lind=1;
     while(l!=NULL && lind<=length){
-	  rvec[lind]=l->data;
-	  l=l->next;
-	  lind++;
+      rvec[lind]=l->data;
+      l=l->next;
+      lind++;
     }
     if(lind<=length){//Couldn't finish.
       pari_err(e_MISC,"List length is too long");
@@ -442,8 +432,8 @@ GEN llist_tovecsmall(llist *l, long length, int dir){//No garbage collection nec
     long lind=length;
     while(l!=NULL && lind>0){
       rvec[lind]=l->data;
-	  l=l->next;
-	  lind--;
+      l=l->next;
+      lind--;
     }
     if(lind>0){//Couldn't finish.
       pari_err(e_MISC,"List length is too long");

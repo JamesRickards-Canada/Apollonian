@@ -77,7 +77,6 @@ GEN primes_mod(GEN range, GEN residues, long modulus);
 
 //RANDOM
 GEN rand_elt(GEN v);
-long rand_l(long len);
 
 //LISTS
 void glist_free(glist *l);

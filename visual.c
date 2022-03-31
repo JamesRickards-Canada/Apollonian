@@ -16,10 +16,10 @@
 #include <stdlib.h>
 #endif
 
-//Should also write the data to a file and offer ways to make the histogram from a file of data.
 
 
 //DATA
+//Should also write the data to a file and offer ways to make the histogram from a file of data.
 
 
 //SEE ALSO vec_equiv: this does something very similar.
@@ -59,6 +59,8 @@ GEN vecsmallcount(GEN v){
   vecsmalltrunc_append(count, run);
   return gerepilecopy(top, mkvec2(uniq, count));
 }
+
+
 
 //HISTOGRAMS
 
@@ -177,6 +179,7 @@ GEN hist_rescale(GEN data, GEN histdata, int scale, long prec){
     if(gequal0(gel(histdata, 7))) return hist_tobins(data, gel(histdata, 3), gel(histdata, 4), gel(histdata, 5), scale, 1, GENtostr_unquoted(gel(histdata, 1)), NULL, itos(gel(histdata, 2)), prec);
     return hist_tobins(data, gel(histdata, 3), gel(histdata, 4), gel(histdata, 5), scale, 1, GENtostr_unquoted(gel(histdata, 1)), GENtostr_unquoted(gel(histdata, 7)), itos(gel(histdata, 2)), prec);
 }
+
 
 
 //REGRESSIONS
