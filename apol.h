@@ -55,6 +55,12 @@ long ZV_countnonpos(GEN v);
 GEN addoo(GEN a, GEN b);
 GEN divoo(GEN a, GEN b);
 
+//INTEGER VECTORS
+GEN ZV_copy(GEN v);
+int ZV_equal(GEN v1, GEN v2);
+GEN ZV_Z_divexact(GEN v, GEN y);
+GEN ZV_Z_mul(GEN v, GEN x);
+
 //LINEAR ALGEBRA
 GEN FpM_eigenvecs(GEN M, GEN p);
 GEN lin_intsolve(GEN A, GEN B, GEN n);
@@ -62,21 +68,15 @@ GEN lin_intsolve_tc(GEN A, GEN B, GEN n);
 GEN mat3_complete(GEN A, GEN B, GEN C);
 GEN mat3_complete_tc(GEN A, GEN B, GEN C);
 
-//INTEGER VECTORS
-GEN ZV_copy(GEN v);
-int ZV_equal(GEN v1, GEN v2);
-GEN ZV_Z_divexact(GEN v, GEN y);
-GEN ZV_Z_mul(GEN v, GEN x);
+//LISTS
+GEN veclist_append(GEN v, long *vind, long *vlen, GEN x);
+GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x);
 
 //RANDOM
 GEN rand_elt(GEN v);
 long rand_l(long len);
 
 //LISTS
-void clist_free(clist *l, long length);
-void clist_putbefore(clist **head_ref, GEN new_data);
-void clist_putafter(clist **head_ref, GEN new_data);
-GEN clist_togvec(clist *l, long length, int dir);
 void glist_free(glist *l);
 GEN glist_pop(glist **head_ref);
 void glist_putstart(glist **head_ref, GEN new_data);

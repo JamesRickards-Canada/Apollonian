@@ -596,7 +596,6 @@ GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound){
   return gerepileupto(top, ZV_sort_uniq(reps));
 }
 
-
 //Returns the quadratic form whose primitive values are the curvatures touching circle v[ind]. The formula is [a+b,a+b+c-d, a+c] if v=[a,b,c,d] and ind=1.
 GEN apol_qf(GEN v, int ind){
   pari_sp top=avma;

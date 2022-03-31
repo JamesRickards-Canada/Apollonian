@@ -47,6 +47,44 @@ GEN divoo(GEN a, GEN b){//No garbage collection necessary
 
 
 
+//INTEGER VECTORS
+
+
+//Copies an integer vector
+GEN ZV_copy(GEN v){
+  long len=lg(v);
+  GEN rvec=cgetg(len,t_VEC);
+  for(long i=1;i<len;++i) gel(rvec,i)=icopy(gel(v,i));
+  return rvec;
+}
+
+//Checks if the integral vectors v1, v2 are equal, returns 1 if so and 0 else. Segmentation faults will occur if the entries are not integer.
+int ZV_equal(GEN v1, GEN v2){
+  long len=lg(v1);
+  if(lg(v2)!=len) return 0;//Different length
+  for(long i=1;i<len;++i){if(!equalii(gel(v1,i),gel(v2,i))) return 0;}
+  return 1;
+}
+
+//v is a Z-vector, divides v by y, assuming y divides each term exactly
+GEN ZV_Z_divexact(GEN v, GEN y){
+  long lx;
+  GEN rvec=cgetg_copy(v, &lx);
+  for(long i=1;i<lx;i++) gel(rvec, i)=diviiexact(gel(v, i), y);
+  return rvec;
+  
+}
+
+//v is a Z-vector, multiplies v by the integer x
+GEN ZV_Z_mul(GEN v, GEN x){
+  long lx;
+  GEN rvec=cgetg_copy(v, &lx);
+  for(long i=1;i<lx;i++) gel(rvec, i)=mulii(gel(v, i), x);
+  return rvec; 
+}
+
+
+
 //LINEAR ALGEBRA
 
 
@@ -154,42 +192,37 @@ GEN mat3_complete_tc(GEN A, GEN B, GEN C){
 
 
 
-//INTEGER VECTORS
+//LISTS
 
 
-//Copies an integer vector
-GEN ZV_copy(GEN v){
-  long len=lg(v);
-  GEN rvec=cgetg(len,t_VEC);
-  for(long i=1;i<len;++i) gel(rvec,i)=icopy(gel(v,i));
-  return rvec;
+//Appends x to v, returning v, and updating vind to vind++. If vind++>vlen, then we double the length of v as well. If this happens, the resulting vector is not suitable for gerepileupto; this must be done at the end (necessary anyway since it's likely we have to call vec_shorten at some point).
+GEN veclist_append(GEN v, long *vind, long *vlen, GEN x){
+  if(*vind==*vlen){//Need to lengthen!
+    *vlen=2**vlen;
+    v=vec_lengthen(v, *vlen);
+  }
+  *vind=*vind+1;
+  gel(v, *vind)=x;
+  return v;
 }
 
-//Checks if the integral vectors v1, v2 are equal, returns 1 if so and 0 else. Segmentation faults will occur if the entries are not integer.
-int ZV_equal(GEN v1, GEN v2){
-  long len=lg(v1);
-  if(lg(v2)!=len) return 0;//Different length
-  for(long i=1;i<len;++i){if(!equalii(gel(v1,i),gel(v2,i))) return 0;}
-  return 1;
+//Appends x to v, returning v, and updating vind to vind++. If vind++>vlen, then we double the length of v as well. Don't forget to call vec_shorten at the end, since some positions are uninitialized.
+GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x){
+  if(*vind==*vlen){//Need to lengthen!
+    *vlen=2**vlen;
+    v=vecsmall_lengthen(v, *vlen);
+  }
+  *vind=*vind+1;
+  v[*vind]=x;
+  return v;
 }
 
-//v is a Z-vector, divides v by y, assuming y divides each term exactly
-GEN ZV_Z_divexact(GEN v, GEN y){
-  long lx;
-  GEN rvec=cgetg_copy(v, &lx);
-  for(long i=1;i<lx;i++) gel(rvec, i)=diviiexact(gel(v, i), y);
-  return rvec;
-  
-}
 
-//v is a Z-vector, multiplies v by the integer x
-GEN ZV_Z_mul(GEN v, GEN x){
-  long lx;
-  GEN rvec=cgetg_copy(v, &lx);
-  for(long i=1;i<lx;i++) gel(rvec, i)=mulii(gel(v, i), x);
-  return rvec; 
-}
 
+//PRIMES
+
+
+//Returns the set of primes in the given range in a 
 
 
 //RANDOM
@@ -212,83 +245,8 @@ long rand_l(long len){
 }
 
 
+
 //LISTS
-
-
-//Circular list of GENs
-
-//Frees the memory pari_malloc'ed by clist
-void clist_free(clist *l, long length){
-  clist *temp=l;
-  long i=1;
-  while(i<length){
-	temp=l;
-	l=l->next;
-	pari_free(temp);
-	i++;
-  }
-  pari_free(l);
-}
-
-//Put an element before *head_ref, and update *head_ref to point there
-void clist_putbefore(clist **head_ref, GEN new_data){
-  clist *new_elt = (clist*)pari_malloc(sizeof(clist)); 
-  new_elt->data = new_data;
-  if(*head_ref!=NULL){
-    new_elt->next = *head_ref; 
-    new_elt->prev = (*head_ref)->prev;
-    (*head_ref)->prev = new_elt;
-	(new_elt->prev)->next=new_elt;
-  }
-  else{
-    new_elt->next = new_elt; 
-    new_elt->prev = new_elt;
-  }
-  *head_ref = new_elt;
-}
-
-//Put an element after *head_ref, and update *head_ref to point there
-void clist_putafter(clist **head_ref, GEN new_data){
-  clist *new_elt = (clist*)pari_malloc(sizeof(clist)); 
-  new_elt->data = new_data;
-  if(*head_ref!=NULL){
-    new_elt->prev = *head_ref; 
-    new_elt->next = (*head_ref)->next;
-    (*head_ref)->next = new_elt;
-	(new_elt->next)->prev=new_elt;
-  }
-  else{
-    new_elt->next = new_elt; 
-    new_elt->prev = new_elt;
-  }
-  *head_ref = new_elt;
-}
-
-//dir=1 means forward, dir=-1 means backwards. Returns the list as a vector, and makes a clean copy. This also frees the list, but we also need to clean up the list data at the list creation location. The passed in pointer to l should NOT be used as it no longer points to a valid address.
-GEN clist_togvec(clist *l, long length, int dir){
-  if(l==NULL){//Empty list, return the empty vector.
-    GEN rvec=cgetg(1,t_VEC);
-    return(rvec);	  
-  }
-  GEN rvec=cgetg(length+1, t_VEC);
-  long lind=1;
-  if(dir==1){
-    while(lind<=length){
-	  gel(rvec,lind)=gcopy(l->data);
-	  l=l->next;
-	  lind++;
-    }
-  }
-  else{
-    while(lind<=length){
-	  gel(rvec,lind)=gcopy(l->data);
-	  l=l->prev;
-	  lind++;
-    }
-  }
-  clist_free(l,length);
-  return rvec;
-}
 
 
 //List of GENs
