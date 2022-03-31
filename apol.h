@@ -234,6 +234,7 @@ GEN fareyup(GEN r);
 //visual.c
 
 //DATA
+GEN integerbin(GEN v, GEN binlen, GEN binstart);
 GEN veccount(GEN v);
 GEN vecsmallcount(GEN v);
 

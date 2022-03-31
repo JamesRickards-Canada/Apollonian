@@ -22,6 +22,28 @@
 //Should also write the data to a file and offer ways to make the histogram from a file of data.
 
 
+//If v is a sorted vector of integers, this bins the data so everything is in a bin. nbins is the number of bins to use. Returns [binends, counts]. Makes the bin length an integer.
+GEN integerbin(GEN v, GEN binlen, GEN binstart){
+  pari_sp top=avma;
+  long lv=lg(v);
+  GEN last=gel(v, lv-1);
+  long nbins=itos(divii(subis(subii(last, binstart), 1), binlen))+1;
+  GEN binends=cgetg(nbins+1, t_VEC);
+  gel(binends, 1)=addii(binstart, binlen);
+  for(long i=2;i<=nbins;i++) gel(binends, i)=addii(gel(binends, i-1), binlen);
+  GEN counts=vecsmall_ei(nbins, 1);
+  counts[1]=0;//Making it the vector of 0's.
+  long binind=1;
+  for(long i=1;i<lv;i++){
+	if(cmpii(gel(v, i), gel(binends, binind))<=0) counts[binind]++;
+	else{
+	  i--;//Redo this index
+	  binind++;//Move to a new bin.
+	}
+  }
+  return gerepilecopy(top, mkvec2(binends, counts));
+}
+
 //SEE ALSO vec_equiv: this does something very similar.
 //Returns [vsort, count], where vsort is the sorted vector v with duplicates removed, and count is the Vecsmall of corresponding number of each in the original vector v. This is not the most efficient, but is fine.
 GEN veccount(GEN v){
