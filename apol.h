@@ -29,8 +29,7 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int op
 GEN apol_dpair_circle(GEN L);
 GEN apol_getmatrices();
 GEN apol_getobstructions();
-GEN apol_make(GEN n, GEN m, int red);
-GEN apol_make_fromqf(GEN q, int pos, int red);
+GEN apol_make(GEN q, int pos, int red);
 GEN apol_mod24(GEN v);
 GEN apol_move(GEN v, int ind);
 GEN apol_ncgp_depths(GEN n, long prec);
@@ -38,7 +37,7 @@ GEN apol_ncgp_forms(GEN n, int pos, int red, long prec);
 GEN apol_ncgp_smallcurve(GEN n, int red, long prec);
 GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
 GEN apol_orbit(GEN v, int depth, GEN bound);
-GEN apol_orbit_1(GEN v, int ind, int depth, GEN bound);
+GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound);
 GEN apol_qf(GEN v, int ind);
 long apol_quaddepth(GEN v);
 GEN apol_red(GEN v, int seq);

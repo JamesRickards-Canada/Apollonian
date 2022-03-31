@@ -290,30 +290,8 @@ GEN apol_getmatrices(){
 GEN apol_getobstructions(){
   return gp_readvec_file("obstructions.dat");}
 
-//Returns all primitive Apollonian root quadruples using the construction from x^2+m^2=d_1d_2 (page 19 of GLMWY Number Theory). This has first entry x=-n.
-GEN apol_make(GEN n, GEN m, int red){
-  pari_sp top=avma;
-  if(typ(n)!=t_INT || typ(m)!=t_INT) pari_err_TYPE("Please input two integers", mkvec2(n, m));
-  if(red==1 && signe(n)!=1) return cgetg(1, t_VEC);//Require n>0 for reduced.
-  GEN d1d2=addii(sqri(n), sqri(m)), mn=negi(n), twom=shifti(m, 1);
-  GEN divs=divisors(d1d2);//x^2+m^2=d_1d_2, and a=x, b=d1-x, c=d2-x, d=-2m+d1+d2-x.
-  long ndivs=lg(divs);
-  GEN apols=vectrunc_init(ndivs);
-  for(long i=1;i<=(ndivs-1)/2;i++){
-    GEN d1=gel(divs, i);
-    if(red==1 && cmpii(twom, d1)==1) continue;//For root quadruple, we require -n<0<=2m<=d1<=d2
-    GEN d2=gel(divs, ndivs-i);
-    if(!equali1(gcdii(gcdii(d1, n), d2))) continue;
-    GEN d1px=addii(d1, n);
-    GEN v=mkvec4(mn, d1px, addii(d2, n), addii(d1px, subii(d2, twom)));
-    if(red==2) vectrunc_append(apols, apol_red(v, 0));
-    else vectrunc_append(apols, v);
-  }
-  return gerepilecopy(top, apols);
-}
-
-//Given a bqf q, this gives the corresponding root quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.
-GEN apol_make_fromqf(GEN q, int pos, int red){
+//Given a bqf q, this gives the corresponding Descartes quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.
+GEN apol_make(GEN q, int pos, int red){
   pari_sp top=avma;
   GEN D=bqf_disc(q);
   if(signe(D)!=-1) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
@@ -333,12 +311,12 @@ GEN apol_make_fromqf(GEN q, int pos, int red){
 
 
 /*Returns the set of admissible residues modulo 24. There are 6 possible primitive sets: 
-[0, 1, 4, 9, 12, 16]
-[0, 4, 12, 13, 16, 21]
-[0, 5, 8, 12, 20, 21]
-[0, 8, 9, 12, 17, 20]
-[2, 3, 6, 11, 14, 15, 18, 23]
-[3, 6, 7, 10, 15, 18, 19, 22]
+[0, 1, 4, 9, 12, 16]; primes are 1 mod 24
+[0, 4, 12, 13, 16, 21]; primes are 13 mod 24
+[0, 5, 8, 12, 20, 21]; primes are 5 mod 24
+[0, 8, 9, 12, 17, 20]; primes are 17 mod 24
+[2, 3, 6, 11, 14, 15, 18, 23]; primes are 11, 23 mod 24
+[3, 6, 7, 10, 15, 18, 19, 22]; primes are 7, 19 mod 24
 You ONLY need to go to depth 3 to find which class we are in (proven by brute force check).*/
 GEN apol_mod24(GEN v){
   pari_sp top=avma;
@@ -390,7 +368,7 @@ GEN apol_ncgp_forms(GEN n, int pos, int red, long prec){
   for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
     GEN q=gel(forms, i);
     if(signe(gel(q, 2))==-1) continue;
-    vectrunc_append(quads, apol_make_fromqf(q, pos, red));
+    vectrunc_append(quads, apol_make(q, pos, red));
   }
   return gerepileupto(top, quads);
 }
@@ -467,56 +445,65 @@ GEN apol_orbit(GEN v, int depth, GEN bound){
   return gerepileupto(top, ZV_sort(reps));
 }
 
-//Returns a sorted list of curvatures of circles surrounding v[ind]. We go to depth depth, i.e. we do up to depth circle replacements. We also only retrieve curvatures <=bound, if this is passed in as non-zero.
-GEN apol_orbit_1(GEN v, int ind, int depth, GEN bound){
-  pari_sp top=avma;
-  GEN v1;
-  if(ind==1) v1=v;
-  else{//Just shifting it so we are replacing v[1]
-    long l;
-    v1=cgetg_copy(v, &l);//l=5 now
-    gel(v1, 1)=gel(v, ind);
-    gel(v1, ind)=gel(v, 1);
-    for(int i=2;i<=4;i++) if(i!=ind) gel(v1, i)=gel(v, i);//We don't copy, so v1 is not a safe vector.
-  }
-  ind=1;//We reuse ind to track which depth we are going towards.
+//Returns a sorted list of curvatures of circles that are maxlayers layers in from v[1]. Thus maxlayers=1 means that we only consider circles tangent to v[1] (along with v[1] itself). We only retrieve curvatures up to the given bound.
+GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound){
+  pari_sp top=avma, mid;
+  int ind=1;//We reuse ind to track which depth we are going towards.
+  int depth=10;//Initially we go up to depth 10, but this may change if we need to go deeper.
   GEN W=zerovec(depth);//Tracks the sequence of APC's; W[ind] is at ind-1 depth
-  gel(W, 1)=v1;//The first one.
+  GEN Wlayers=zerovec(depth);//Tracks the layers.
+  gel(W, 1)=v;//The first one.
+  gel(Wlayers, 1)=mkvecsmalln(6, 0L, 1L, 1L, 1L, 0L, 1L);//First circles are in layers 0, 1, 1, 1; min 0 1 time (format is layer 1, layer 2, layer 3, layer 4, min, freq of min.
   GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
-  int forward=1, usebound=1-gequal0(bound);//Tracks if we are going forward or not.
-  long Nreps;
-  if(gequal0(bound)) Nreps=3*itos(int2n(depth))+1;
-  else Nreps=itos(bound);//If bound!=0, and depth is large, the previous Nreps definition may be too large
-  GEN reps=vectrunc_init(Nreps);
-  if(usebound){
-    for(int i=2;i<=4;i++) if(cmpii(gel(v1, i), bound)<=0) vectrunc_append(reps, gel(v1, i));//First 3 reps
-  }
-  else{
-    for(int i=2;i<=4;i++) vectrunc_append(reps, gel(v1, i));//First 3 reps
-  }
+  int forward=1;//Tracks if we are going forward or not.
+  long Nreps=itos(bound);
+  GEN reps=vectrunc_init(Nreps);//We may need to extend the length of reps later on.
+  for(int i=1;i<=4;i++) if(cmpii(gel(v, i), bound)<=0) vectrunc_append(reps, gel(v, i));//First 4 reps
   do{//1<=ind<=depth is assumed.
+    if(gc_needed(top, 2)){//Garbage day!
+	  GEN oldreps=reps;
+	  mid=avma;
+	  W=gcopy(W);
+	  Wlayers=gcopy(Wlayers);
+	  I=gcopy(I);
+	  reps=vectrunc_init(Nreps);
+	  for(long i=1;i<lg(oldreps);i++) vectrunc_append(reps, gcopy(gel(oldreps, i)));//Copying reps
+	  gerepileallsp(top, mid, 4, &W, &Wlayers, &I, &reps);
+	}
     if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
-      long newNreps=2*Nreps-1;
-      GEN newreps=vectrunc_init(newNreps);
-      for(long i=1;i<Nreps;i++) vectrunc_append(newreps, gel(reps, i));//Append the old list
-      Nreps=newNreps;
+      Nreps=2*Nreps-1;
+      GEN newreps=vectrunc_init(Nreps);
+	  vectrunc_append_batch(newreps, reps);//Append the old list
       reps=newreps;
     }
-    I[ind]=forward? 2:I[ind]+1;
+    I[ind]=forward? 1:I[ind]+1;
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
-    //At this point, we can go on with valid and new inputs
+    //At this point, we can go on with valid and new inputs. Start with checking the layer.
+	GEN curlayer=gel(Wlayers, ind), nextlayer=vecsmall_copy(curlayer);
+	if(curlayer[I[ind]]==curlayer[5]){//Currently min. If max, it MUST be repeated, and does not change anything.
+	  if(curlayer[6]==1){nextlayer[I[ind]]=nextlayer[I[ind]]+2;nextlayer[5]++;nextlayer[6]=3;}//go from x, x+1, x+1, x+1 to x+2, x+1, x+1, x+1.
+	  else{nextlayer[I[ind]]++;nextlayer[6]--;}//Repeated minimum just moves up 1.
+	}
+	if(nextlayer[I[ind]]>maxlayers){forward=0;continue;}//Too many layers deep.
     GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
     GEN elt=gel(newv, I[ind]);//The new element
-    if(usebound && cmpii(elt, bound)==1) forward=0;//Must go back, elt too big
+    if(cmpii(elt, bound)==1 || ZV_equal(gel(W, ind), newv)) forward=0;//Must go back, elt too big OR same thing (e.g. happens with strip packing)
     else{
       vectrunc_append(reps, elt);//Add the new element
-      if(ind==depth) forward=0;
-      else{//We can keep going forward
-        ind++;
-        gel(W, ind)=newv;
-        forward=1;
-      }
+      ind++;
+	  if(ind==depth){
+	    int newdepth=2*depth;
+		GEN newW=zerovec(newdepth), newWlayers=zerovec(newdepth), newI=vecsmall_ei(newdepth, 1);
+		for(long i=1;i<=depth;i++){gel(newW, i)=gel(W, i);gel(newWlayers, i)=gel(Wlayers, i);newI[i]=I[i];}//Copy them over.
+		W=newW;
+		Wlayers=newWlayers;
+		I=newI;
+		depth=newdepth;
+	  }
+      gel(W, ind)=newv;
+	  gel(Wlayers, ind)=nextlayer;
+      forward=1;
     }
   }while(ind>0);
   return gerepileupto(top, ZV_sort(reps));
