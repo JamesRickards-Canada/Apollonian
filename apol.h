@@ -72,6 +72,9 @@ GEN mat3_complete_tc(GEN A, GEN B, GEN C);
 GEN veclist_append(GEN v, long *vind, long *vlen, GEN x);
 GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x);
 
+//PRIMES
+GEN primes_mod(GEN range, GEN residues, long modulus);
+
 //RANDOM
 GEN rand_elt(GEN v);
 long rand_l(long len);

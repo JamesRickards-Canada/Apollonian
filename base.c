@@ -222,7 +222,29 @@ GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x){
 //PRIMES
 
 
-//Returns the set of primes in the given range in a 
+//Returns the set of primes in the given range that lie in one of the given residue classes.
+GEN primes_mod(GEN range, GEN residues, long modulus){
+  pari_sp top=avma;
+  if(typ(range)!=t_VEC || lg(range)<3) pari_err_TYPE("range should be a vector of length 2", range);
+  if(typ(residues)!=t_VEC){
+	if(typ(residues)==t_INT) residues=mkvec(residues);
+	else pari_err_TYPE("residues should be a vector of integers, or a single integer", residues);
+  }//Checking inputs, making a single residue a vector.
+  long nres=lg(residues);
+  GEN mods=cgetg(nres, t_VECSMALL);
+  for(long i=1;i<nres;i++) mods[i]=smodis(gel(residues, i), modulus);
+  mods=vecsmall_uniq(mods);//mods is the sorted list, duplicates removed.
+  GEN plist=primes_interval(gel(range, 1), gel(range, 2));//Initial list of all primes.
+  long np=lg(plist);
+  GEN pmodlist=vectrunc_init(np);//List of primes in the correct residue classes.
+  for(long i=1;i<np;i++){
+	GEN p=gel(plist, i);
+	long rem=smodis(p, modulus);
+	if(zv_search(mods, rem)) vectrunc_append(pmodlist, p);//non-zero, so the index was found!
+  }
+  return gerepilecopy(top, pmodlist);
+}
+
 
 
 //RANDOM
