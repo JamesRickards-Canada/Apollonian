@@ -44,6 +44,7 @@ long apol_quaddepth(GEN v);
 GEN apol_red(GEN v, int seq);
 GEN apol_red_bsteps(GEN v, long maxsteps);
 GEN apol_search(GEN v, GEN N, int depth, int rqf);
+GEN apol_strip_qf(GEN L, int red);
 long mod24_search(GEN L, GEN v);
 long ZV_countnonpos(GEN v);
 
@@ -79,6 +80,10 @@ GEN primes_mod(GEN range, GEN residues, long modulus);
 GEN rand_elt(GEN v);
 
 //LISTS
+void clist_free(clist *l, long length);
+void clist_putbefore(clist **head_ref, GEN new_data);
+void clist_putafter(clist **head_ref, GEN new_data);
+GEN clist_togvec(clist *l, long length, int dir);
 void glist_free(glist *l);
 GEN glist_pop(glist **head_ref);
 void glist_putstart(glist **head_ref, GEN new_data);
@@ -235,6 +240,7 @@ GEN fareyup(GEN r);
 
 //DATA
 GEN integerbin(GEN v, GEN binlen, GEN binstart);
+GEN integerbin_cumu(GEN v, GEN binlen, GEN binstart);
 GEN veccount(GEN v);
 GEN vecsmallcount(GEN v);
 

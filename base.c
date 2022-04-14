@@ -261,6 +261,82 @@ GEN rand_elt(GEN v){
 //LISTS
 
 
+//Circular list of GENs
+
+//Frees the memory pari_malloc'ed by clist
+void clist_free(clist *l, long length){
+  clist *temp=l;
+  long i=1;
+  while(i<length){
+	temp=l;
+	l=l->next;
+	pari_free(temp);
+	i++;
+  }
+  pari_free(l);
+}
+
+//Put an element before *head_ref, and update *head_ref to point there
+void clist_putbefore(clist **head_ref, GEN new_data){
+  clist *new_elt = (clist*)pari_malloc(sizeof(clist)); 
+  new_elt->data = new_data;
+  if(*head_ref!=NULL){
+    new_elt->next = *head_ref; 
+    new_elt->prev = (*head_ref)->prev;
+    (*head_ref)->prev = new_elt;
+	(new_elt->prev)->next=new_elt;
+  }
+  else{
+    new_elt->next = new_elt; 
+    new_elt->prev = new_elt;
+  }
+  *head_ref = new_elt;
+}
+
+//Put an element after *head_ref, and update *head_ref to point there
+void clist_putafter(clist **head_ref, GEN new_data){
+  clist *new_elt = (clist*)pari_malloc(sizeof(clist)); 
+  new_elt->data = new_data;
+  if(*head_ref!=NULL){
+    new_elt->prev = *head_ref; 
+    new_elt->next = (*head_ref)->next;
+    (*head_ref)->next = new_elt;
+	(new_elt->next)->prev=new_elt;
+  }
+  else{
+    new_elt->next = new_elt; 
+    new_elt->prev = new_elt;
+  }
+  *head_ref = new_elt;
+}
+
+//dir=1 means forward, dir=-1 means backwards. Returns the list as a vector, and makes a clean copy. This also frees the list, but we also need to clean up the list data at the list creation location. The passed in pointer to l should NOT be used as it no longer points to a valid address.
+GEN clist_togvec(clist *l, long length, int dir){
+  if(l==NULL){//Empty list, return the empty vector.
+    GEN rvec=cgetg(1,t_VEC);
+    return(rvec);	  
+  }
+  GEN rvec=cgetg(length+1, t_VEC);
+  long lind=1;
+  if(dir==1){
+    while(lind<=length){
+	  gel(rvec,lind)=gcopy(l->data);
+	  l=l->next;
+	  lind++;
+    }
+  }
+  else{
+    while(lind<=length){
+	  gel(rvec,lind)=gcopy(l->data);
+	  l=l->prev;
+	  lind++;
+    }
+  }
+  clist_free(l,length);
+  return rvec;
+}
+
+
 //List of GENs
 
 //Frees the memory pari_malloc'ed by glist

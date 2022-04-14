@@ -719,6 +719,19 @@ GEN apol_search(GEN v, GEN N, int depth, int rqf){
   return gerepileupto(top, glist_togvec(S, Nfound, -1));
 }
 
+//Returns the quadratic form corresponding to the circle in the stip packing designated by L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n]. We can't have L=1 or 2, this doesn't give a circle.
+GEN apol_strip_qf(GEN L, int red){
+  pari_sp top=avma;
+  GEN c=apol_dpair_circle(L);//The corresponding circle, but it's scaled by 1/2, so need to scale it by 2.
+  if(typ(gel(c, 2))==t_INFINITY) pari_err_TYPE("Please give a circle instead, i.e. don't input L=1 or 2", L);
+  GEN C=shifti(gel(c, 1), -1);//C=curvature
+  GEN B=gmulgs(gmul(gel(c, 1), gel(c, 3)), 2);//B=2*curvature*Real(centre)
+  GEN A=gsub(gmul(gadd(gsqr(gel(c, 3)), gsqr(gel(c, 4))), shifti(C, 2)), gmulgs(gel(c, 2), 2));//A=cocurvature=|centre|^2*curvature-radius
+  GEN q=mkvec3(A, B, C);
+  if(red) return gerepileupto(top, dbqf_red(q));
+  return gerepilecopy(top, q);
+}
+
 //Given the list L of mod24 obstructions, this returns the index for v.
 long mod24_search(GEN L, GEN v){return gen_search(L, v, 0, (void*)ZV_cmp, &cmp_nodata);}
 

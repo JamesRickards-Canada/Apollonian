@@ -45,8 +45,10 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_red_bsteps,"Inputs ACP v and maxsteps.\n We reduce v, doing at most maxsteps. Thus the returned value may not be reduced!");
 		install("apol_search","GGLD0,L,",,"./libapol.so");
 		addhelp(apol_search,"Inputs v, N, depth, {rqf=0}: ACP v, positive integer N, depth>0.\n Returns the ACP's with an N inside them up to depth depth. If rqf=1, returns the qf's. If rqf=2, returns [ACP's, qfs].");
+		install("apol_strip_qf","GD0,L,",,"./libapol.so");
+		addhelp(apol_strip_qf,"Inputs L, {red=0}: Lan integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, red=0 or 1.\n Returns the quadratic form corresponding to this circle in the strip packing, i.e. generating the curvatures of PSL(2, Z) times this circle.");
 		install("mod24_search","iGG",,"./libapol.so");
-		addhelp(mod24_search,"Input L, v, L the sorted list of possible ACP's modulo 24, and v is a specific one.\n Finds the index of v in L.");
+		addhelp(mod24_search,"Inputs L, v, L the sorted list of possible ACP's modulo 24, and v is a specific one.\n Finds the index of v in L.");
 		install("printcircles_desmos","vG",,"./libapol.so");
 		addhelp(printcircles_desmos,"Input c, a list of circles.\n Prints to the screen the list of equations of the circles, suitable for copying and pasting into Desmos.");
 		install("printcircles_tex","GrD1,L,D1,L,D1,L,p",,"./libapol.so");
@@ -76,9 +78,10 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(primes_mod,"Input range, residues, modulus.\n Returns the primes in the given range that have the given residues modulo the modulus. Range=[a, b] where a<b are integers, and residues can either be a single integer or a vector of integers.");
 	
 	\\GENERAL HELP
-		addhelp(base,"This package is a collection of miscellaneous methods that may be useful in a variety of settings, and not just for the programs they were originally created for \n Subtopics: \n Infinity (inf) \n Linear algebra (la)");
+		addhelp(base,"This package is a collection of miscellaneous methods that may be useful in a variety of settings, and not just for the programs they were originally created for \n Subtopics: \n Infinity (inf) \n Linear algebra (la) \n Primes (pr)");
 		addhelp(inf,"addoo, divoo.");
 		addhelp(la,"lin_intsolve, mat3_complete.");
+		addhelp(pr,"primes_mod");
 
 
 \\bqf.c
@@ -191,6 +194,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\DATA
 		install("integerbin","GGD0,G,",,"./libapol.so");
 		addhelp(integerbin,"Inputs v, binlen, {binstart=0}.\n Assumes v is a sorted list of integers, and puts them into bins of length binlen, starting with binstart (assumed to be 0). Returns [binends, counts], with binends being the last number in the bin.");
+		install("integerbin_cumu","GGD0,G,",,"./libapol.so");
+		addhelp(integerbin_cumu,"Inputs v, binlen, {binstart=0}.\n Assumes v is a sorted list of integers, and puts them into bins of length binlen, starting with binstart (assumed to be 0). Returns [binends, counts], with binends being the last number in the bin. This is cumulative, so counts is increasing.");
 		install("veccount","G",,"./libapol.so");
 		addhelp(veccount,"Input v, a vector.\n Returns [uniq, count], where uniq is the sorted vector v with repeats removed, and count is the corresponding number of times they appear in v.");
 		install("vecsmallcount","G",,"./libapol.so");
