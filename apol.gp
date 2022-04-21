@@ -46,13 +46,15 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("apol_search","GGLD0,L,",,"./libapol.so");
 		addhelp(apol_search,"Inputs v, N, depth, {rqf=0}: ACP v, positive integer N, depth>0.\n Returns the ACP's with an N inside them up to depth depth. If rqf=1, returns the qf's. If rqf=2, returns [ACP's, qfs].");
 		install("apol_strip_qf","GD0,L,",,"./libapol.so");
-		addhelp(apol_strip_qf,"Inputs L, {red=0}: Lan integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, red=0 or 1.\n Returns the quadratic form corresponding to this circle in the strip packing, i.e. generating the curvatures of PSL(2, Z) times this circle.");
+		addhelp(apol_strip_qf,"Inputs L, {red=0}: L an integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, red=0 or 1.\n Returns the quadratic form corresponding to this circle in the strip packing, i.e. generating the curvatures of PSL(2, Z) times this circle.");
+		install("apol_words","L",,"./libapol.so");
+		addhelp(apol_words,"Input d>0, the depth.\n Returns all reduced words of length d in the Apollonian group, as a Vecsmall of 1-4's (no consecutive repeats).");
 		install("mod24_search","iGG",,"./libapol.so");
 		addhelp(mod24_search,"Inputs L, v, L the sorted list of possible ACP's modulo 24, and v is a specific one.\n Finds the index of v in L.");
 		install("printcircles_desmos","vG",,"./libapol.so");
 		addhelp(printcircles_desmos,"Input c, a list of circles.\n Prints to the screen the list of equations of the circles, suitable for copying and pasting into Desmos.");
-		install("printcircles_tex","GrD1,L,D1,L,D1,L,p",,"./libapol.so");
-		addhelp(printcircles_tex,"Input c, imagename, {basicscaling=1}, {addnumbers=1}, {compile=1}, {open=1}: list of circles c, string imagename, addnumbers and compile and open =0, 1.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
+		install("printcircles_tex","GrD1,L,D0,L,D1,L,D1,L,p",,"./libapol.so");
+		addhelp(printcircles_tex,"Input c, imagename, {addnumbers=1}, {modcolours=1}, {compile=1}, {open=1}: list of circles c, string imagename, addnumbers/compile/open =0, 1, modcolours>=0.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If modcolours>=1, we colour the circles based on their remainders mod modcolours. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
 		install("ZV_countnonpos","lG",,"./libapol.so");
 		addhelp(ZV_countnonpos,"Input v, a sorted vector of integers.\n Returns the number of entries that are nonpositive.");
 

@@ -14,8 +14,12 @@
 
 //STATIC DECLARATIONS
 static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long prec);
-static long ZV_maxind(GEN v);
-static long ZV_minind(GEN v);
+static GEN makelatexcolours(int ncol);
+
+
+//BASIC METHODS
+
+
 
 //Checks if v gives 4 circles that generate an integral Apollonian packing, returning 1 if so and 0 else
 int apol_check(GEN v){
@@ -30,6 +34,148 @@ int apol_check(GEN v){
   R=sqri(R);
   return gc_int(top, equalii(L, R)? 1:0);
 }
+
+//Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]) (see Staircase paper for theta description)
+GEN apol_getmatrices(){
+  pari_sp top=avma;
+  GEN S1=mkmat4(mkcol4s(-1, 0, 0, 0), mkcol4s(2, 1, 0, 0), mkcol4s(2, 0, 1, 0), mkcol4s(2, 0, 0, 1));
+  GEN S2=mkmat4(mkcol4s(1, 2, 0, 0), mkcol4s(0, -1, 0, 0), mkcol4s(0, 2, 1 ,0), mkcol4s(0, 2, 0, 1));
+  GEN S3=mkmat4(mkcol4s(1, 0, 2, 0), mkcol4s(0, 1, 2, 0), mkcol4s(0, 0, -1, 0), mkcol4s(0, 0, 2, 1));
+  GEN S4=mkmat4(mkcol4s(1, 0, 0, 2), mkcol4s(0, 1, 0, 2), mkcol4s(0, 0, 1, 2), mkcol4s(0, 0, 0, -1));
+  GEN K=mkmat4(mkcol4s(1, -1, -1, -1), mkcol4s(0, 1, 0, 1), mkcol4s(0, 0, 0, -1), mkcol4s(0, 0, 1, 1));
+  return gerepilecopy(top, mkvec5(S1, S2, S3, S4, K));
+}
+
+//Returns the possible obstructions modulo 24 of a primitive ACP, sorted lexicographically. They are stored in obstructions.dat
+GEN apol_getobstructions(){
+  GEN ret=cgetg(7, t_VEC);
+  gel(ret, 1)=mkvecsmalln(6, 0L, 1L, 4L, 9L, 12L, 16L);
+  gel(ret, 2)=mkvecsmalln(6, 0L, 4L, 12L, 13L, 16L, 21L);
+  gel(ret, 3)=mkvecsmalln(6, 0L, 5L, 8L, 12L, 20L, 21L);
+  gel(ret, 4)=mkvecsmalln(6, 0L, 8L, 9L, 12L, 17L, 20L);
+  gel(ret, 5)=mkvecsmalln(8, 2L, 3L, 6L, 11L, 14L, 15L, 18L, 23L);
+  gel(ret, 6)=mkvecsmalln(8, 3L, 6L, 7L, 10L, 15L, 18L, 19L, 22L);
+  return ret;
+}
+
+/*Returns the set of admissible residues modulo 24. There are 6 possible primitive sets: 
+[0, 1, 4, 9, 12, 16]; primes are 1 mod 24
+[0, 4, 12, 13, 16, 21]; primes are 13 mod 24
+[0, 5, 8, 12, 20, 21]; primes are 5 mod 24
+[0, 8, 9, 12, 17, 20]; primes are 17 mod 24
+[2, 3, 6, 11, 14, 15, 18, 23]; primes are 11, 23 mod 24
+[3, 6, 7, 10, 15, 18, 19, 22]; primes are 7, 19 mod 24
+You ONLY need to go to depth 3 to find which class we are in (proven by brute force check).*/
+GEN apol_mod24(GEN v){
+  pari_sp top=avma;
+  long lv;
+  GEN v24=cgetg_copy(v, &lv), tw4=stoi(24);//lv=5
+  for(long i=1;i<lv;i++) gel(v24, i)=Fp_red(gel(v, i), tw4);//Reduce v modulo 24
+  GEN orb=apol_orbit(v24, 3, gen_0);//Only need depth 3
+  for(long i=1;i<lg(orb);i++) gel(orb, i)=Fp_red(gel(orb, i), tw4);//Reduce modulo 24.
+  return gerepileupto(top, ZV_sort_uniq(orb));//Sort the result.
+}
+
+//Returns the set of four curvatures when we replace circle i.
+GEN apol_move(GEN v, int ind){
+  pari_sp top=avma;
+  GEN rep=vecsmall_ei(4, ind);
+  GEN S=gen_0;
+  for(int i=1;i<=4;i++) if(!rep[i]) S=addii(S, gel(v, i));
+  S=shifti(S, 1);
+  long lv;//lv=5
+  GEN newv=cgetg_copy(v, &lv);
+  for(int i=1;i<=4;i++) gel(newv, i)=rep[i]? subii(S, gel(v, ind)):icopy(gel(v, i));
+  return gerepileupto(top, newv);
+}
+
+
+
+//CREATION OF ACPS
+
+
+
+//Given a bqf q, this gives the corresponding Descartes quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.
+GEN apol_make(GEN q, int pos, int red){
+  pari_sp top=avma;
+  GEN D=bqf_disc(q);
+  if(signe(D)!=-1) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
+  long rem;
+  GEN nsqr=divis_rem(D, -4, &rem);
+  if(rem!=0) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
+  GEN sqrtrem;
+  GEN n=sqrtremi(nsqr, &sqrtrem);
+  if(!gequal0(sqrtrem)) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
+  //Now D=-4n^2, a=+/-n (- if pos=0), and q=[A, B, C]->[a, A-a, C-a, A+C-a-B]
+  GEN a= pos? n:negi(n);//+/-n
+  GEN Ama=subii(gel(q, 1), a);
+  GEN v=mkvec4(a, Ama, subii(gel(q, 3), a), addii(Ama, subii(gel(q, 3), gel(q, 2))));//The APC
+  if(red) v=apol_red(v, 0);
+  return gerepileupto(top, ZV_sort(v));
+}
+
+//Computes apol_ncgpforms, and returns the depths of the corresponding circles of curvature n.
+GEN apol_ncgp_depths(GEN n, long prec){
+  pari_sp top=avma;
+  GEN forms=apol_ncgp_forms(n, 1, 0, prec);//The forms
+  long maxdepth=0, lf=lg(forms);
+  GEN depths=cgetg(lf, t_VECSMALL);
+  for(long i=1;i<lf;i++){//Computing depths
+    long d=apol_quaddepth(gel(forms, i));
+    depths[i]=d;
+    if(d>maxdepth) maxdepth=d;
+  }
+  GEN dcount=zero_zv(maxdepth+1);//Depths 0 through d.
+  for(long i=1;i<lf;i++) dcount[depths[i]+1]++;//Counting.
+  return gerepileupto(top, dcount);
+}
+
+//Computes ncgp(-4n^2), and output the ACP's created from these quadratic forms with apol_make. We only count ambiguous forms ONCE.
+GEN apol_ncgp_forms(GEN n, int pos, int red, long prec){
+  pari_sp top=avma;
+  GEN D=mulis(sqri(n), -4);
+  GEN U=bqf_ncgp_lexic(D, prec);
+  GEN forms=gel(U, 3);
+  long lf=lg(forms);
+  GEN quads=vectrunc_init(lf);
+  for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
+    GEN q=gel(forms, i);
+    if(signe(gel(q, 2))==-1) continue;
+    vectrunc_append(quads, apol_make(q, pos, red));
+  }
+  return gerepileupto(top, quads);
+}
+
+//Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative). If red=0, we actually just take the data as is, and output the smallest curvature in each of the quadruples (no negation).
+GEN apol_ncgp_smallcurve(GEN n, int red, long prec){
+  pari_sp top=avma;
+  GEN forms=apol_ncgp_forms(n, 1, red, prec);
+  long lf;
+  GEN curves=cgetg_copy(forms, &lf);
+  for(long i=1;i<lf;i++){
+    gel(curves, i)=gmael(forms, i, 1);
+    if(red) togglesign_safe(&gel(curves, i));
+  }
+  return gerepileupto(top, ZV_sort(curves));
+}
+
+//apol_ncgp_smallcurve, but we only reduce maxsteps steps.
+GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec){
+  pari_sp top=avma;
+  GEN forms=apol_ncgp_forms(n, 1, 0, prec);
+  long lf;
+  GEN curves=cgetg_copy(forms, &lf);
+  for(long i=1;i<lf;i++){
+    GEN q=apol_red_bsteps(gel(forms, i), maxsteps);
+    gel(curves, i)=gel(q, vecindexmin(q));
+  }
+  return gerepileupto(top, ZV_sort(curves));
+}
+
+
+
+//
+
 
 //GEN apol_circles(GEN v, GEN maxcurv, GEN circlewidth, char *imagename, int open, long prec)
 
@@ -156,17 +302,30 @@ void printcircles_desmos(GEN c){
 }
 
 //Given a list of circles, this prints them to the tex file images/build/imagename_build.tex using tikz. If compile=1, we compile and move the output up to images/imagename.pdf. If open=1, we also open the file, assuming we are working with WSL. Assume the largest circle occurs first. This can take horizontal lines as well. Can supply the scalingfactor, or have the program auto-set it if NULL.
-GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int open, long prec){
+GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec){
   pari_sp top=avma;
   if(!pari_is_dir("images/build")){
     int s=system("mkdir -p images/build");
     if(s==-1) pari_err(e_MISC, "ERROR CREATING DIRECTORY images/build");
   }
-  char *autofilestr=pari_sprintf("images/build/%s_build.tex", imagename);
-  FILE *f=fopen(autofilestr, "w");
-  pari_free(autofilestr);//Now we have created the output file f.
+  char *autofilestr=stack_sprintf("images/build/%s_build.tex", imagename);
+  FILE *f=fopen(autofilestr, "w");//Now we have created the output file f.
   pari_fprintf(f, "\\documentclass{article}\n\\usepackage{anyfontsize, pgfplots}\n  \\usepgfplotslibrary{external}\n  \\tikzexternalize\n");
-  pari_fprintf(f, "  \\tikzset{external/force remake}\n  \\pgfplotsset{compat=1.16}\n\\begin{document}\n\\tikzsetnextfilename{%s}\n\\begin{tikzpicture}\n", imagename);
+  pari_fprintf(f, "  \\tikzset{external/force remake}\n  \\pgfplotsset{compat=1.16}\n");
+  if(modcolours>0){//Define some colours!
+	GEN col=makelatexcolours(modcolours);
+	if(typ(gel(col, 1))==t_STR){
+	  for(long i=1;i<=modcolours;i++){
+	    pari_fprintf(f, "\\definecolor{col%d}{HTML}{%Ps}\n", i-1, gel(col, i));//Print the custom colours.
+	  }
+	}
+	else{//Too many colours, use RGB.
+	  for(long i=1;i<=modcolours;i++){
+	    pari_fprintf(f, "\\definecolor{col%d}{rgb}{%P.4f,%P.4f,%P.4f}\n", i-1, gmael(col, i, 1), gmael(col, i, 2), gmael(col, i, 3));//Print the custom colours.
+	  }
+	}
+  }
+  pari_fprintf(f, "\\begin{document}\n\\tikzsetnextfilename{%s}\n\\begin{tikzpicture}\n", imagename);
   
   //Now we treat the circles:
   long lc;
@@ -201,13 +360,27 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int op
   }
   
   //Time to draw the circles
-  char *drawoptions="[ultra thin]";
-  for(long i=1;i<lc;i++){
-    if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", drawoptions, gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
-    else pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+  if(modcolours==0){
+    char *drawoptions="[ultra thin]";
+    for(long i=1;i<lc;i++){
+      if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", drawoptions, gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
+      else pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+    }
+  }
+  else{//Must add colouring. Not sure how this works for the strip packing.
+    for(long i=1;i<lc;i++){
+      if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw[ultra thin, fill=col%d] (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", smodis(gmael(c, i, 1), modcolours), gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
+      else{
+		if(signe(gmael(c, i, 1))==-1) pari_fprintf(f, "  \\draw[ultra thin] (%P.10fin, %P.10fin) circle (%P.10fin);\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+		else pari_fprintf(f, "  \\draw[ultra thin, fill=col%d] (%P.10fin, %P.10fin) circle (%P.10fin);\n", smodis(gmael(c, i, 1), modcolours), gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+	  }
+    }
   }
   GEN ten=stoi(10);
   if(addnumbers){
+	  char *options;
+	  if(modcolours>0) options=", white";
+	  else options="";
     for(long i=1;i<lc;i++){
       GEN curv=gmael(c, i, 1), scaleby;
       if(gsigne(curv)!=1) continue;//Don't add numbers for curvatures <=0.
@@ -226,7 +399,7 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int op
         default:
           scaleby=gdivgs(gen_2, ndigits);
       }
-      pari_fprintf(f, "  \\node[align=center] at (%P.10fin, %P.10fin) {\\fontsize{%P.10fin}{0in}\\selectfont %Pd};\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmul(gmael(cscale, i, 1), scaleby), curv);
+      pari_fprintf(f, "  \\node[align=center%s] at (%P.10fin, %P.10fin) {\\fontsize{%P.10fin}{0in}\\selectfont %Pd};\n", options, gmael(cscale, i, 2), gmael(cscale, i, 3), gmul(gmael(cscale, i, 1), scaleby), curv);
     }
   }
   
@@ -235,6 +408,32 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int op
   fclose(f);
   tex_compile(imagename, open);
   return gerepilecopy(top, mkvec2(strtoGENstr(imagename), stoi(open)));
+}
+
+
+//Returns a ncol Latex colours. If ncol<=63, each entry of the return vector is a GEN string (HTML values), else each entry of the return vector is [a, b, c] giving the rgb values.
+static GEN makelatexcolours(int ncol){
+  pari_sp top=avma;
+  GEN rvec=cgetg(ncol+1, t_VEC);
+  if(ncol<=63){
+	const char *cs[] = {"00FF00", "0000FF", "FF0000", "01FFFE", "FFA6FE", "FFDB66", "006401", "010067", "95003A", "007DB5", "FF00F6", "FFEEE8", "774D00", "90FB92", "0076FF", "D5FF00", "FF937E", "6A826C", "FF029D", "FE8900", "7A4782", "7E2DD2", "85A900", "FF0056", "A42400", "00AE7E", "683D3B", "BDC6FF", "263400", "BDD393", "00B917", "9E008E", "001544", "C28C9F", "FF74A3", "01D0FF", "004754", "E56FFE", "788231", "0E4CA1", "91D0CB", "BE9970", "968AE8", "BB8800", "43002C", "DEFF74", "00FFC6", "FFE502", "620E00", "008F9C", "98FF52", "7544B1", "B500FF", "00FF78", "FF6E41", "005F39", "6B6882", "5FAD4E", "A75740", "A5FFD2", "FFB167", "009BFF", "E85EBE"};
+	int first=itos(randomi(stoi(63)));
+	gel(rvec, 1)=strtoGENstr(cs[first]);
+	for(long i=2;i<=ncol;i++){
+      first=(first+1)%63;
+	  gel(rvec,i)=strtoGENstr(cs[first]);
+	}
+  }
+  else{
+    long prec=3;
+    GEN shift=rdivss(1, ncol, prec);//1/ncol
+    GEN a=randomr(prec), b=randomr(prec), c=randomr(prec);
+    gel(rvec, 1)=mkvec3(a, b, c);
+    for(long i=2;i<=ncol;i++){
+	  gel(rvec, i)=mkvec3(gfrac(gadd(gmael(rvec, i-1, 1), shift)), gfrac(gadd(gmael(rvec, i-1, 2), shift)), gfrac(gadd(gmael(rvec, i-1, 3), shift)));
+    }
+  }
+  return gerepilecopy(top, rvec);
 }
 
 //Add tex and python methods
@@ -273,130 +472,6 @@ GEN apol_dpair_circle(GEN L){
   GEN b=Qdivii(negi(gel(mtuvw, 1)), twow);
   GEN r=Qdivii(gen_1, twow);
   return gerepilecopy(top, mkvec4(twow, r, a, b));
-}
-
-//Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]).
-GEN apol_getmatrices(){
-  pari_sp top=avma;
-  GEN S1=mkmat4(mkcol4s(-1, 0, 0, 0), mkcol4s(2, 1, 0, 0), mkcol4s(2, 0, 1, 0), mkcol4s(2, 0, 0, 1));
-  GEN S2=mkmat4(mkcol4s(1, 2, 0, 0), mkcol4s(0, -1, 0, 0), mkcol4s(0, 2, 1 ,0), mkcol4s(0, 2, 0, 1));
-  GEN S3=mkmat4(mkcol4s(1, 0, 2, 0), mkcol4s(0, 1, 2, 0), mkcol4s(0, 0, -1, 0), mkcol4s(0, 0, 2, 1));
-  GEN S4=mkmat4(mkcol4s(1, 0, 0, 2), mkcol4s(0, 1, 0, 2), mkcol4s(0, 0, 1, 2), mkcol4s(0, 0, 0, -1));
-  GEN K=mkmat4(mkcol4s(1, -1, -1, -1), mkcol4s(0, 1, 0, 1), mkcol4s(0, 0, 0, -1), mkcol4s(0, 0, 1, 1));
-  return gerepilecopy(top, mkvec5(S1, S2, S3, S4, K));
-}
-
-//Returns the possible obstructions modulo 24 of a primitive ACP, sorted lexicographically. They are stored in obstructions.dat
-GEN apol_getobstructions(){
-  return gp_readvec_file("obstructions.dat");}
-
-//Given a bqf q, this gives the corresponding Descartes quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.
-GEN apol_make(GEN q, int pos, int red){
-  pari_sp top=avma;
-  GEN D=bqf_disc(q);
-  if(signe(D)!=-1) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
-  long rem;
-  GEN nsqr=divis_rem(D, -4, &rem);
-  if(rem!=0) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
-  GEN sqrtrem;
-  GEN n=sqrtremi(nsqr, &sqrtrem);
-  if(!gequal0(sqrtrem)) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
-  //Now D=-4n^2, a=+/-n (- if pos=0), and q=[A, B, C]->[a, A-a, C-a, A+C-a-B]
-  GEN a= pos? n:negi(n);//+/-n
-  GEN Ama=subii(gel(q, 1), a);
-  GEN v=mkvec4(a, Ama, subii(gel(q, 3), a), addii(Ama, subii(gel(q, 3), gel(q, 2))));//The APC
-  if(red) v=apol_red(v, 0);
-  return gerepileupto(top, ZV_sort(v));
-}
-
-
-/*Returns the set of admissible residues modulo 24. There are 6 possible primitive sets: 
-[0, 1, 4, 9, 12, 16]; primes are 1 mod 24
-[0, 4, 12, 13, 16, 21]; primes are 13 mod 24
-[0, 5, 8, 12, 20, 21]; primes are 5 mod 24
-[0, 8, 9, 12, 17, 20]; primes are 17 mod 24
-[2, 3, 6, 11, 14, 15, 18, 23]; primes are 11, 23 mod 24
-[3, 6, 7, 10, 15, 18, 19, 22]; primes are 7, 19 mod 24
-You ONLY need to go to depth 3 to find which class we are in (proven by brute force check).*/
-GEN apol_mod24(GEN v){
-  pari_sp top=avma;
-  long lv;
-  GEN v24=cgetg_copy(v, &lv), tw4=stoi(24);//lv=5
-  for(long i=1;i<lv;i++) gel(v24, i)=Fp_red(gel(v, i), tw4);
-  GEN orb=apol_orbit(v24, 3, gen_0);//Only need depth 3
-  for(long i=1;i<lg(orb);i++) gel(orb, i)=Fp_red(gel(orb, i), tw4);//Reduce modulo 24.
-  return gerepileupto(top, ZV_sort_uniq(orb));//Sort the result.
-}
-
-//Returns the set of four curvatures when we replace circle i.
-GEN apol_move(GEN v, int ind){
-  pari_sp top=avma;
-  GEN rep=vecsmall_ei(4, ind);
-  GEN S=gen_0;
-  for(int i=1;i<=4;i++) if(!rep[i]) S=addii(S, gel(v, i));
-  S=shifti(S, 1);
-  long lv;//lv=5
-  GEN newv=cgetg_copy(v, &lv);
-  for(int i=1;i<=4;i++) gel(newv, i)=rep[i]? subii(S, gel(v, ind)):icopy(gel(v, i));
-  return gerepileupto(top, newv);
-}
-
-//Computes apol_ncgpforms, and returns the depths of the corresponding circles of curvature n.
-GEN apol_ncgp_depths(GEN n, long prec){
-  pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, 0, prec);//The forms
-  long maxdepth=0, lf=lg(forms);
-  GEN depths=cgetg(lf, t_VECSMALL);
-  for(long i=1;i<lf;i++){//Computing depths
-    long d=apol_quaddepth(gel(forms, i));
-    depths[i]=d;
-    if(d>maxdepth) maxdepth=d;
-  }
-  GEN dcount=zero_zv(maxdepth+1);//Depths 0 through d.
-  for(long i=1;i<lf;i++) dcount[depths[i]+1]++;//Counting.
-  return gerepileupto(top, dcount);
-}
-
-//Computes ncgp(-4n^2), and output the ACP's created from these quadratic forms with apol_make_qf. We only count ambiguous forms ONCE.
-GEN apol_ncgp_forms(GEN n, int pos, int red, long prec){
-  pari_sp top=avma;
-  GEN D=mulis(sqri(n), -4);
-  GEN U=bqf_ncgp_lexic(D, prec);
-  GEN forms=gel(U, 3);
-  long lf=lg(forms);
-  GEN quads=vectrunc_init(lf);
-  for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
-    GEN q=gel(forms, i);
-    if(signe(gel(q, 2))==-1) continue;
-    vectrunc_append(quads, apol_make(q, pos, red));
-  }
-  return gerepileupto(top, quads);
-}
-
-//Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative). If red=0, we actually just take the data as is, and output the smallest curvature in each of the quadruples (no negation).
-GEN apol_ncgp_smallcurve(GEN n, int red, long prec){
-  pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, red, prec);
-  long lf;
-  GEN curves=cgetg_copy(forms, &lf);
-  for(long i=1;i<lf;i++){
-    gel(curves, i)=gmael(forms, i, 1);
-    if(red) togglesign_safe(&gel(curves, i));
-  }
-  return gerepileupto(top, ZV_sort(curves));
-}
-
-//apol_ncgp_smallcurve, but we only reduce maxsteps steps.
-GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec){
-  pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, 0, prec);
-  long lf;
-  GEN curves=cgetg_copy(forms, &lf);
-  for(long i=1;i<lf;i++){
-    GEN q=apol_red_bsteps(gel(forms, i), maxsteps);
-    gel(curves, i)=gel(q, ZV_minind(q));
-  }
-  return gerepileupto(top, ZV_sort(curves));
 }
 
 //Returns a sorted list of curvatures of circles, where we go to depth depth, i.e. we do up to depth circle replacements. We also only retrieve curvatures <=bound, if this is passed in as non-zero.
@@ -615,13 +690,13 @@ GEN apol_qf(GEN v, int ind){
 long apol_quaddepth(GEN v){
   pari_sp top=avma;
   long ind, step=0;
-  ind=ZV_minind(v);
+  ind=vecindexmin(v);
   if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
   for(;;){
     step++;
-    ind=ZV_maxind(v);
+    ind=vecindexmax(v);
     v=apol_move(v, ind);
-    ind=ZV_minind(v);
+    ind=vecindexmin(v);
     if(signe(gel(v, ind))!=1) return gc_long(top, step);//Start <0
   }
 }
@@ -633,7 +708,7 @@ GEN apol_red(GEN v, int seq){
   GEN dold;
   if(!seq){
     do{
-      ind=ZV_maxind(v);
+      ind=vecindexmax(v);
       dold=gel(v, ind);
       v=apol_move(v, ind);
     }while(cmpii(gel(v, ind), dold)==-1);
@@ -644,7 +719,7 @@ GEN apol_red(GEN v, int seq){
   long len=-1;//We don't count the last move.
   do{
     len++;
-    ind=ZV_maxind(v);
+    ind=vecindexmax(v);
     dold=gel(v, ind);
     v=apol_move(v, ind);
     llist_putstart(&S, ind);
@@ -662,7 +737,7 @@ GEN apol_red_bsteps(GEN v, long maxsteps){
   GEN dold;
   do{
     step++;
-    ind=ZV_maxind(v);
+    ind=vecindexmax(v);
     dold=gel(v, ind);
     v=apol_move(v, ind);
     if(cmpii(gel(v, ind), dold)!=-1){mstepsreached=0;break;}//We are reduced if we go back one.
@@ -671,7 +746,7 @@ GEN apol_red_bsteps(GEN v, long maxsteps){
   else return gerepileupto(top, apol_move(v, ind));//Must go back one!
 }
 
-//Search for circles of curvature N up to depth depth. Returns the corresponding quadruples. Adops the code of apol_orbit. Returns the qf's if rqf=1, and both if rqf=2 (each entry is [ACP, qf]).
+//Search for circles of curvature N up to depth depth. Returns the corresponding quadruples. Adopts the code of apol_orbit. Returns the qf's if rqf=1, and both if rqf=2 (each entry is [ACP, qf]).
 GEN apol_search(GEN v, GEN N, int depth, int rqf){
   pari_sp top=avma;
   glist *S=NULL;//Stores the ACP's.
@@ -732,6 +807,37 @@ GEN apol_strip_qf(GEN L, int red){
   return gerepilecopy(top, q);
 }
 
+//Returns all 4*3^(d-1) reduced words of depth d.
+GEN apol_words(int d){
+  pari_sp top=avma;
+  int ind=1;//We reuse ind to track which depth we are going towards.
+  GEN I=vecsmall_ei(d, 1);//Tracks the words
+  int forward=1;//Tracks if we are going forward or not.
+  long Nreps=4*(itos(powuu(3, d-1)))+1;//4*3^(d-1)+1
+  GEN reps=vectrunc_init(Nreps);
+  do{//1<=ind<=d is assumed.
+    I[ind]=forward? 1:I[ind]+1;
+    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
+    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+    //At this point, we can go on with valid and new inputs
+    if(ind==d){
+	  forward=0;
+	  vectrunc_append(reps, gcopy(I));//Add in I
+	  continue;
+	}
+	//We can keep going forward
+    ind++;
+    forward=1;
+  }while(ind>0);
+  return gerepilecopy(top, reps);
+}
+
+
+
+//SUPPORTING METHODS
+
+
+
 //Given the list L of mod24 obstructions, this returns the index for v.
 long mod24_search(GEN L, GEN v){return gen_search(L, v, 0, (void*)ZV_cmp, &cmp_nodata);}
 
@@ -748,23 +854,4 @@ long ZV_countnonpos(GEN v){
   return i1;
 }
 
-//Returns the maximum index of the ZV v. Returns the first such index if a tie.
-static long ZV_maxind(GEN v){
-  pari_sp top=avma;
-  long cmax=1;
-  GEN max=gel(v, 1);
-  for(long i=2;i<lg(v);i++) if(cmpii(gel(v, i), max)==1){cmax=i;max=gel(v, i);}
-  avma=top;
-  return cmax;
-}
-
-//Returns the minimal index of the ZV v. Returns the first such index if a tie.
-static long ZV_minind(GEN v){
-  pari_sp top=avma;
-  long cmin=1;
-  GEN min=gel(v, 1);
-  for(long i=2;i<lg(v);i++) if(cmpii(gel(v, i), min)==-1){cmin=i;min=gel(v, i);}
-  avma=top;
-  return cmin;
-}
 

@@ -21,21 +21,24 @@ typedef struct listtype3{//A generic linked list of longs, stores data and next 
 
 //apol.c
 
-
+//BASIC METHODS
 int apol_check(GEN v);
-GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec);
-void printcircles_desmos(GEN c);
-GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int compile, int open, long prec);
-GEN apol_dpair_circle(GEN L);
-GEN apol_getmatrices();
-GEN apol_getobstructions();
+
+//CREATION OF ACPS
 GEN apol_make(GEN q, int pos, int red);
-GEN apol_mod24(GEN v);
-GEN apol_move(GEN v, int ind);
 GEN apol_ncgp_depths(GEN n, long prec);
 GEN apol_ncgp_forms(GEN n, int pos, int red, long prec);
 GEN apol_ncgp_smallcurve(GEN n, int red, long prec);
 GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
+
+GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec);
+void printcircles_desmos(GEN c);
+GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec);
+GEN apol_dpair_circle(GEN L);
+GEN apol_getmatrices();
+GEN apol_getobstructions();
+GEN apol_mod24(GEN v);
+GEN apol_move(GEN v, int ind);
 GEN apol_orbit(GEN v, int depth, GEN bound);
 GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound);
 GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound);
@@ -45,6 +48,7 @@ GEN apol_red(GEN v, int seq);
 GEN apol_red_bsteps(GEN v, long maxsteps);
 GEN apol_search(GEN v, GEN N, int depth, int rqf);
 GEN apol_strip_qf(GEN L, int red);
+GEN apol_words(int d);
 long mod24_search(GEN L, GEN v);
 long ZV_countnonpos(GEN v);
 
