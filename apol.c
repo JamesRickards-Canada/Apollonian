@@ -13,6 +13,7 @@
 #endif
 
 //STATIC DECLARATIONS
+static GEN apol_make_n(GEN q, GEN n, int red);
 static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long prec);
 
 
@@ -191,7 +192,7 @@ GEN apol_red_partial(GEN v, long maxsteps){
 //CREATION OF ACPS
 
 
-//Given a bqf q, this gives the corresponding Descartes quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.
+//Given a bqf q of discriminant -4n^2, this gives the corresponding Descartes quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.
 GEN apol_make(GEN q, int pos, int red){
   pari_sp top=avma;
   GEN D=bqf_disc(q);
@@ -202,32 +203,21 @@ GEN apol_make(GEN q, int pos, int red){
   GEN sqrtrem;
   GEN n=sqrtremi(nsqr, &sqrtrem);
   if(!gequal0(sqrtrem)) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
-  //Now D=-4n^2, a=+/-n (- if pos=0), and q=[A, B, C]->[a, A-a, C-a, A+C-a-B]
-  GEN a= pos? n:negi(n);//+/-n
-  GEN Ama=subii(gel(q, 1), a);
-  GEN v=mkvec4(a, Ama, subii(gel(q, 3), a), addii(Ama, subii(gel(q, 3), gel(q, 2))));//The APC
+  n= pos? n:negi(n);//+/-n
+  return gerepileupto(top, apol_make_n(q, n, red));
+}
+
+//apol_make, but we are given the value of n, where disc(q)=-4n^2.
+static GEN apol_make_n(GEN q, GEN n, int red){
+  pari_sp top=avma;//q=[A, B, C]->[n, A-n, C-n, A+C-n-B]
+  GEN Amn=subii(gel(q, 1), n);
+  GEN v=mkvec4(n, Amn, subii(gel(q, 3), n), addii(Amn, subii(gel(q, 3), gel(q, 2))));//The ACP
   if(red) v=apol_red(v, 0);
   return gerepileupto(top, ZV_sort(v));
 }
 
-//Computes apol_ncgpforms, and returns the depths of the corresponding circles of curvature n.
-GEN apol_ncgp_depths(GEN n, long prec){
-  pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, 0, prec);//The forms
-  long maxdepth=0, lf=lg(forms);
-  GEN depths=cgetg(lf, t_VECSMALL);
-  for(long i=1;i<lf;i++){//Computing depths
-    long d=apol_depth(gel(forms, i));
-    depths[i]=d;
-    if(d>maxdepth) maxdepth=d;
-  }
-  GEN dcount=zero_zv(maxdepth+1);//Depths 0 through d.
-  for(long i=1;i<lf;i++) dcount[depths[i]+1]++;//Counting.
-  return gerepileupto(top, dcount);
-}
-
-//Computes ncgp(-4n^2), and output the ACP's created from these quadratic forms with apol_make. We only count ambiguous forms ONCE.
-GEN apol_ncgp_forms(GEN n, int pos, int red, long prec){
+//Computes ncgp(-4n^2), and output the ACP's created from these quadratic forms with apol_make. We only count ambiguous forms ONCE, and we take pos=sign(n).
+GEN apol_makeall(GEN n, int red, long prec){
   pari_sp top=avma;
   GEN D=mulis(sqri(n), -4);
   GEN U=bqf_ncgp_lexic(D, prec);
@@ -237,35 +227,9 @@ GEN apol_ncgp_forms(GEN n, int pos, int red, long prec){
   for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
     GEN q=gel(forms, i);
     if(signe(gel(q, 2))==-1) continue;
-    vectrunc_append(quads, apol_make(q, pos, red));
+    vectrunc_append(quads, apol_make_n(q, n, red));
   }
   return gerepileupto(top, quads);
-}
-
-//Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative). If red=0, we actually just take the data as is, and output the smallest curvature in each of the quadruples (no negation).
-GEN apol_ncgp_smallcurve(GEN n, int red, long prec){
-  pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, red, prec);
-  long lf;
-  GEN curves=cgetg_copy(forms, &lf);
-  for(long i=1;i<lf;i++){
-    gel(curves, i)=gmael(forms, i, 1);
-    if(red) togglesign_safe(&gel(curves, i));
-  }
-  return gerepileupto(top, ZV_sort(curves));
-}
-
-//apol_ncgp_smallcurve, but we only reduce maxsteps steps.
-GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec){
-  pari_sp top=avma;
-  GEN forms=apol_ncgp_forms(n, 1, 0, prec);
-  long lf;
-  GEN curves=cgetg_copy(forms, &lf);
-  for(long i=1;i<lf;i++){
-    GEN q=apol_red_partial(gel(forms, i), maxsteps);
-    gel(curves, i)=gel(q, vecindexmin(q));
-  }
-  return gerepileupto(top, ZV_sort(curves));
 }
 
 
@@ -837,4 +801,53 @@ GEN apol_words(int d){
   }while(ind>0);
   return gerepilecopy(top, reps);
 }
+
+
+
+//SPECIALIZED METHODS
+//These are scripts that are useful to me, but not likely useful in general.
+
+
+//Computes apol_ncgpforms, and returns the depths of the corresponding circles of curvature n.
+GEN apol_ncgp_depths(GEN n, long prec){
+  pari_sp top=avma;
+  GEN forms=apol_makeall(n, 0, prec);//The forms
+  long maxdepth=0, lf=lg(forms);
+  GEN depths=cgetg(lf, t_VECSMALL);
+  for(long i=1;i<lf;i++){//Computing depths
+    long d=apol_depth(gel(forms, i));
+    depths[i]=d;
+    if(d>maxdepth) maxdepth=d;
+  }
+  GEN dcount=zero_zv(maxdepth+1);//Depths 0 through d.
+  for(long i=1;i<lf;i++) dcount[depths[i]+1]++;//Counting.
+  return gerepileupto(top, dcount);
+}
+
+//Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative). If red=0, we actually just take the data as is, and output the smallest curvature in each of the quadruples (no negation).
+GEN apol_ncgp_smallcurve(GEN n, int red, long prec){
+  pari_sp top=avma;
+  GEN forms=apol_makeall(n, red, prec);
+  long lf;
+  GEN curves=cgetg_copy(forms, &lf);
+  for(long i=1;i<lf;i++){
+    gel(curves, i)=gmael(forms, i, 1);
+    if(red) togglesign_safe(&gel(curves, i));
+  }
+  return gerepileupto(top, ZV_sort(curves));
+}
+
+//apol_ncgp_smallcurve, but we only reduce maxsteps steps.
+GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec){
+  pari_sp top=avma;
+  GEN forms=apol_makeall(n, 0, prec);
+  long lf;
+  GEN curves=cgetg_copy(forms, &lf);
+  for(long i=1;i<lf;i++){
+    GEN q=apol_red_partial(gel(forms, i), maxsteps);
+    gel(curves, i)=gel(q, vecindexmin(q));
+  }
+  return gerepileupto(top, ZV_sort(curves));
+}
+
 

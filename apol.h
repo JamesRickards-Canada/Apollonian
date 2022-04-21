@@ -35,10 +35,7 @@ GEN apol_red_partial(GEN v, long maxsteps);
 
 //CREATION OF ACPS
 GEN apol_make(GEN q, int pos, int red);
-GEN apol_ncgp_depths(GEN n, long prec);
-GEN apol_ncgp_forms(GEN n, int pos, int red, long prec);
-GEN apol_ncgp_smallcurve(GEN n, int red, long prec);
-GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
+GEN apol_makeall(GEN n, int red, long prec);
 
 //SEARCHING FOR CURVATURES
 GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec);
@@ -57,6 +54,11 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
 
 //SUPPORTING METHODS
 GEN apol_words(int d);
+
+//SPECIALIZED METHODS
+GEN apol_ncgp_depths(GEN n, long prec);
+GEN apol_ncgp_smallcurve(GEN n, int red, long prec);
+GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
 
 
 //base.c

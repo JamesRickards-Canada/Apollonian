@@ -6,39 +6,33 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 \\ACP=Apollonian circle packaing
 	\\BASIC METHODS
 		install("apol_check","iG",,"./libapol.so");
-		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this generates an ACP, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
+		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
 		install("apol_depth","lG",,"./libapol.so");
-		addhelp(apol_depth,"Input v, an APC.\n Returns the depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
+		addhelp(apol_depth,"Input v, a Descartes quadruple.\n Returns the depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
 		install("apol_getmatrices","",,"./libapol.so");
 		addhelp(apol_getmatrices, "Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]).");
 		install("apol_getobstructions","",,"./libapol.so");
 		addhelp(apol_getobstructions,"Returns the possible classes modulo 24 of an Apollonian circle packing.");
 		install("apol_mod24","G",,"./libapol.so");
-		addhelp(apol_mod24,"Input v, an ACP.\n Returns the set of curvatures modulo 24 possible in the correponding ACP. There are 38 possible primitive sets.");
+		addhelp(apol_mod24,"Input v, a Descartes quadruple.\n Returns the set of curvatures modulo 24 possible in the correponding ACP. There are 6 possible primitive sets.");
 		install("apol_move","GG",,"./libapol.so");
-		addhelp(apol_move, "Inputs v, ind: vector v representing an ACP, 1<=ind<=4 or a vector/vecsmall of integers between 1 and 4.\n Returns the ACP where we replace circle ind with the other possible circle (applying this left to right if ind is a vector/vecsmall).");
+		addhelp(apol_move, "Inputs v, ind: v a Descartes quadruple, 1<=ind<=4 or a vector/vecsmall of integers between 1 and 4.\n Returns the Descartes quadruple where we replace circle ind with the other possible circle (applying this left to right if ind is a vector/vecsmall).");
 		install("apol_qf","GD1,L,",,"./libapol.so");
-		addhelp(apol_qf, "Inputs v, {ind=1}: vector v representing an ACP, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
+		addhelp(apol_qf, "Inputs v, {ind=1}: v a Descartes quadruple, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
 		install("apol_red","GD0,L,",,"./libapol.so");
-		addhelp(apol_red,"Inputs v, {seq=0}: ACP v.\n Returns the reduced ACP. If seq=1, also returns a Vecsmall of the sequence of indices used to reach the reduced form.");
+		addhelp(apol_red,"Inputs v, {seq=0}: v a Descartes quadruple.\n Reduces v and returns the reduction. If seq=1, also returns a vecsmall of the sequence of indices used to reach the reduced form.");
 		install("apol_red_partial","GL",,"./libapol.so");
-		addhelp(apol_red_partial,"Inputs ACP v and positive integer maxsteps.\n We reduce v, doing at most maxsteps. In particular, the returned value may not be reduced!");
+		addhelp(apol_red_partial,"Inputs: v a Descartes quadruple and positive integer maxsteps.\n We reduce v, doing at most maxsteps. In particular, the returned quadruple may not be reduced!");
 
 		addhelp(ap_basic,"Installed methods:\napol_check, apol_depth, apol_getmatrices, apol_getobstructions, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial.");
 
 	\\CREATION OF ACPS
 		install("apol_make","GD1,L,D1,L,", ,"./libapol.so");
-		addhelp(apol_make,"Input q, {pos=1}, {red=1}; q a quadratic form of discriminant -4n^2.\n Returns the root quadruple of the APC it corresponds to. If pos=0, the root quadruple starts with -n<0. Else, the form has a +n circle. If red=1 we reduce the form, otherwise we don't.");
-		install("apol_ncgp_depths","Gp",,"./libapol.so");
-		addhelp(apol_ncgp_depths,"Input n.\n Computes apol_ncgp_forms(n), and returns [d0,d1,...,dk], where the number of forms at depth i is given by di.");
-		install("apol_ncgp_forms","GD1,L,D1,L,p",,"./libapol.so");
-		addhelp(apol_ncgp_forms,"Inputs n, {pos=1}, {red=1}.\n Returns the root quadruples corresponding to all quadratic forms of discriminant -4n^2 (we only take 1 quadruple from each pair [A,B,C]!~[A,-B,C], since they give the same result). If pos=1 these quadruples include +n, and if pos=0 these quadruples include -n. We reduce the quadruples iff red=1. The output has length h^{+/-}(-4n^2).");
-		install("apol_ncgp_smallcurve","GD1,L,p",,"./libapol.so");
-		addhelp(apol_ncgp_smallcurve,"Input n, {red=1}: n a positive integer.\n Computes apol_ncgp_forms(n, 1, red), takes the corresponding smallest curvatures and returns the sorted list. If red=1, we reduce the quadruples, and negate the curvature (since it is <=0 always). If red=0, we do not do so, since it could be positive or negative. The return vector has length h^{+/-}(-4n^2), and each entry is from the set {0,1,...,n-1}.");
-		install("apol_ncgp_smallcurve_bsteps","GLp",,"./libapol.so");
-		addhelp(apol_ncgp_smallcurve_bsteps,"Input n, maxsteps.\n Does apol_ncgp_smallcurve, but does NOT reduce the forms; instead, we reduce them by at most maxsteps only. We then return the raw data of the smallest element (without negating the curvature).");
+		addhelp(apol_make,"Input q, {pos=1}, {red=1}; q a quadratic form of discriminant -4n^2.\n Returns the Descartes quadruple it corresponds to. If pos=0, the root quadruple starts with -n<0. Else, the form has a +n circle. If red=1 we reduce the form, otherwise we don't.");
+		install("apol_makeall","GD1,L,p",,"./libapol.so");
+		addhelp(apol_makeall,"Inputs n, {red=1}.\n Returns all ACP's containing n. We reduce the quadruples iff red=1. The output has length h^{+/-}(-4n^2), and may contain Descartes quadruple in the same packing (if n appears multiple times in ''unique ways''.");
 
-		addhelp(ap_make,"Installed methods:\n.");
+		addhelp(ap_make,"Installed methods:\napol_make, apol_makeall.");
 
 	\\SEARCHING FOR CURVATURES
 		install("apol_circles","GGLp",,"./libapol.so");
@@ -76,8 +70,18 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 
 		addhelp(ap_support,"Installed methods:\n.");
 
+	\\SPECIALIZED METHODS
+		install("apol_ncgp_depths","Gp",,"./libapol.so");
+		addhelp(apol_ncgp_depths,"Input n.\n Computes apol_makeall(n), and returns [d0,d1,...,dk], where the number of forms at depth i is given by di.");
+		install("apol_ncgp_smallcurve","GD1,L,p",,"./libapol.so");
+		addhelp(apol_ncgp_smallcurve,"Input n, {red=1}: n a positive integer.\n Computes apol_makeall(n, 1, red), takes the corresponding smallest curvatures and returns the sorted list. If red=1, we reduce the quadruples, and negate the curvature (since it is <=0 always). If red=0, we do not do so, since it could be positive or negative. The return vector has length h^{+/-}(-4n^2), and each entry is from the set {0,1,...,n-1}.");
+		install("apol_ncgp_smallcurve_bsteps","GLp",,"./libapol.so");
+		addhelp(apol_ncgp_smallcurve_bsteps,"Input n, maxsteps.\n Does apol_ncgp_smallcurve, but does NOT reduce the forms; instead, we reduce them by at most maxsteps only. We then return the raw data of the smallest element (without negating the curvature).");
+		
+		addhelp(ap_special,"Installed methods:\n.");
+
 	\\GENERAL HELP
-		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)");
+		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)\nSpecialized methods (?ap_special)");
 
 \\base.c
 
