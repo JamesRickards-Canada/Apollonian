@@ -39,11 +39,11 @@ long apol_depth(GEN v){
   pari_sp top=avma;
   long ind, step=0;
   for(;;){
-	ind=vecindexmin(v);
+    ind=vecindexmin(v);
     if(signe(gel(v, ind))!=1) return gc_long(top, step);//An index is <=0.
     step++;
     ind=vecindexmax(v);
-    v=apol_move(v, ind);
+    v=apol_move_1(v, ind);
   }
 }
 
@@ -88,17 +88,43 @@ GEN apol_mod24(GEN v){
   return gerepileupto(top, ZV_sort_uniq(orb));//Sort the result.
 }
 
+//Calls apol_move_1 or apol_move_batch, depending on if command is an integer or a vector. This is intended for use in gp.
+GEN apol_move(GEN v, GEN command){
+  long t=typ(command);
+  switch(t){
+    case t_INT: return apol_move_1(v, itos(command));//itos does not clutter the stack.
+    case t_VECSMALL: return apol_move_batch(v, command);
+  }
+  pari_sp top=avma;
+  command=gtovecsmall(command);
+  return gerepileupto(top, apol_move_batch(v, command));
+}
+
 //Returns the set of four curvatures when we replace circle i.
-GEN apol_move(GEN v, int ind){
+GEN apol_move_1(GEN v, int ind){
   pari_sp top=avma;
   GEN rep=vecsmall_ei(4, ind);
   GEN S=gen_0;
   for(int i=1;i<=4;i++) if(!rep[i]) S=addii(S, gel(v, i));
-  S=shifti(S, 1);
-  long lv;//lv=5
-  GEN newv=cgetg_copy(v, &lv);
+  S=shifti(S, 1);//2(b+c+d)
+  long lv;
+  GEN newv=cgetg_copy(v, &lv);//lv=5
   for(int i=1;i<=4;i++) gel(newv, i)=rep[i]? subii(S, gel(v, ind)):icopy(gel(v, i));
   return gerepileupto(top, newv);
+}
+
+//Does apol_move_1 for v and bat[1], bat[2], ... The input bat needs to be a Vecsmall.
+GEN apol_move_batch(GEN v, GEN bat){
+  pari_sp top=avma;
+  GEN newv=ZV_copy(v);
+  for(long bind=1;bind<lg(bat);bind++){
+    int ind=bat[bind];
+    GEN S=gen_0;
+    for(int i=1;i<=4;i++) if(i!=ind) S=addii(S, gel(newv, i));
+    S=shifti(S, 1);//2(b+c+d)
+    gel(newv, ind)=subii(S, gel(newv, ind));
+  }
+  return gerepilecopy(top, newv);
 }
 
 //Returns the quadratic form whose primitive values are v[ind]+curvatures touching the ind^th circle. The formula is [a+b,a+b+c-d, a+c] if v=[a,b,c,d] and ind=1.
@@ -125,9 +151,9 @@ GEN apol_red(GEN v, int seq){
     do{
       ind=vecindexmax(v);
       dold=gel(v, ind);
-      v=apol_move(v, ind);
+      v=apol_move_1(v, ind);
     }while(cmpii(gel(v, ind), dold)==-1);
-    return gerepileupto(top, apol_move(v, ind));//Must go back one!
+    return gerepileupto(top, apol_move_1(v, ind));//Must go back one!
   }
   //Now keep track of the sequence
   long Sind=0, Slen=10;
@@ -135,11 +161,11 @@ GEN apol_red(GEN v, int seq){
   do{
     ind=vecindexmax(v);
     dold=gel(v, ind);
-    v=apol_move(v, ind);
-	S=vecsmalllist_append(S, &Sind, &Slen, ind);
+    v=apol_move_1(v, ind);
+    S=vecsmalllist_append(S, &Sind, &Slen, ind);
   }while(cmpii(gel(v, ind), dold)==-1);
   S=vecsmall_shorten(S, Sind-1);//Remove last move.
-  return gerepilecopy(top, mkvec2(apol_move(v, ind), S));
+  return gerepilecopy(top, mkvec2(apol_move_1(v, ind), S));
 }
 
 //Reduces v, where we go ONLY at most maxsteps steps.
@@ -153,11 +179,11 @@ GEN apol_red_partial(GEN v, long maxsteps){
     step++;
     ind=vecindexmax(v);
     dold=gel(v, ind);
-    v=apol_move(v, ind);
+    v=apol_move_1(v, ind);
     if(cmpii(gel(v, ind), dold)!=-1){mstepsreached=0;break;}//We are reduced if we go back one.
   }while(step<maxsteps);
   if(mstepsreached) return gerepilecopy(top, v);
-  else return gerepileupto(top, apol_move(v, ind));//Must go back one!
+  else return gerepileupto(top, apol_move_1(v, ind));//Must go back one!
 }
 
 
@@ -280,7 +306,7 @@ GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec){
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs
-    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
     GEN newc=gel(newv, I[ind]);
     GEN newvecsmall=gen_0;//Need this to be accessible to the next if/else block
     int comp=cmpii(maxcurv, newc);//Comparing the new element to maxcurv.
@@ -390,7 +416,7 @@ GEN apol_orbit(GEN v, int depth, GEN bound){
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs
-    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
     GEN elt=gel(newv, I[ind]);//The new element
     if(usebound && cmpii(elt, bound)==1) forward=0;//Must go back, elt too big
     else{
@@ -447,7 +473,7 @@ GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound){
       else{nextlayer[I[ind]]++;nextlayer[6]--;}//Repeated minimum just moves up 1.
     }
     if(nextlayer[I[ind]]>maxlayers){forward=0;continue;}//Too many layers deep.
-    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
     GEN elt=gel(newv, I[ind]);//The new element
     if(cmpii(elt, bound)==1 || ZV_equal(gel(W, ind), newv)) forward=0;//Must go back, elt too big OR same thing (e.g. happens with strip packing)
     else{
@@ -533,7 +559,7 @@ GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound){
       else{nextlayer[I[ind]]++;nextlayer[6]--;}//Repeated minimum just moves up 1.
     }
     if(nextlayer[I[ind]]>maxlayers){forward=0;continue;}//Too many layers deep.
-    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
     GEN elt=gel(newv, I[ind]);//The new element
     if(cmpii(elt, bound)==1 || ZV_equal(gel(W, ind), newv)) forward=0;//Must go back, elt too big OR same thing (e.g. happens with strip packing)
     else{
@@ -584,7 +610,7 @@ GEN apol_search(GEN v, GEN N, int depth, int rqf){
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs
-    GEN newv=apol_move(gel(W, ind), I[ind]);//Make the move
+    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
     int comp=cmpii(N, gel(newv, I[ind]));//Comparing the new element to N.
     if(comp==0){//Found it!
       if(rqf==0) glist_putstart(&S, gcopy(newv));
@@ -684,17 +710,17 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
   pari_fprintf(f, "\\documentclass{article}\n\\usepackage{anyfontsize, pgfplots}\n  \\usepgfplotslibrary{external}\n  \\tikzexternalize\n");
   pari_fprintf(f, "  \\tikzset{external/force remake}\n  \\pgfplotsset{compat=1.16}\n");
   if(modcolours>0){//Define some colours!
-	GEN col=tex_makecolours(modcolours);
-	if(typ(gel(col, 1))==t_STR){
-	  for(long i=1;i<=modcolours;i++){
-	    pari_fprintf(f, "\\definecolor{col%d}{HTML}{%Ps}\n", i-1, gel(col, i));//Print the custom colours.
-	  }
-	}
-	else{//Too many colours, use RGB.
-	  for(long i=1;i<=modcolours;i++){
-	    pari_fprintf(f, "\\definecolor{col%d}{rgb}{%P.4f,%P.4f,%P.4f}\n", i-1, gmael(col, i, 1), gmael(col, i, 2), gmael(col, i, 3));//Print the custom colours.
-	  }
-	}
+    GEN col=tex_makecolours(modcolours);
+    if(typ(gel(col, 1))==t_STR){
+      for(long i=1;i<=modcolours;i++){
+        pari_fprintf(f, "\\definecolor{col%d}{HTML}{%Ps}\n", i-1, gel(col, i));//Print the custom colours.
+      }
+    }
+    else{//Too many colours, use RGB.
+      for(long i=1;i<=modcolours;i++){
+        pari_fprintf(f, "\\definecolor{col%d}{rgb}{%P.4f,%P.4f,%P.4f}\n", i-1, gmael(col, i, 1), gmael(col, i, 2), gmael(col, i, 3));//Print the custom colours.
+      }
+    }
   }
   pari_fprintf(f, "\\begin{document}\n\\tikzsetnextfilename{%s}\n\\begin{tikzpicture}\n", imagename);
   
@@ -742,16 +768,16 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
     for(long i=1;i<lc;i++){
       if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw[ultra thin, fill=col%d] (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", smodis(gmael(c, i, 1), modcolours), gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
       else{
-		if(signe(gmael(c, i, 1))==-1) pari_fprintf(f, "  \\draw[ultra thin] (%P.10fin, %P.10fin) circle (%P.10fin);\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
-		else pari_fprintf(f, "  \\draw[ultra thin, fill=col%d] (%P.10fin, %P.10fin) circle (%P.10fin);\n", smodis(gmael(c, i, 1), modcolours), gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
-	  }
+        if(signe(gmael(c, i, 1))==-1) pari_fprintf(f, "  \\draw[ultra thin] (%P.10fin, %P.10fin) circle (%P.10fin);\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+        else pari_fprintf(f, "  \\draw[ultra thin, fill=col%d] (%P.10fin, %P.10fin) circle (%P.10fin);\n", smodis(gmael(c, i, 1), modcolours), gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+      }
     }
   }
   GEN ten=stoi(10);
   if(addnumbers){
-	  char *options;
-	  if(modcolours>0) options=", white";
-	  else options="";
+      char *options;
+      if(modcolours>0) options=", white";
+      else options="";
     for(long i=1;i<lc;i++){
       GEN curv=gmael(c, i, 1), scaleby;
       if(gsigne(curv)!=1) continue;//Don't add numbers for curvatures <=0.
@@ -801,11 +827,11 @@ GEN apol_words(int d){
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs
     if(ind==d){
-	  forward=0;
-	  vectrunc_append(reps, gcopy(I));//Add in I
-	  continue;
-	}
-	//We can keep going forward
+      forward=0;
+      vectrunc_append(reps, gcopy(I));//Add in I
+      continue;
+    }
+    //We can keep going forward
     ind++;
     forward=1;
   }while(ind>0);

@@ -15,8 +15,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_getobstructions,"Returns the possible classes modulo 24 of an Apollonian circle packing.");
 		install("apol_mod24","G",,"./libapol.so");
 		addhelp(apol_mod24,"Input v, an ACP.\n Returns the set of curvatures modulo 24 possible in the correponding ACP. There are 38 possible primitive sets.");
-		install("apol_move","GL",,"./libapol.so");
-		addhelp(apol_move, "Inputs v, ind: vector v representing an ACP, 1<=ind<=4.\n Returns the ACP where we replace circle i with the other possible circle.");
+		install("apol_move","GG",,"./libapol.so");
+		addhelp(apol_move, "Inputs v, ind: vector v representing an ACP, 1<=ind<=4 or a vector/vecsmall of integers between 1 and 4.\n Returns the ACP where we replace circle ind with the other possible circle (applying this left to right if ind is a vector/vecsmall).");
 		install("apol_qf","GD1,L,",,"./libapol.so");
 		addhelp(apol_qf, "Inputs v, {ind=1}: vector v representing an ACP, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
 		install("apol_red","GD0,L,",,"./libapol.so");
