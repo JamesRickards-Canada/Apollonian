@@ -23,6 +23,14 @@ typedef struct listtype3{//A generic linked list of longs, stores data and next 
 
 //BASIC METHODS
 int apol_check(GEN v);
+long apol_depth(GEN v);
+GEN apol_getmatrices();
+GEN apol_getobstructions();
+GEN apol_mod24(GEN v);
+GEN apol_move(GEN v, int ind);
+GEN apol_qf(GEN v, int ind);
+GEN apol_red(GEN v, int seq);
+GEN apol_red_partial(GEN v, long maxsteps);
 
 //CREATION OF ACPS
 GEN apol_make(GEN q, int pos, int red);
@@ -31,26 +39,23 @@ GEN apol_ncgp_forms(GEN n, int pos, int red, long prec);
 GEN apol_ncgp_smallcurve(GEN n, int red, long prec);
 GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
 
+//SEARCHING FOR CURVATURES
 GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec);
-void printcircles_desmos(GEN c);
-GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec);
-GEN apol_dpair_circle(GEN L);
-GEN apol_getmatrices();
-GEN apol_getobstructions();
-GEN apol_mod24(GEN v);
-GEN apol_move(GEN v, int ind);
 GEN apol_orbit(GEN v, int depth, GEN bound);
 GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound);
 GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound);
-GEN apol_qf(GEN v, int ind);
-long apol_quaddepth(GEN v);
-GEN apol_red(GEN v, int seq);
-GEN apol_red_bsteps(GEN v, long maxsteps);
 GEN apol_search(GEN v, GEN N, int depth, int rqf);
+
+//STRIP PACKING METHODS
+GEN apol_dpair_circle(GEN L);
 GEN apol_strip_qf(GEN L, int red);
+
+//VISUALIZATION
+void printcircles_desmos(GEN c);
+GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec);
+
+//SUPPORTING METHODS
 GEN apol_words(int d);
-long mod24_search(GEN L, GEN v);
-long ZV_countnonpos(GEN v);
 
 
 //base.c
@@ -73,7 +78,7 @@ GEN lin_intsolve_tc(GEN A, GEN B, GEN n);
 GEN mat3_complete(GEN A, GEN B, GEN C);
 GEN mat3_complete_tc(GEN A, GEN B, GEN C);
 
-//LISTS
+//LISTS OF VARIABLE LENGTH
 GEN veclist_append(GEN v, long *vind, long *vlen, GEN x);
 GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x);
 
@@ -247,6 +252,7 @@ GEN integerbin(GEN v, GEN binlen, GEN binstart);
 GEN integerbin_cumu(GEN v, GEN binlen, GEN binstart);
 GEN veccount(GEN v);
 GEN vecsmallcount(GEN v);
+long ZV_countnonpos(GEN v);
 
 //HISTOGRAMS
 void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *plotoptions, int open);
@@ -264,5 +270,6 @@ GEN OLS_single(GEN x, GEN y, int retrsqr);
 GEN rsquared(GEN X, GEN y, GEN fit);
 
 //TEX
+GEN tex_makecolours(int ncol);
 void tex_compile(char *imagename, int open);
 void tex_recompile(GEN data);

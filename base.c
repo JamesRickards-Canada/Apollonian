@@ -192,7 +192,20 @@ GEN mat3_complete_tc(GEN A, GEN B, GEN C){
 
 
 
-//LISTS
+//LISTS OF VARIABLE LENGTH
+
+
+/* Sample use of veclist_append:
+pari_sp top=avma;
+long vind=0, vlen=10;
+GEN v=cgetg(vlen+1, t_VEC);
+...
+GEN x=...;
+v=veclist_append(v, &vind, &vlen, x);
+...
+v=vec_shorten(v, vind);
+return gerepilecopy(top, v);
+*/
 
 
 //Appends x to v, returning v, and updating vind to vind++. If vind++>vlen, then we double the length of v as well. If this happens, the resulting vector is not suitable for gerepileupto; this must be done at the end (necessary anyway since it's likely we have to call vec_shorten at some point).

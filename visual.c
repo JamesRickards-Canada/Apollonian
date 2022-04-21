@@ -106,6 +106,19 @@ GEN vecsmallcount(GEN v){
   return gerepilecopy(top, mkvec2(uniq, count));
 }
 
+//Given a sorted ZV, counts how many entries are non-positive.
+long ZV_countnonpos(GEN v){
+  long i1=1, i2=lg(v)-1, i=0;
+  if(signe(gel(v, i1))==1) return 0;//None <=0
+  if(signe(gel(v, i2))!=1) return i2;//All <=0
+  while(i1+1<i2){
+    i=(i1+i2)/2;//Floor
+    if(signe(gel(v, i))==1) i2=i;//v[i]>0
+    else i1=i;//v[i]<=0
+  }
+  return i1;
+}
+
 
 
 //HISTOGRAMS
@@ -295,6 +308,31 @@ GEN rsquared(GEN X, GEN y, GEN fit){
 
 //TEX
 
+
+//Returns a ncol Latex colours. If ncol<=63, each entry of the return vector is a GEN string (HTML values), else each entry of the return vector is [a, b, c] giving the rgb values.
+GEN tex_makecolours(int ncol){
+  pari_sp top=avma;
+  GEN rvec=cgetg(ncol+1, t_VEC);
+  if(ncol<=63){
+	const char *cs[] = {"00FF00", "0000FF", "FF0000", "01FFFE", "FFA6FE", "FFDB66", "006401", "010067", "95003A", "007DB5", "FF00F6", "FFEEE8", "774D00", "90FB92", "0076FF", "D5FF00", "FF937E", "6A826C", "FF029D", "FE8900", "7A4782", "7E2DD2", "85A900", "FF0056", "A42400", "00AE7E", "683D3B", "BDC6FF", "263400", "BDD393", "00B917", "9E008E", "001544", "C28C9F", "FF74A3", "01D0FF", "004754", "E56FFE", "788231", "0E4CA1", "91D0CB", "BE9970", "968AE8", "BB8800", "43002C", "DEFF74", "00FFC6", "FFE502", "620E00", "008F9C", "98FF52", "7544B1", "B500FF", "00FF78", "FF6E41", "005F39", "6B6882", "5FAD4E", "A75740", "A5FFD2", "FFB167", "009BFF", "E85EBE"};
+	int first=itos(randomi(stoi(63)));
+	gel(rvec, 1)=strtoGENstr(cs[first]);
+	for(long i=2;i<=ncol;i++){
+      first=(first+1)%63;
+	  gel(rvec,i)=strtoGENstr(cs[first]);
+	}
+  }
+  else{
+    long prec=3;
+    GEN shift=rdivss(1, ncol, prec);//1/ncol
+    GEN a=randomr(prec), b=randomr(prec), c=randomr(prec);
+    gel(rvec, 1)=mkvec3(a, b, c);
+    for(long i=2;i<=ncol;i++){
+	  gel(rvec, i)=mkvec3(gfrac(gadd(gmael(rvec, i-1, 1), shift)), gfrac(gadd(gmael(rvec, i-1, 2), shift)), gfrac(gadd(gmael(rvec, i-1, 3), shift)));
+    }
+  }
+  return gerepilecopy(top, rvec);
+}
 
 //In general, an image created from a file will have a GP return value. The first entry is the image name, and the second is whether we want to open it every time or not (i.e. if we are on WSL or not). The rest of the entries will depend on the type of image.
 
