@@ -23,7 +23,7 @@ typedef struct listtype3{//A generic linked list of longs, stores data and next 
 
 //BASIC METHODS
 int apol_check(GEN v);
-long apol_depth(GEN v);
+long apol_extdepth(GEN v);
 GEN apol_getmatrices();
 GEN apol_getobstructions();
 GEN apol_mod24(GEN v);
@@ -38,11 +38,16 @@ GEN apol_make(GEN q, int pos, int red);
 GEN apol_makeall(GEN n, int red, long prec);
 
 //SEARCHING FOR CURVATURES
+GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*getdata)(GEN, int, GEN*, int));
+
+GEN apol_curvatures(GEN v, GEN bound, int countsymm);
+
 GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec);
-GEN apol_orbit(GEN v, int depth, GEN bound);
 GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound);
 GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound);
 GEN apol_search(GEN v, GEN N, int depth, int rqf);
+
+GEN apol_orbit(GEN v, int depth, GEN bound);
 
 //STRIP PACKING METHODS
 GEN apol_dpair_circle(GEN L);

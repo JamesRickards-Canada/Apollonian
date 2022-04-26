@@ -7,8 +7,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\BASIC METHODS
 		install("apol_check","iG",,"./libapol.so");
 		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
-		install("apol_depth","lG",,"./libapol.so");
-		addhelp(apol_depth,"Input v, a Descartes quadruple.\n Returns the depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
+		install("apol_extdepth","lG",,"./libapol.so");
+		addhelp(apol_extdepth,"Input v, a Descartes quadruple.\n Returns the external depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
 		install("apol_getmatrices","",,"./libapol.so");
 		addhelp(apol_getmatrices, "Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]).");
 		install("apol_getobstructions","",,"./libapol.so");
@@ -24,7 +24,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("apol_red_partial","GL",,"./libapol.so");
 		addhelp(apol_red_partial,"Inputs: v a Descartes quadruple and positive integer maxsteps.\n We reduce v, doing at most maxsteps. In particular, the returned quadruple may not be reduced!");
 
-		addhelp(ap_basic,"Installed methods:\napol_check, apol_depth, apol_getmatrices, apol_getobstructions, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial.");
+		addhelp(ap_basic,"Installed methods:\napol_check, apol_extdepth, apol_getmatrices, apol_getobstructions, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial.");
 
 	\\CREATION OF ACPS
 		install("apol_make","GD1,L,D1,L,", ,"./libapol.so");
@@ -37,8 +37,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\SEARCHING FOR CURVATURES
 		install("apol_circles","GGLp",,"./libapol.so");
 		addhelp(apol_circles, "Inputs v, maxcurv, maxdepth: bounded ACP v, positive integers maxcurv and maxdepth.\n Computes all circles with curvature <=maxcurv in v that occur in depth<=maxdepth. Returns the list, where each element is of the form [curvature, radius, x, y], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle.");
-		install("apol_orbit","GLD0,G,",,"./libapol.so");
-		addhelp(apol_orbit,"Inputs v, depth, {bound=0}: vector v representing an ACP, positive integer depth, bound>=0.\n Returns a sorted list of curvatures of circles up to depth depth, i.e. we do up to depth circle replacements. If bound!=0, we only count those of curvature <=bound. The length of the list (before removing repeated terms, and assuming bound=0) is 2*(3^depth+1).");
+		install("apol_curvatures","GGD0,L,",,"./libapol.so");
+		addhelp(apol_curvatures,"Inputs v, bound, {countsymm=0}: vector v representing an ACP, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If bound!=0, we only count those of curvature <=bound. The length of the list (before removing repeated terms, and assuming bound=0) is 2*(3^depth+1).");
 		install("apol_orbit_layers","GLG",,"./libapol.so");
 		addhelp(apol_orbit_layers,"Inputs v, maxlayers, bound.\n Returns the curvatures in the first maxlayers layers up to bound bound, with respect to the circle v[1].");
 		install("apol_orbit_primes","GLG",,"./libapol.so");

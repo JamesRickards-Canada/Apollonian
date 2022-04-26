@@ -14,6 +14,7 @@
 
 //STATIC DECLARATIONS
 static GEN apol_make_n(GEN q, GEN n, int red);
+static GEN apol_curvatures_helper(GEN v, int ind, GEN *info, int state);
 static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long prec);
 
 
@@ -35,8 +36,8 @@ int apol_check(GEN v){
   return gc_int(top, equalii(L, R)? 1:0);
 }
 
-//Returns the depth of v, i.e. the minimal number of swaps required to reach a quadruple with negative curvature.
-long apol_depth(GEN v){
+//Returns the external depth of v, i.e. the minimal number of swaps required to reach a quadruple with negative curvature.
+long apol_extdepth(GEN v){
   pari_sp top=avma;
   long ind, step=0;
   for(;;){
@@ -89,7 +90,7 @@ GEN apol_mod24(GEN v){
   return gerepileupto(top, ZV_sort_uniq(orb));//Sort the result.
 }
 
-//Calls apol_move_1 or apol_move_batch, depending on if command is an integer or a vector. This is intended for use in gp.
+//Calls apol_move_1 or apol_move_batch, depending on if command is an integer or a vector. This is intended for use in gp. Use apl_move_1 or apol_move_batch with PARI.
 GEN apol_move(GEN v, GEN command){
   long t=typ(command);
   switch(t){
@@ -237,6 +238,122 @@ GEN apol_makeall(GEN n, int red, long prec){
 //SEARCHING FOR CURVATURES
 
 
+//Write one method for up to a bound, one method by depth, and one by layers?
+//Allow input of a pointer to a function, as well as keeping track of some vector?
+
+
+/*
+To make a searching method, you need to define a function:
+	static GEN getdata(GEN v, int ind, GEN *info, int state)
+v is the current Descartes quadruple found, where ind is the index of the circle we are considering
+info tracks extra information you may want.
+state=1 means we are adding a new piece of information potentially. Your method should compute the data, and return it if you want it added, and return NULL if we don't want to count it.
+We also need to update info, if you are using this.
+state=0 happens at the end, and is used as a wrap-up. In this case, we pass the complete set of data in as v, and you can do something with it (e.g. sort it, just return it doing nothing, etc.)
+
+Any setup should be done in the method that calls apol_search_(type).
+*/
+
+
+//Starting at the Descartes quadruple v, we search through the circle packing, finding all circles with curvature <=bound. For each such circle we compute some data (from getdata), and return the final set. If countsymm=0, we do not double count when there is symmetry, otherwise we do. For the strip packing, we force countsymm=0, since otherwise it would be infinite. It can be shown that all symmetries are realized for the reduced form (i.e. [a, b, c, d] -> [a, b, c, d] or [a, b, c, c], if this happens in a packing, it happens for the reduced form, so we can just check it there).
+GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*getdata)(GEN, int, GEN*, int)){
+  pari_sp top=avma, mid;
+  v=apol_red(v, 0);//Start by reducing v, since we want curvatures up to a given bound.
+  int ind=1;//We reuse ind to track which depth we are going towards.
+  int depth=10;//Initially we go up to depth 10, but this may change if we need to go deeper.
+  GEN W=zerovec(depth);//Tracks the sequence of APC's; W[ind] is at ind-1 depth
+  gel(W, 1)=v;//The first one.
+  GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
+  int forward=1;//Tracks if we are going forward or not.
+  long Nreps=400;
+  GEN reps=vectrunc_init(Nreps);//We may need to extend the length of reps later on.
+  
+  if(countsymm){
+	if(gequal0(gel(v, 1))){
+	  countsymm=0;
+	  pari_warn(warner, "Strip packing, must not count symmetry");
+	}
+	else{
+      for(int i=1;i<=4;i++){
+        if(cmpii(gel(v, i), bound)<=0){//First 4 reps
+	      GEN dat=getdata(v, i, &info, 1);
+	      if(dat) vectrunc_append(reps, dat);//We have data to store.
+        }
+      }
+	}
+  }
+  if(!countsymm){//Must ignore symmetry
+	v=ZV_sort(v);
+	for(int i=1;i<=4;i++){
+      if(cmpii(gel(v, i), bound)<=0 && (i==1 || !equalii(gel(v, i-1), gel(v, i)))){//First 4 reps
+	    GEN dat=getdata(v, i, &info, 1);
+	    if(dat) vectrunc_append(reps, dat);//We have data to store.
+      }
+    }
+  }
+  do{//1<=ind<=depth is assumed.
+    if(gc_needed(top, 2)){//Garbage day!
+      GEN oldreps=reps;
+      mid=avma;
+      W=gcopy(W);
+      I=gcopy(I);
+	  info=gcopy(info);
+      reps=vectrunc_init(Nreps);
+      for(long i=1;i<lg(oldreps);i++) vectrunc_append(reps, gcopy(gel(oldreps, i)));//Copying reps; can't use vectrunc_append_batch.
+      gerepileallsp(top, mid, 4, &W, &I, &info, &reps);
+    }
+    if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
+      Nreps=2*Nreps-1;
+      GEN newreps=vectrunc_init(Nreps);
+      vectrunc_append_batch(newreps, reps);//Append the old list
+      reps=newreps;
+    }
+    I[ind]=forward? 1:I[ind]+1;//The new index
+    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
+    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+    //At this point, we can go on with valid and new inputs.
+	if(ind==1 && !countsymm){//Make sure we haven't seen this element before. If this happens at some point, then it ALSO happens at the reduced form!
+	  int goback=0;
+      for(int j=1;j<I[ind];j++){
+		if(equalii(gmael(W, ind, j), gmael(W, ind, I[ind]))){goback=1;break;}
+	  }
+	  if(goback){forward=0;continue;}//We've already done this element in a previous move.
+	}
+    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
+    GEN elt=gel(newv, I[ind]);//The new element
+    if(cmpii(elt, bound)>0){forward=0;continue;}//Must go back, elt too big
+	if(ind==1 && !countsymm){//The replacement being the same can ONLY happen for the reduced form.
+	  if(equalii(gmael(W, ind, I[ind]), gel(newv, I[ind]))){forward=0;continue;}//Must go back, same thing (e.g. the strip packing)
+	}
+    GEN dat=getdata(newv, I[ind], &info, 1);//Retrieve the data
+	if(dat) vectrunc_append(reps, dat);//Add the new piece of data if we are allowed.
+    ind++;
+    if(ind==depth){//Reached maximum depth, must extend.
+      int newdepth=2*depth;
+      GEN newW=zerovec(newdepth), newI=vecsmall_ei(newdepth, 1);
+      for(long i=1;i<=depth;i++){gel(newW, i)=gel(W, i);newI[i]=I[i];}//Copy them over.
+      W=newW;
+      I=newI;
+      depth=newdepth;
+    }
+    gel(W, ind)=newv;
+    forward=1;
+  }while(ind>0);
+  return gerepileupto(top, getdata(reps, 0, NULL, 0));
+}
+
+//Helper method for apol_orbit, to feed into apol_search_bound
+static GEN apol_curvatures_helper(GEN v, int ind, GEN *info, int state){
+  if(state==0) return ZV_sort(v);//v=reps, just return it.
+  //Now state=1
+  return gel(v, ind);
+}
+
+//Returns the curvatures in the packing v up to bound.
+GEN apol_curvatures(GEN v, GEN bound, int countsymm){
+  return apol_search_bound(v, bound, countsymm, NULL, &apol_curvatures_helper);
+}
+
 //Given a BOUNDED integral ACP, this returns equations for the circles with curvatures <=maxcurv at depth<=depth. An equation takes the form [curvature, radius, x, y].
 GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec){
   pari_sp top=avma;
@@ -348,52 +465,6 @@ static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long pr
   GEN x=gadd(x1, gmul(r1pr3, relcos));
   GEN y=gadd(y1, gmul(r1pr3, relsin));
   return gerepilecopy(top, mkvec4(c3, r3, x, y));
-}
-
-//Returns a sorted list of curvatures of circles, where we go to depth depth, i.e. we do up to depth circle replacements. We also only retrieve curvatures <=bound, if this is passed in as non-zero.
-GEN apol_orbit(GEN v, int depth, GEN bound){
-  pari_sp top=avma;
-  int ind=1;//We reuse ind to track which depth we are going towards.
-  GEN W=zerovec(depth);//Tracks the sequence of APC's; W[ind] is at ind-1 depth
-  gel(W, 1)=v;//The first one.
-  GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
-  int forward=1, usebound=1-gequal0(bound);//Tracks if we are going forward or not.
-  long Nreps;
-  if(gequal0(bound)) Nreps=2*(itos(powuu(3, depth))+1)+1;
-  else Nreps=itos(bound);//If bound!=0, and depth is large, the previous Nreps definition may be too large
-  GEN reps=vectrunc_init(Nreps);
-  if(usebound){
-    for(int i=1;i<=4;i++) if(cmpii(gel(v, i), bound)<=0) vectrunc_append(reps, gel(v, i));//First 4 reps
-  }
-  else{
-    for(int i=1;i<=4;i++) vectrunc_append(reps, gel(v, i));//First 4 reps
-  }
-  do{//1<=ind<=depth is assumed.
-    if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
-      long newNreps=2*Nreps-1;
-      GEN newreps=vectrunc_init(newNreps);
-      for(long i=1;i<Nreps;i++) vectrunc_append(newreps, gel(reps, i));//Append the old list
-      Nreps=newNreps;
-      reps=newreps;
-    }
-    I[ind]=forward? 1:I[ind]+1;
-    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
-    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
-    //At this point, we can go on with valid and new inputs
-    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
-    GEN elt=gel(newv, I[ind]);//The new element
-    if(usebound && cmpii(elt, bound)==1) forward=0;//Must go back, elt too big
-    else{
-      vectrunc_append(reps, elt);//Add the new element
-      if(ind==depth) forward=0;
-      else{//We can keep going forward
-        ind++;
-        gel(W, ind)=newv;
-        forward=1;
-      }
-    }
-  }while(ind>0);
-  return gerepileupto(top, ZV_sort(reps));
 }
 
 //Returns a sorted list of curvatures of circles that are maxlayers layers in from v[1]. Thus maxlayers=1 means that we only consider circles tangent to v[1] (along with v[1] itself). We only retrieve curvatures up to the given bound.
@@ -594,6 +665,56 @@ GEN apol_search(GEN v, GEN N, int depth, int rqf){
   }while(ind>0);
   return gerepileupto(top, glist_togvec(S, Nfound, -1));
 }
+
+
+//ELIMINATE THIS METHOD
+
+//Returns a sorted list of curvatures of circles, where we go to depth depth, i.e. we do up to depth circle replacements. We also only retrieve curvatures <=bound, if this is passed in as non-zero.
+GEN apol_orbit(GEN v, int depth, GEN bound){
+  pari_sp top=avma;
+  int ind=1;//We reuse ind to track which depth we are going towards.
+  GEN W=zerovec(depth);//Tracks the sequence of APC's; W[ind] is at ind-1 depth
+  gel(W, 1)=v;//The first one.
+  GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
+  int forward=1, usebound=1-gequal0(bound);//Tracks if we are going forward or not.
+  long Nreps;
+  if(gequal0(bound)) Nreps=2*(itos(powuu(3, depth))+1)+1;
+  else Nreps=itos(bound);//If bound!=0, and depth is large, the previous Nreps definition may be too large
+  GEN reps=vectrunc_init(Nreps);
+  if(usebound){
+    for(int i=1;i<=4;i++) if(cmpii(gel(v, i), bound)<=0) vectrunc_append(reps, gel(v, i));//First 4 reps
+  }
+  else{
+    for(int i=1;i<=4;i++) vectrunc_append(reps, gel(v, i));//First 4 reps
+  }
+  do{//1<=ind<=depth is assumed.
+    if(lg(reps)==Nreps){//We don't have enough space! Double the possible length of reps.
+      long newNreps=2*Nreps-1;
+      GEN newreps=vectrunc_init(newNreps);
+      for(long i=1;i<Nreps;i++) vectrunc_append(newreps, gel(reps, i));//Append the old list
+      Nreps=newNreps;
+      reps=newreps;
+    }
+    I[ind]=forward? 1:I[ind]+1;
+    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
+    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
+    //At this point, we can go on with valid and new inputs
+    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
+    GEN elt=gel(newv, I[ind]);//The new element
+    if(usebound && cmpii(elt, bound)==1) forward=0;//Must go back, elt too big
+    else{
+      vectrunc_append(reps, elt);//Add the new element
+      if(ind==depth) forward=0;
+      else{//We can keep going forward
+        ind++;
+        gel(W, ind)=newv;
+        forward=1;
+      }
+    }
+  }while(ind>0);
+  return gerepileupto(top, ZV_sort(reps));
+}
+
 
 
 
@@ -808,14 +929,15 @@ GEN apol_words(int d){
 //These are scripts that are useful to me, but not likely useful in general.
 
 
-//Computes apol_ncgpforms, and returns the depths of the corresponding circles of curvature n.
+
+//Computes apol_makeall, and returns the external depths of the corresponding circles of curvature n. This works because we use the reduced quadratic forms: A-n<=C-n<=A+C-B-n. Swapping A+C-B-n gives A+C+B-n, so this cannot decrease it. Thus either we are already reduced (and A-n<=0 necessarily), or it is not the largest term (which thus must be n). Thus n is immediately swapped if depth>0, and this gives the circle depth.
 GEN apol_ncgp_depths(GEN n, long prec){
   pari_sp top=avma;
   GEN forms=apol_makeall(n, 0, prec);//The forms
   long maxdepth=0, lf=lg(forms);
   GEN depths=cgetg(lf, t_VECSMALL);
   for(long i=1;i<lf;i++){//Computing depths
-    long d=apol_depth(gel(forms, i));
+    long d=apol_extdepth(gel(forms, i));
     depths[i]=d;
     if(d>maxdepth) maxdepth=d;
   }
