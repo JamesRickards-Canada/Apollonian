@@ -35,21 +35,21 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(ap_make,"Installed methods:\napol_make, apol_makeall.");
 
 	\\SEARCHING FOR CURVATURES
+		install("apol_circles","GG",,"./libapol.so");
+		addhelp(apol_circles, "Inputs v, maxcurv: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv in v. Returns the list, where each element is of the form [curvature, radius, x, y], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at (0,0), the next largest circle is tangent at the top, and the third circle is on the left of them.");
 		install("apol_curvatures","GGD0,L,",,"./libapol.so");
 		addhelp(apol_curvatures,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
 		install("apol_curvatures_depth","GLD0,G,",,"./libapol.so");
 		addhelp(apol_curvatures_depth,"Inputs v, depth, {bound=0}: Descartes quadruple v, depth>=1, bound>=0.\n Returns a sorted list of curvatures of circles at most depth circle replacements away from v. If bound>0, we also only save the ones of size at most bound.");
 		install("apol_find","GGD0,L,",,"./libapol.so");
 		addhelp(apol_find,"Inputs v, N, {countsymm=0}: Descartes quadruple v, positive integer N, countsymm=0, 1.\n Returns the Descartes quadruples in the ACP of v containing N. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
-	
-		install("apol_circles","GGL",,"./libapol.so");
-		addhelp(apol_circles, "Inputs v, maxcurv, maxdepth: bounded ACP v, positive integers maxcurv and maxdepth.\n Computes all circles with curvature <=maxcurv in v that occur in depth<=maxdepth. Returns the list, where each element is of the form [curvature, radius, x, y], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle.");
+		
 		install("apol_orbit_layers","GLG",,"./libapol.so");
 		addhelp(apol_orbit_layers,"Inputs v, maxlayers, bound.\n Returns the curvatures in the first maxlayers layers up to bound bound, with respect to the circle v[1].");
 		install("apol_orbit_primes","GLG",,"./libapol.so");
 		addhelp(apol_orbit_primes,"Inputs v, maxlayers, bound.\n Returns the prime curvatures in the first maxlayers layers up to bound bound, with respect to the circle v[1]. Does not include curvatures 2 or 3, and removes repeats.");
 
-		addhelp(ap_search,"Installed methods:\napol_curvatures, apol_curvatures_depth, apol_find.");
+		addhelp(ap_search,"Installed methods:\napol_circles, apol_curvatures, apol_curvatures_depth, apol_find.");
 
 	\\STRIP PACKING METHODS
 		install("apol_dpair_circle","G",,"./libapol.so");

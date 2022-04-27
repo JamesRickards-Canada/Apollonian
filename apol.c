@@ -17,12 +17,14 @@ static GEN apol_make_n(GEN q, GEN n, int red);
 
 static GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int, GEN), GEN (*retquad)(GEN));
 static GEN apol_search_depth(GEN v, int depth, GEN bound, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int, GEN), GEN (*retquad)(GEN));
+static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, GEN *nul, int state);
+static GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right);
+static GEN apol_circles_nextquad(GEN vdat, int ind, GEN reps);
+static GEN apol_circles_retquad(GEN vdat);
 static GEN apol_generic_nextquad(GEN vdat, int ind, GEN reps);
 static GEN apol_generic_retquad(GEN vdat);
 static GEN apol_curvatures_getdata(GEN vdat, int ind, GEN reps, GEN *nul, int state);
 static GEN apol_find_getdata(GEN vdat, int ind, GEN reps, GEN *N, int state);
-
-static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right);
 
 
 
@@ -109,8 +111,9 @@ GEN apol_move(GEN v, GEN command){
   return gerepileupto(top, apol_move_batch(v, command));
 }
 
-//Returns the set of four curvatures when we replace circle i.
+//Returns the set of four curvatures when we replace circle ind.
 GEN apol_move_1(GEN v, int ind){
+  if(ind<=0 || ind>=5) return v;//Do nothing.
   pari_sp top=avma;
   GEN rep=vecsmall_ei(4, ind);
   GEN S=gen_0;
@@ -420,220 +423,54 @@ static GEN apol_search_depth(GEN v, int depth, GEN bound, GEN info, GEN (*getdat
   return gerepileupto(top, getdata(NULL, 0, reps, NULL, 0));
 }
 
-//vdat=v=Descartes quadruple. This returns the next one
-static GEN apol_generic_nextquad(GEN vdat, int ind, GEN reps){return apol_move_1(vdat, ind);}
 
-//vdat=v=Descartes quadruple. This returns it
-static GEN apol_generic_retquad(GEN vdat){return vdat;}
-
-//Helper method for apol_curvatures, to feed into apol_search_bound. vdat=v=Descartes quadruple
-static GEN apol_curvatures_getdata(GEN vdat, int ind, GEN reps, GEN *nul, int state){
-  if(state==0) return ZV_sort(reps);//Sort it and return.
-  return gel(vdat, ind);//state=1/2, we want the new curvature
-}
-
-//Helper method for apol_find, to feed into apol_search_bound.
-static GEN apol_find_getdata(GEN vdat, int ind, GEN reps, GEN *N, int state){
-  if(state==0) return gcopy(reps);//Nothing to do.
-  if(equalii(gel(vdat, ind), *N)) return vdat;//We have found N!
-  return NULL;//This was not N, do not return anything.
-}
-
-
-//Returns the curvatures in the packing v up to bound.
-GEN apol_curvatures(GEN v, GEN bound, int countsymm){
-  return apol_search_bound(v, bound, countsymm, NULL, &apol_curvatures_getdata, &apol_generic_nextquad, &apol_generic_retquad);
-}
-
-//Returns the curvatures up to depth depth from v. If bound>0, we only count those at most bound.
-GEN apol_curvatures_depth(GEN v, int depth, GEN bound){
-  if(depth<=0) depth=1;//To avoid errors from bad input.
-  return apol_search_depth(v, depth, bound, NULL, &apol_curvatures_getdata, &apol_generic_nextquad, &apol_generic_retquad);
-}
-
-//Searches for all circles with curvature N, and returns the corresponding quadruples. If countsymm=1, we may have repeats coming from the symmetry.
-GEN apol_find(GEN v, GEN N, int countsymm){
-  return apol_search_bound(v, N, countsymm, N, &apol_find_getdata, &apol_generic_nextquad, &apol_generic_retquad);
-}
-
-/*
-static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, GEN *cinds, int state){
-  if(state==0) return gcopy(cvec);
+//vdat=[v, [indices in reps of the circles]]. We want to return the circle, i.e. [curvature, radius, x, y].
+static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, GEN *nul, int state){
+  if(state==0) return gcopy(reps);
+  GEN v=gel(vdat, 1);//The new quadruple
   if(state==2){//Initial 4 circles
-	switch(ind){//Each circle is stored as [curvature, radius, x, y].
-	  case 1://Initialize everything.
-        GEN c1=gel(v, 1), c2=gel(v, 2), c3=gel(v, 3), c4=gel(v, 4);//Starting curvatures.
-        GEN r1=Qdivii(gen_1, c1), r2=Qdivii(gen_1, c2);
-        GEN circ1=mkvec4(c1, r1, gen_0, gen_0);//Outer circle
-        GEN circ2=mkvec4(c2, r2, gen_0, gneg(gadd(r1, r2)));//first inner circle, placed vertically at the top.
-        GEN circ3=thirdtangent(circ1, circ2, c3, c4, 0);//Third circle goes left.
-        GEN circ4=thirdtangent(circ2, circ3, c4, c1, 0);//Fourth circle is left of circ2 ->circ3.
-	    *cinds=mkvec4(circ2, circ3, circ4);//Just setting it for now
-	    return circ1;
-	  case 2:
-	    return gel(*cinds, 1);
+	switch(ind){
+	  case 1:;
+	    GEN c1=gel(v, 1);//First curvature
+		return mkvec4(c1, Qdivii(gen_1, c1), gen_0, gen_0);//Outer circle
+	  case 2:;
+	    GEN c2=gel(v, 2);
+		GEN r2=Qdivii(gen_1, c2);
+		return mkvec4(c2, r2, gen_0, gneg(gadd(gmael(reps, 1, 2), r2)));//first inner circle, placed vertically at the top. Note gmael(reps, 1, 2)=r1<0.
 	  case 3:
-	    return gel(*cinds, 2);
+	    return apol_thirdtangent(gel(reps, 1), gel(reps, 2), gel(v, 3), gel(v, 4), 0);//Third circle goes left.
 	  case 4:
-	    GEN circ=gel(*cinds, 3);//4th circle
-		
+	    return apol_thirdtangent(gel(reps, 2), gel(reps, 3), gel(v, 4), gel(v, 1), 0);//Fourth circle is left of circ2 ->circ3.
 	}
   }
-}
-
-//Given a bounded integral Descartes quadruple, this returns equations for the circles with curvatures <=maxcurv at depth<=depth. An equation takes the form [curvature, radius, x, y]. The outer circle has centre (0, 0).
-GEN apol_circles1(GEN v, GEN maxcurv){
-  return apol_search_bound(v, maxcurv, 1, NULL, NULL, &apol_circles_helper);
+  //Now we are at a normal place, i.e state=1.
+  GEN prevind=gel(vdat, 2);
+  int is[3]={0, 0, 0};
+  int is_ind=0;
+  for(int i=1;i<=4;i++){
+	if(ind==i) continue;
+	is[is_ind]=i;
+	is_ind++;
+  }//is are the three non-ind indices in {1, 2, 3, 4}.
+  GEN oldcirc1=gel(reps, prevind[is[0]]);//One of the old circles
+  GEN oldcirc2=gel(reps, prevind[is[1]]);//Another of the old circles
+  GEN newc=gel(v, ind);
+  GEN newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 1);//The new circle, if it is to the right of oldcirc1 ->oldcirc2.
   
-  //Now we go down! Adopts the code of apol_search
-  int ind=1;//We ind to track which depth we are going towards.
-  GEN W=zerovec(depth);//Tracks the sequence of ACP's; W[ind] is at ind-1 depth
-  GEN Winds=zerovec(depth);//Tracks the corresponding indices in clist
-  gel(W, 1)=v;//The first one.
-  gel(Winds, 1)=mkvecsmall4(1, 2, 3, 4);
-  GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
-  int forward=1;//Tracks if we are going forward or not.
-  do{//1<=ind<=depth is assumed.
-    I[ind]=forward? 1:I[ind]+1;
-    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
-    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
-    //At this point, we can go on with valid and new inputs
-    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
-    GEN newc=gel(newv, I[ind]);
-    GEN newvecsmall=gen_0;//Need this to be accessible to the next if/else block
-    int comp=cmpii(maxcurv, newc);//Comparing the new element to maxcurv.
-    if(comp>=0){//Small enough!
-      int is[3]={0, 0, 0};
-      int isind=0;
-      for(int i=1;i<=4;i++){
-        if(I[ind]==i) continue;
-        is[isind]=i;
-        isind++;
-      }//is are the three non-I[ind] indices in {1, 2, 3, 4}.
-      GEN oldcirc1=gel(clist, gel(Winds, ind)[is[0]]);//One of the old circles
-      GEN oldcirc2=gel(clist, gel(Winds, ind)[is[1]]);//One of the old circles
-      GEN newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 1);//The new circle, if it is to the right of newcirc1 ->newcirc2.
-      GEN prevcirc=gel(clist, gel(Winds, ind)[I[ind]]);//The circle we are "replacing"
-      if(gequal(newcirc, prevcirc)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0);//If the two curvatures were the same, this could trigger. If we lack oo precision, this could not work, and must be changed slightly.
-      else{//This block must also be updated if there is not oo precision.
-        GEN oldcirc3=gel(clist, gel(Winds, ind)[is[2]]);//The unused old circle. Our newcirc must be tangent to it.
-        GEN rsums=gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));//(r1+r2)^2
-        GEN dcentres=gadd(gsqr(gsub(gel(oldcirc3, 3), gel(newcirc, 3))), gsqr(gsub(gel(oldcirc3, 4), gel(newcirc, 4))));//dist(centres)^2
-        if(!gequal(rsums, dcentres)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0);//Must be the other side.
-      }
-      //Now we update things in clist.
-      if(clistind==maxcircs){//Double the size
-        maxcircs=2*maxcircs;
-        GEN oldclist=clist;
-        clist=vectrunc_init(maxcircs);
-        vectrunc_append_batch(clist, oldclist);//Put the old circles back.
-      }
-      newvecsmall=cgetg(5, t_VECSMALL);
-      for(int i=1;i<=4;i++){
-        if(I[ind]==i) newvecsmall[i]=clistind;
-        else newvecsmall[i]=gel(Winds, ind)[i];
-      }
-      vectrunc_append(clist, newcirc);
-      clistind++;
-    }
-    if(ind==depth || comp<=0) forward=0;//Max depth OR the number is too big; once we reach or pass N, we cannot get N anymore.
-    else{//We can keep going forward
-      ind++;
-      gel(W, ind)=newv;
-      gel(Winds, ind)=newvecsmall;
-      forward=1;
-    }
-  }while(ind>0);
-  return gerepilecopy(top, clist);  
-
-
-}
-*/
-
-//Given a BOUNDED integral ACP, this returns equations for the circles with curvatures <=maxcurv at depth<=depth. An equation takes the form [curvature, radius, x, y].
-GEN apol_circles(GEN v, GEN maxcurv, int depth){
-  pari_sp top=avma;
-  GEN vred=apol_red(v, 0);
-  ZV_sort_inplace(vred);//So the minimal curvature occurs first.
-  if(gequal0(gel(vred, 1))) pari_err_TYPE("Cannot be the strip packing", v);
-  long maxcircs=10;//Stores the maximal number of circles+1, double it every time we try to go over.
-  GEN clist=vectrunc_init(maxcircs);//Stores the cicles. Each entry is [[curvature, radius, x, y], previous indices], where previous index is the 3 previous circles it is tangent to (after the first four).
-  GEN c1=gel(v, 1), c2=gel(v, 2), c3=gel(v, 3), c4=gel(v, 4);//Starting curvatures.
-  GEN r1=Qdivii(gen_1, c1), r2=Qdivii(gen_1, c2);
-  GEN circ1=mkvec4(c1, r1, gen_0, gen_0);//Outer circle
-  vectrunc_append(clist, circ1);
-  GEN circ2=mkvec4(c2, r2, gen_0, gneg(gadd(r1, r2)));//first inner circle, placed vertically at the top.
-  vectrunc_append(clist, circ2);
-  GEN circ3=thirdtangent(circ1, circ2, c3, c4, 0);//Third circle goes left.
-  vectrunc_append(clist, circ3);
-  GEN circ4=thirdtangent(circ2, circ3, c4, c1, 0);//Fourth circle is left of circ2 ->circ3.
-  vectrunc_append(clist, circ4);
-  long clistind=5;
-  
-  //Now we go down! Adopts the code of apol_search
-  int ind=1;//We ind to track which depth we are going towards.
-  GEN W=zerovec(depth);//Tracks the sequence of ACP's; W[ind] is at ind-1 depth
-  GEN Winds=zerovec(depth);//Tracks the corresponding indices in clist
-  gel(W, 1)=v;//The first one.
-  gel(Winds, 1)=mkvecsmall4(1, 2, 3, 4);
-  GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
-  int forward=1;//Tracks if we are going forward or not.
-  do{//1<=ind<=depth is assumed.
-    I[ind]=forward? 1:I[ind]+1;
-    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
-    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
-    //At this point, we can go on with valid and new inputs
-    GEN newv=apol_move_1(gel(W, ind), I[ind]);//Make the move
-    GEN newc=gel(newv, I[ind]);
-    GEN newvecsmall=gen_0;//Need this to be accessible to the next if/else block
-    int comp=cmpii(maxcurv, newc);//Comparing the new element to maxcurv.
-    if(comp>=0){//Small enough!
-      int is[3]={0, 0, 0};
-      int isind=0;
-      for(int i=1;i<=4;i++){
-        if(I[ind]==i) continue;
-        is[isind]=i;
-        isind++;
-      }//is are the three non-I[ind] indices in {1, 2, 3, 4}.
-      GEN oldcirc1=gel(clist, gel(Winds, ind)[is[0]]);//One of the old circles
-      GEN oldcirc2=gel(clist, gel(Winds, ind)[is[1]]);//One of the old circles
-      GEN newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 1);//The new circle, if it is to the right of newcirc1 ->newcirc2.
-      GEN prevcirc=gel(clist, gel(Winds, ind)[I[ind]]);//The circle we are "replacing"
-      if(gequal(newcirc, prevcirc)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0);//If the two curvatures were the same, this could trigger. If we lack oo precision, this could not work, and must be changed slightly.
-      else{//This block must also be updated if there is not oo precision.
-        GEN oldcirc3=gel(clist, gel(Winds, ind)[is[2]]);//The unused old circle. Our newcirc must be tangent to it.
-        GEN rsums=gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));//(r1+r2)^2
-        GEN dcentres=gadd(gsqr(gsub(gel(oldcirc3, 3), gel(newcirc, 3))), gsqr(gsub(gel(oldcirc3, 4), gel(newcirc, 4))));//dist(centres)^2
-        if(!gequal(rsums, dcentres)) newcirc=thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, is[2]), 0);//Must be the other side.
-      }
-      //Now we update things in clist.
-      if(clistind==maxcircs){//Double the size
-        maxcircs=2*maxcircs;
-        GEN oldclist=clist;
-        clist=vectrunc_init(maxcircs);
-        vectrunc_append_batch(clist, oldclist);//Put the old circles back.
-      }
-      newvecsmall=cgetg(5, t_VECSMALL);
-      for(int i=1;i<=4;i++){
-        if(I[ind]==i) newvecsmall[i]=clistind;
-        else newvecsmall[i]=gel(Winds, ind)[i];
-      }
-      vectrunc_append(clist, newcirc);
-      clistind++;
-    }
-    if(ind==depth || comp<=0) forward=0;//Max depth OR the number is too big; once we reach or pass N, we cannot get N anymore.
-    else{//We can keep going forward
-      ind++;
-      gel(W, ind)=newv;
-      gel(Winds, ind)=newvecsmall;
-      forward=1;
-    }
-  }while(ind>0);
-  return gerepilecopy(top, clist);  
+  GEN prevcirc=gel(reps, prevind[ind]);//The circle we are "replacing"
+  if(gequal(newcirc, prevcirc)) newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 0);//If the two curvatures were the same, this could trigger. If we lack oo precision, this could not work, and must be changed slightly.
+  else{//This block must also be updated if there is not oo precision.
+    GEN oldcirc3=gel(reps, prevind[is[2]]);//The unused old circle. Our newcirc must be tangent to it.
+    GEN rsums=gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));//(r1+r2)^2
+    GEN dcentres=gadd(gsqr(gsub(gel(oldcirc3, 3), gel(newcirc, 3))), gsqr(gsub(gel(oldcirc3, 4), gel(newcirc, 4))));//dist(centres)^2
+    if(!gequal(rsums, dcentres)) newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 0);//Must be the other side.
+  }
+  prevind[ind]=lg(reps);//Updating the location of the circle.
+  return newcirc;
 }
 
 //Store a circle as [curvature, radius, x, y]. Given two tangent circles and a third curvature, this finds this third circle that is tangent to the first two. For internal tangency, we need a negative radius & curvature. There are always 2 places to put the circle: left or right of the line from circ1 to circ2. If right=1, we put it right, else we put it left. c4 is one of the curvatures to complete an Apollonian quadruple (supplying it allows us to always work with exact numbers in the case of integral ACPs).
-static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right){
+static GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right){
   pari_sp top=avma;
   long prec=3;//Does not matter, things here are exact.
   //The centres form a triangle with sides r1+r2, r1+r3, r2+r3, or -r1-r2, -r1-r3, r2+r3 (if internal tangency). Let theta be the angle at the centre of c1.
@@ -663,6 +500,59 @@ static GEN thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right){
   GEN y=gadd(y1, gmul(r1pr3, relsin));
   return gerepilecopy(top, mkvec4(c3, r3, x, y));
 }
+
+//vdat=[v, [indices in reps of previous circles]], unless ind=0, when vdat=v
+static GEN apol_circles_nextquad(GEN vdat, int ind, GEN reps){
+  if(ind==0) return mkvec2(vdat, mkvecsmall4(1, 2, 3, 4));//The initial vdat.
+  GEN v=gel(vdat, 1);//The actual quadruple
+  GEN newv=apol_move_1(v, ind);//The new v
+  return mkvec2(newv, zv_copy(gel(vdat, 2)));//We do NOT update the index in ind, which will update to lg(reps). This will be done in the getdata method, since we still need the old one for now.
+}
+
+//vdat=[v, [indices in reps of previous circles]]. This returns the first element of vdat
+static GEN apol_circles_retquad(GEN vdat){return gel(vdat, 1);}
+
+//Given a bounded integral Descartes quadruple, this returns equations for the circles with curvatures <=maxcurv at depth<=depth. An equation takes the form [curvature, radius, x, y]. The outer circle has centre (0, 0).
+GEN apol_circles(GEN v, GEN maxcurv){
+  return apol_search_bound(v, maxcurv, 1, NULL, &apol_circles_getdata, &apol_circles_nextquad, &apol_circles_retquad);
+}
+
+//vdat=v=Descartes quadruple. This returns the next one
+static GEN apol_generic_nextquad(GEN vdat, int ind, GEN reps){return apol_move_1(vdat, ind);}
+
+//vdat=v=Descartes quadruple. This returns it
+static GEN apol_generic_retquad(GEN vdat){return vdat;}
+
+//Helper method for apol_curvatures, to feed into apol_search_bound. vdat=v=Descartes quadruple
+static GEN apol_curvatures_getdata(GEN vdat, int ind, GEN reps, GEN *nul, int state){
+  if(state==0) return ZV_sort(reps);//Sort it and return.
+  return gel(vdat, ind);//state=1/2, we want the new curvature
+}
+
+//Returns the curvatures in the packing v up to bound.
+GEN apol_curvatures(GEN v, GEN bound, int countsymm){
+  return apol_search_bound(v, bound, countsymm, NULL, &apol_curvatures_getdata, &apol_generic_nextquad, &apol_generic_retquad);
+}
+
+//Returns the curvatures up to depth depth from v. If bound>0, we only count those at most bound.
+GEN apol_curvatures_depth(GEN v, int depth, GEN bound){
+  if(depth<=0) depth=1;//To avoid errors from bad input.
+  return apol_search_depth(v, depth, bound, NULL, &apol_curvatures_getdata, &apol_generic_nextquad, &apol_generic_retquad);
+}
+
+//Helper method for apol_find, to feed into apol_search_bound.
+static GEN apol_find_getdata(GEN vdat, int ind, GEN reps, GEN *N, int state){
+  if(state==0) return gcopy(reps);//Nothing to do.
+  if(equalii(gel(vdat, ind), *N)) return vdat;//We have found N!
+  return NULL;//This was not N, do not return anything.
+}
+
+//Searches for all circles with curvature N, and returns the corresponding quadruples. If countsymm=1, we may have repeats coming from the symmetry.
+GEN apol_find(GEN v, GEN N, int countsymm){
+  return apol_search_bound(v, N, countsymm, N, &apol_find_getdata, &apol_generic_nextquad, &apol_generic_retquad);
+}
+
+
 
 
 
