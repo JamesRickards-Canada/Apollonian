@@ -38,16 +38,17 @@ GEN apol_make(GEN q, int pos, int red);
 GEN apol_makeall(GEN n, int red, long prec);
 
 //SEARCHING FOR CURVATURES
-GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*getdata)(GEN, int, GEN*, int));
-
 GEN apol_curvatures(GEN v, GEN bound, int countsymm);
+GEN apol_curvatures_depth(GEN v, int depth, GEN bound);
+GEN apol_find(GEN v, GEN N, int countsymm);
 
-GEN apol_circles(GEN v, GEN maxcurv, int depth, long prec);
+GEN apol_circles1(GEN v, GEN maxcurv);
+
+GEN apol_circles(GEN v, GEN maxcurv, int depth);
+
+
 GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound);
 GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound);
-GEN apol_search(GEN v, GEN N, int depth, int rqf);
-
-GEN apol_orbit(GEN v, int depth, GEN bound);
 
 //STRIP PACKING METHODS
 GEN apol_dpair_circle(GEN L);

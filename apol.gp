@@ -16,13 +16,13 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("apol_mod24","G",,"./libapol.so");
 		addhelp(apol_mod24,"Input v, a Descartes quadruple.\n Returns the set of curvatures modulo 24 possible in the correponding ACP. There are 6 possible primitive sets.");
 		install("apol_move","GG",,"./libapol.so");
-		addhelp(apol_move, "Inputs v, ind: v a Descartes quadruple, 1<=ind<=4 or a vector/vecsmall of integers between 1 and 4.\n Returns the Descartes quadruple where we replace circle ind with the other possible circle (applying this left to right if ind is a vector/vecsmall).");
+		addhelp(apol_move, "Inputs v, ind: Descartes quadruple v, 1<=ind<=4 or a vector/vecsmall of integers between 1 and 4.\n Returns the Descartes quadruple where we replace circle ind with the other possible circle (applying this left to right if ind is a vector/vecsmall).");
 		install("apol_qf","GD1,L,",,"./libapol.so");
-		addhelp(apol_qf, "Inputs v, {ind=1}: v a Descartes quadruple, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
+		addhelp(apol_qf, "Inputs v, {ind=1}: Descartes quadruple v, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
 		install("apol_red","GD0,L,",,"./libapol.so");
-		addhelp(apol_red,"Inputs v, {seq=0}: v a Descartes quadruple.\n Reduces v and returns the reduction. If seq=1, also returns a vecsmall of the sequence of indices used to reach the reduced form.");
+		addhelp(apol_red,"Inputs v, {seq=0}: Descartes quadruple v.\n Reduces v and returns the reduction. If seq=1, also returns a vecsmall of the sequence of indices used to reach the reduced form.");
 		install("apol_red_partial","GL",,"./libapol.so");
-		addhelp(apol_red_partial,"Inputs: v a Descartes quadruple and positive integer maxsteps.\n We reduce v, doing at most maxsteps. In particular, the returned quadruple may not be reduced!");
+		addhelp(apol_red_partial,"Inputs: Descartes quadruple v and positive integer maxsteps.\n We reduce v, doing at most maxsteps. In particular, the returned quadruple may not be reduced!");
 
 		addhelp(ap_basic,"Installed methods:\napol_check, apol_extdepth, apol_getmatrices, apol_getobstructions, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial.");
 
@@ -30,23 +30,26 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("apol_make","GD1,L,D1,L,", ,"./libapol.so");
 		addhelp(apol_make,"Input q, {pos=1}, {red=1}; q a quadratic form of discriminant -4n^2.\n Returns the Descartes quadruple it corresponds to. If pos=0, the root quadruple starts with -n<0. Else, the form has a +n circle. If red=1 we reduce the form, otherwise we don't.");
 		install("apol_makeall","GD1,L,p",,"./libapol.so");
-		addhelp(apol_makeall,"Inputs n, {red=1}.\n Returns all ACP's containing n. We reduce the quadruples iff red=1. The output has length h^{+/-}(-4n^2), and may contain Descartes quadruple in the same packing (if n appears multiple times in ''unique ways''.");
+		addhelp(apol_makeall,"Inputs n, {red=1}.\n Returns all Descartes quadruples containing n. We reduce the quadruples iff red=1. The output has length h^{+/-}(-4n^2), and may contain Descartes quadruples in the same packing (if n appears multiple times in ''unique ways''.");
 
 		addhelp(ap_make,"Installed methods:\napol_make, apol_makeall.");
 
 	\\SEARCHING FOR CURVATURES
-		install("apol_circles","GGLp",,"./libapol.so");
-		addhelp(apol_circles, "Inputs v, maxcurv, maxdepth: bounded ACP v, positive integers maxcurv and maxdepth.\n Computes all circles with curvature <=maxcurv in v that occur in depth<=maxdepth. Returns the list, where each element is of the form [curvature, radius, x, y], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle.");
 		install("apol_curvatures","GGD0,L,",,"./libapol.so");
-		addhelp(apol_curvatures,"Inputs v, bound, {countsymm=0}: vector v representing an ACP, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If bound!=0, we only count those of curvature <=bound. The length of the list (before removing repeated terms, and assuming bound=0) is 2*(3^depth+1).");
+		addhelp(apol_curvatures,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
+		install("apol_curvatures_depth","GLD0,G,",,"./libapol.so");
+		addhelp(apol_curvatures_depth,"Inputs v, depth, {bound=0}: Descartes quadruple v, depth>=1, bound>=0.\n Returns a sorted list of curvatures of circles at most depth circle replacements away from v. If bound>0, we also only save the ones of size at most bound.");
+		install("apol_find","GGD0,L,",,"./libapol.so");
+		addhelp(apol_find,"Inputs v, N, {countsymm=0}: Descartes quadruple v, positive integer N, countsymm=0, 1.\n Returns the Descartes quadruples in the ACP of v containing N. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
+	
+		install("apol_circles","GGL",,"./libapol.so");
+		addhelp(apol_circles, "Inputs v, maxcurv, maxdepth: bounded ACP v, positive integers maxcurv and maxdepth.\n Computes all circles with curvature <=maxcurv in v that occur in depth<=maxdepth. Returns the list, where each element is of the form [curvature, radius, x, y], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle.");
 		install("apol_orbit_layers","GLG",,"./libapol.so");
 		addhelp(apol_orbit_layers,"Inputs v, maxlayers, bound.\n Returns the curvatures in the first maxlayers layers up to bound bound, with respect to the circle v[1].");
 		install("apol_orbit_primes","GLG",,"./libapol.so");
 		addhelp(apol_orbit_primes,"Inputs v, maxlayers, bound.\n Returns the prime curvatures in the first maxlayers layers up to bound bound, with respect to the circle v[1]. Does not include curvatures 2 or 3, and removes repeats.");
-		install("apol_search","GGLD0,L,",,"./libapol.so");
-		addhelp(apol_search,"Inputs v, N, depth, {rqf=0}: ACP v, positive integer N, depth>0.\n Returns the ACP's with an N inside them up to depth depth. If rqf=1, returns the qf's. If rqf=2, returns [ACP's, qfs].");
 
-		addhelp(ap_search,"Installed methods:\n.");
+		addhelp(ap_search,"Installed methods:\napol_curvatures, apol_curvatures_depth, apol_find.");
 
 	\\STRIP PACKING METHODS
 		install("apol_dpair_circle","G",,"./libapol.so");
