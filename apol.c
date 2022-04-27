@@ -15,13 +15,13 @@
 //STATIC DECLARATIONS
 static GEN apol_make_n(GEN q, GEN n, int red);
 
-static GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int, GEN), GEN (*retquad)(GEN));
-static GEN apol_search_depth(GEN v, int depth, GEN bound, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int, GEN), GEN (*retquad)(GEN));
+static GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int), GEN (*retquad)(GEN));
+static GEN apol_search_depth(GEN v, int depth, GEN bound, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int), GEN (*retquad)(GEN));
 static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, GEN *nul, int state);
 static GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right);
-static GEN apol_circles_nextquad(GEN vdat, int ind, GEN reps);
+static GEN apol_circles_nextquad(GEN vdat, int ind);
 static GEN apol_circles_retquad(GEN vdat);
-static GEN apol_generic_nextquad(GEN vdat, int ind, GEN reps);
+static GEN apol_generic_nextquad(GEN vdat, int ind);
 static GEN apol_generic_retquad(GEN vdat);
 static GEN apol_curvatures_getdata(GEN vdat, int ind, GEN reps, GEN *nul, int state);
 static GEN apol_find_getdata(GEN vdat, int ind, GEN reps, GEN *N, int state);
@@ -248,10 +248,6 @@ GEN apol_makeall(GEN n, int red, long prec){
 //SEARCHING FOR CURVATURES
 
 
-//Write one method for up to a bound, one method by depth, and one by layers?
-//Allow input of a pointer to a function, as well as keeping track of some vector?
-
-
 /*
 The outline of the searching methods is:
 	We use depth first search on the Apollonian graph.
@@ -262,7 +258,7 @@ The outline of the searching methods is:
 		Retrieve the Descartes quadruple from the current element of W
 	These functions are (respectively):
 		static GEN getdata(GEN vdat, int ind, GEN reps, GEN *info, int state)
-		static GEN nextquad(GEN vdat, int ind, GEN reps)
+		static GEN nextquad(GEN vdat, int ind)
 		static GEN retquad(GEN vdat)
 		
 	getdata:
@@ -283,14 +279,14 @@ The outline of the searching methods is:
 
 
 //Starting at the integral Descartes quadruple v, we search through the circle packing, finding all circles with curvature <=bound. For each such circle we compute some data (from getdata), and return the final set. If countsymm=0, we do not double count when there is symmetry, otherwise we do. For the strip packing, we force countsymm=0, since otherwise it would be infinite. It can be shown that all symmetries are realized for the reduced form (i.e. [a, b, c, d] -> [a, b, c, d] or [a, b, c, c], if this happens in a packing, it happens for the reduced form, so we can just check it there).
-static GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int, GEN), GEN (*retquad)(GEN)){
+static GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int), GEN (*retquad)(GEN)){
   pari_sp top=avma, mid;
   v=apol_red(v, 0);//Start by reducing v, since we want curvatures up to a given bound.
   ZV_sort_inplace(v);//May as well make the minimal curvature first.
   int ind=1;//We reuse ind to track which depth we are going towards.
   int depth=10;//Initially we go up to depth 10, but this may change if we need to go deeper.
   GEN W=zerovec(depth);//Tracks the sequence of Descartes quadruples; W[ind] is at ind-1 depth
-  GEN vdat=nextquad(v, 0, NULL);//The first one. Stores the quadruple + data
+  GEN vdat=nextquad(v, 0);//The first one. Stores the quadruple + data
   gel(W, 1)=vdat;
   GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of indices of the replacements
   int forward=1;//Tracks if we are going forward or not.
@@ -348,7 +344,7 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*ge
       }
       if(goback){forward=0;continue;}//We've already done this element in a previous move.
     }
-    GEN newvdat=nextquad(gel(W, ind), I[ind], reps);//The data for the move.
+    GEN newvdat=nextquad(gel(W, ind), I[ind]);//The data for the move.
 	GEN newcurv=gel(retquad(newvdat), I[ind]);
     if(cmpii(newcurv, bound)>0){forward=0;continue;}//Must go back, elt too big
     if(ind==1 && !countsymm){//The replacement being the same can ONLY happen for the reduced form.
@@ -372,11 +368,11 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*ge
 }
 
 //Starting at the integral Descartes quadruple v, we search through the circle packing, finding all circles of depth at most depth (maximum number of circle replacements), optionally also keeping those with curvature <=curvature.
-static GEN apol_search_depth(GEN v, int depth, GEN bound, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int, GEN), GEN (*retquad)(GEN)){
+static GEN apol_search_depth(GEN v, int depth, GEN bound, GEN info, GEN (*getdata)(GEN, int, GEN, GEN*, int), GEN (*nextquad)(GEN, int), GEN (*retquad)(GEN)){
   pari_sp top=avma, mid;
   int ind=1;//We reuse ind to track which depth we are going towards.
   GEN W=zerovec(depth);//Tracks the sequence of Descartes quadruples; W[ind] is at ind-1 depth
-  GEN vdat=nextquad(v, 0, NULL);//The first one. Stores the quadruple + data
+  GEN vdat=nextquad(v, 0);//The first one. Stores the quadruple + data
   gel(W, 1)=vdat;
   GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of replacements
   int forward=1, usebound=1-gequal0(bound);;//Tracks if we are going forward or not, and whether or not to use the bound.
@@ -410,7 +406,7 @@ static GEN apol_search_depth(GEN v, int depth, GEN bound, GEN info, GEN (*getdat
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs.
 	v=retquad(gel(W, ind));//Current Descartes quadruple
-    GEN newvdat=nextquad(gel(W, ind), I[ind], reps);//Make the move
+    GEN newvdat=nextquad(gel(W, ind), I[ind]);//Make the move
     GEN newcurv=gel(retquad(newvdat), I[ind]);//The new element
     if(usebound && cmpii(newcurv, bound)>0){forward=0;continue;}//Must go back, new curvature too big
     GEN dat=getdata(newvdat, I[ind], reps, &info, 1);//Retrieve the data
@@ -502,7 +498,7 @@ static GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right){
 }
 
 //vdat=[v, [indices in reps of previous circles]], unless ind=0, when vdat=v
-static GEN apol_circles_nextquad(GEN vdat, int ind, GEN reps){
+static GEN apol_circles_nextquad(GEN vdat, int ind){
   if(ind==0) return mkvec2(vdat, mkvecsmall4(1, 2, 3, 4));//The initial vdat.
   GEN v=gel(vdat, 1);//The actual quadruple
   GEN newv=apol_move_1(v, ind);//The new v
@@ -518,7 +514,7 @@ GEN apol_circles(GEN v, GEN maxcurv){
 }
 
 //vdat=v=Descartes quadruple. This returns the next one
-static GEN apol_generic_nextquad(GEN vdat, int ind, GEN reps){return apol_move_1(vdat, ind);}
+static GEN apol_generic_nextquad(GEN vdat, int ind){return apol_move_1(vdat, ind);}
 
 //vdat=v=Descartes quadruple. This returns it
 static GEN apol_generic_retquad(GEN vdat){return vdat;}
