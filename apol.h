@@ -250,6 +250,24 @@ long fareydepth(GEN r);
 GEN fareyup(GEN r);
 
 
+//geo.c
+
+//BASIC LINE, CIRCLE, AND POINT OPERATIONS
+GEN arc_init(GEN c, GEN p1, GEN p2, int dir, long prec);
+GEN circle_fromcp(GEN cent, GEN p, long prec);
+GEN circle_fromppp(GEN p1, GEN p2, GEN p3, GEN tol, long prec);
+GEN line_fromsp(GEN s, GEN p);
+GEN line_frompp(GEN p1, GEN p2, GEN tol, long prec);
+GEN mat_eval(GEN M, GEN x);
+GEN mobius_gp(GEN M, GEN c, long prec);
+
+//INTERSECTION OF LINES/CIRCLES
+GEN geom_int(GEN c1, GEN c2, long prec);
+
+//HELPER METHODS
+GEN deftol(long prec);
+INLINE GEN gc_0vec(pari_sp av){set_avma(av);return cgetg(1, t_VEC);}//Resets avma and returns the vector []
+
 //visual.c
 
 //DATA

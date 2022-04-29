@@ -1,5 +1,5 @@
 print("\n\nType '?apol' for help.\n\n");
-addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apollonian \n base \n bqf \n visual");
+addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apollonian \n base \n bqf \n geo\n visual");
 
 \\apol.c
 
@@ -216,6 +216,31 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(fareydepth,"Input r, a rational number in (0, 1) or a Farey pair.\n Returns the depth of r in the Farey tree.");
 		install("fareyup","G", ,"./libapol.so");
 		addhelp(fareyup,"Input r, a rational number in (0, 1) or a Farey pair.\n Returns either the Farey pair with r as its mediant, or the (unique) Farey pair with one of the numbers as it's endpoint and the other as its mediant.");
+
+\\geo.c
+	\\BASIC LINE, CIRCLE, AND POINT OPERATIONS
+		install("circle_fromcp","GGp",,"./libapol.so");
+		addhelp(circle_fromcp,"Inputs c, p: centre c, and point p.\n Returns the circle with centre c and passing through point p.");
+		install("circle_fromppp","GGGp",,"./libapol.so");
+		addhelp(circle_fromppp,"Inputs p1, p2, p3: distinct complex points (oo is allowed).\n Returns the circle that passes through p1, p2, p3. If they are collinear (including if one is oo), this will return the line going through them instead.");
+		install("line_fromsp","GG",,"./libapol.so");
+		addhelp(line_fromsp,"Inputs s, p: slope and point p.\n Returns the line through p with slope s.");
+		install("line_frompp","GG",,"./libapol.so");
+		addhelp(line_frompp,"Inputs p1, p2: distinct complex points.\n Returns the line formed by p1 and p2.");
+		install("mat_eval","GG","mat_eval","./libapol.so");
+		addhelp(mat_eval, "Inputs M, x; M a matrix, and x number.\n Returns Mx with M acting via Mobius transformation. x=+/-oo is allowed.");
+		install("mobius_gp","GGp","mobius","./libapol.so");
+		addhelp(mobius,"Inputs M, c: a 2x2 matrix M, and a circle/line/arc/segment c.\n This returns M(c), where M acts as a Mobius map.");
+
+	\\INTERSECTION OF LINES/CIRCLES
+		install("geom_int","GGp",,"./libapol.so");
+		addhelp(geom_int,"Inputs s1, s2: circles/arcs/lines/segments.\n Returns the intersection points of s1 and s2.");
+		
+	\\GENERAL HELP
+		addhelp(geo, "These methods deal with geometry. There are 5 types of objects:\n     Points: stored as a complex number or oo.\n     Circles: [centre, radius, curvature]. The curvature may be set to negative to denote the exterior.\n     Lines: [slope, intercept]. If slope<oo, we give the y-intercept, else we give the x-intercept.\n     Arcs: [centre, radius, curvature, start pt, end pt, start angle, end angle, dir]. We take the arc counterclockwise between startpt and endpt. If dir=-1 we orient it in the opposite direction.\n     Segments: [slope, intercept, start pt, end pt, ooendptdir, dir]. Same as lines, where we also have a start and end point. dir=1 means we go on the line in the upper half plane, dir=-1 means through oo. If one endpoint is oo, ooendptdir=1 means the segment travels vertically upward or right, and -1 means vertically down or left.\n\nInstalled methods: circle_fromcp, circle_fromppp, line_fromsp, line_frompp, mat_eval, mobius.");
+
+		install("arc_init","GGGD0,L,p",,"./libapol.so");
+
 
 \\visual.c
 	\\DATA

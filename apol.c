@@ -250,31 +250,31 @@ GEN apol_makeall(GEN n, int red, long prec){
 
 /*
 The outline of the searching methods is:
-	We use depth first search on the Apollonian graph.
-	The current partial path is stored in the variable W. Each element of W is normally a Descartes quadruple, but there may be extra information.
-	We have functions to:
-		Retrieve the data we want from a new element (the curvature, entire quadruple, etc.), or returning NULL if we don't want to count it (e.g. only counting quadruples with certain properties)
-		Move 1 layer deeper in the tree, and return the new element to be stored in W (again, normally a Descartes quadruple
-		Retrieve the Descartes quadruple from the current element of W
-	These functions are (respectively):
-		static GEN getdata(GEN vdat, int ind, GEN reps, GEN *info, int state)
-		static GEN nextquad(GEN vdat, int ind)
-		static GEN retquad(GEN vdat)
-		
-	getdata:
-		vdat is the newest node, where ind is the index of the circle we last swapped (stored in the format of v)
-		reps passes in the current set of data found. This is used if W stores indices of elements in reps, and is also used at the end to clean up the data (we may want to sort the final answer, or do something else, etc.)
-		info tracks extra information you may want, and may be modified by getdata. It is not touched in apol_search_(type). If not needed, pass it as gen_0.
-		state tracks what we are doing with this method.
-			state=1 means we are adding a new piece of information potentially. Your method should compute the data, and return it if you want it added, and return NULL if we don't want to count it.
-			state=2 is for the initial 4 circles, and you can do something special there if you wish. We always run the method on these first 4 circles in order atthe start.
-			state=0 happens at the end, and is used as a wrap-up. You should return a modified version of reps that is gerepileupto compatible, e.g. sort it, just copy it, etc.
-	
-	nextquad:
-		essentially does apol_move_1(vdat, ind), but formats it correctly in case vdat is not just the Descartes quadruple. Pass in ind=0 for the initial setup.
+    We use depth first search on the Apollonian graph.
+    The current partial path is stored in the variable W. Each element of W is normally a Descartes quadruple, but there may be extra information.
+    We have functions to:
+        Retrieve the data we want from a new element (the curvature, entire quadruple, etc.), or returning NULL if we don't want to count it (e.g. only counting quadruples with certain properties)
+        Move 1 layer deeper in the tree, and return the new element to be stored in W (again, normally a Descartes quadruple
+        Retrieve the Descartes quadruple from the current element of W
+    These functions are (respectively):
+        static GEN getdata(GEN vdat, int ind, GEN reps, GEN *info, int state)
+        static GEN nextquad(GEN vdat, int ind)
+        static GEN retquad(GEN vdat)
+        
+    getdata:
+        vdat is the newest node, where ind is the index of the circle we last swapped (stored in the format of v)
+        reps passes in the current set of data found. This is used if W stores indices of elements in reps, and is also used at the end to clean up the data (we may want to sort the final answer, or do something else, etc.)
+        info tracks extra information you may want, and may be modified by getdata. It is not touched in apol_search_(type). If not needed, pass it as gen_0.
+        state tracks what we are doing with this method.
+            state=1 means we are adding a new piece of information potentially. Your method should compute the data, and return it if you want it added, and return NULL if we don't want to count it.
+            state=2 is for the initial 4 circles, and you can do something special there if you wish. We always run the method on these first 4 circles in order atthe start.
+            state=0 happens at the end, and is used as a wrap-up. You should return a modified version of reps that is gerepileupto compatible, e.g. sort it, just copy it, etc.
+    
+    nextquad:
+        essentially does apol_move_1(vdat, ind), but formats it correctly in case vdat is not just the Descartes quadruple. Pass in ind=0 for the initial setup.
   
-	retquad:
-		Returns the Descartes quadruple from vdat. Normally this is just {return vdat;}, but if we keep track of more it is not.
+    retquad:
+        Returns the Descartes quadruple from vdat. Normally this is just {return vdat;}, but if we keep track of more it is not.
 */
 
 
@@ -331,12 +331,12 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*ge
       vectrunc_append_batch(newreps, reps);//Append the old list
       reps=newreps;
     }
-	//Now lets try to move along by updating I.
+    //Now lets try to move along by updating I.
     I[ind]=forward? 1:I[ind]+1;//The new index
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat consecutively
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs.
-	v=retquad(gel(W, ind));//Current Descartes quadruple
+    v=retquad(gel(W, ind));//Current Descartes quadruple
     if(ind==1 && !countsymm){//Make sure we haven't seen this element before. If this happens at some point, then it ALSO happens at the reduced form!
       int goback=0;
       for(int j=1;j<I[ind];j++){
@@ -345,7 +345,7 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, GEN info, GEN (*ge
       if(goback){forward=0;continue;}//We've already done this element in a previous move.
     }
     GEN newvdat=nextquad(gel(W, ind), I[ind]);//The data for the move.
-	GEN newcurv=gel(retquad(newvdat), I[ind]);
+    GEN newcurv=gel(retquad(newvdat), I[ind]);
     if(cmpii(newcurv, bound)>0){forward=0;continue;}//Must go back, elt too big
     if(ind==1 && !countsymm){//The replacement being the same can ONLY happen for the reduced form.
       if(equalii(gel(v, I[ind]), newcurv)){forward=0;continue;}//Must go back, same thing (e.g. the strip packing)
@@ -405,7 +405,7 @@ static GEN apol_search_depth(GEN v, int depth, GEN bound, GEN info, GEN (*getdat
     if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs.
-	v=retquad(gel(W, ind));//Current Descartes quadruple
+    v=retquad(gel(W, ind));//Current Descartes quadruple
     GEN newvdat=nextquad(gel(W, ind), I[ind]);//Make the move
     GEN newcurv=gel(retquad(newvdat), I[ind]);//The new element
     if(usebound && cmpii(newcurv, bound)>0){forward=0;continue;}//Must go back, new curvature too big
@@ -425,28 +425,28 @@ static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, GEN *nul, int state
   if(state==0) return gcopy(reps);
   GEN v=gel(vdat, 1);//The new quadruple
   if(state==2){//Initial 4 circles
-	switch(ind){
-	  case 1:;
-	    GEN c1=gel(v, 1);//First curvature
-		return mkvec3(gen_0, Qdivii(gen_m1, c1), c1);//Outer circle. First circle has negative curvature necessarily, hence why r1=-1/c1
-	  case 2:;
-	    GEN c2=gel(v, 2);
-		GEN r2=Qdivii(gen_1, c2);
-		return mkvec3(mkcomplex(gen_0, gsub(gmael(reps, 1, 2), r2)), r2, c2);//first inner circle, placed vertically at the top. Note gmael(reps, 1, 2)=r1<0.
-	  case 3:
-	    return apol_thirdtangent(gel(reps, 1), gel(reps, 2), gel(v, 3), gel(v, 4), 0);//Third circle goes left.
-	  case 4:
-	    return apol_thirdtangent(gel(reps, 2), gel(reps, 3), gel(v, 4), gel(v, 1), 0);//Fourth circle is left of circ2 ->circ3.
-	}
+    switch(ind){
+      case 1:;
+        GEN c1=gel(v, 1);//First curvature
+        return mkvec3(gen_0, Qdivii(gen_m1, c1), c1);//Outer circle. First circle has negative curvature necessarily, hence why r1=-1/c1
+      case 2:;
+        GEN c2=gel(v, 2);
+        GEN r2=Qdivii(gen_1, c2);
+        return mkvec3(mkcomplex(gen_0, gsub(gmael(reps, 1, 2), r2)), r2, c2);//first inner circle, placed vertically at the top. Note gmael(reps, 1, 2)=r1<0.
+      case 3:
+        return apol_thirdtangent(gel(reps, 1), gel(reps, 2), gel(v, 3), gel(v, 4), 0);//Third circle goes left.
+      case 4:
+        return apol_thirdtangent(gel(reps, 2), gel(reps, 3), gel(v, 4), gel(v, 1), 0);//Fourth circle is left of circ2 ->circ3.
+    }
   }
   //Now we are at a normal place, i.e state=1.
   GEN prevind=gel(vdat, 2);
   int is[3]={0, 0, 0};
   int is_ind=0;
   for(int i=1;i<=4;i++){
-	if(ind==i) continue;
-	is[is_ind]=i;
-	is_ind++;
+    if(ind==i) continue;
+    is[is_ind]=i;
+    is_ind++;
   }//is are the three non-ind indices in {1, 2, 3, 4}.
   GEN oldcirc1=gel(reps, prevind[is[0]]);//One of the old circles
   GEN oldcirc2=gel(reps, prevind[is[1]]);//Another of the old circles
@@ -458,7 +458,7 @@ static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, GEN *nul, int state
   else{//This block must also be updated if there is not oo precision.
     GEN oldcirc3=gel(reps, prevind[is[2]]);//The unused old circle. Our newcirc must be tangent to it.
     GEN rsums=gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));//(r1+r2)^2
-	GEN dcentres=gnorm(gsub(gel(oldcirc3, 1), gel(newcirc, 1)));//dist(centres)^2
+    GEN dcentres=gnorm(gsub(gel(oldcirc3, 1), gel(newcirc, 1)));//dist(centres)^2
     if(!gequal(rsums, dcentres)) newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 0);//Must be the other side.
   }
   prevind[ind]=lg(reps);//Updating the location of the circle.
