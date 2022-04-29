@@ -47,7 +47,7 @@ GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound);
 GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound);
 
 //STRIP PACKING METHODS
-GEN apol_dpair_circle(GEN L);
+GEN apol_depthelt_circle(GEN L);
 GEN apol_strip_qf(GEN L, int red);
 
 //VISUALIZATION

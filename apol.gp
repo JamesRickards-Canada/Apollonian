@@ -36,7 +36,7 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 
 	\\SEARCHING FOR CURVATURES
 		install("apol_circles","GG",,"./libapol.so");
-		addhelp(apol_circles, "Inputs v, maxcurv: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv in v. Returns the list, where each element is of the form [curvature, radius, x, y], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at (0,0), the next largest circle is tangent at the top, and the third circle is on the left of them.");
+		addhelp(apol_circles, "Inputs v, maxcurv: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv in v. Returns the list, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them.");
 		install("apol_curvatures","GGD0,L,",,"./libapol.so");
 		addhelp(apol_curvatures,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
 		install("apol_curvatures_depth","GLD0,G,",,"./libapol.so");
@@ -52,18 +52,18 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(ap_search,"Installed methods:\napol_circles, apol_curvatures, apol_curvatures_depth, apol_find.");
 
 	\\STRIP PACKING METHODS
-		install("apol_dpair_circle","G",,"./libapol.so");
-		addhelp(apol_dpair_circle,"Input L, an integer between 1 and 4, or a vector/vecsmall of integers between 1 and 4.\n Returns [curvature, r, a, b], where the depth pairing corresponding to L is given by the circle (x-a)^2+(y-b)^2=r^2. If L is an integer, this corresponds to (Id, L). If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]). If a=r=oo, this corresponds to the line y=b.");
+		install("apol_depthelt_circle","G",,"./libapol.so");
+		addhelp(apol_depthelt_circle,"Input L, an integer between 1 and 4, or a vector/vecsmall of integers between 1 and 4.\n Returns the circle/line corresponding to the depth element L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n].");
 		install("apol_strip_qf","GD0,L,",,"./libapol.so");
 		addhelp(apol_strip_qf,"Inputs L, {red=0}: L an integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, red=0 or 1.\n Returns the quadratic form corresponding to this circle in the strip packing, i.e. generating the curvatures of PSL(2, Z) times this circle.");
 
-		addhelp(ap_strip,"Installed methods:\n.");
+		addhelp(ap_strip,"Installed methods:\napol_depthelt_circle, apol_strip_qf.");
 
 	\\VISUALIZATION
 		install("printcircles_desmos","vG",,"./libapol.so");
 		addhelp(printcircles_desmos,"Input c, a list of circles.\n Prints to the screen the list of equations of the circles, suitable for copying and pasting into Desmos.");
 		install("printcircles_tex","GrD1,L,D0,L,D1,L,D1,L,p",,"./libapol.so");
-		addhelp(printcircles_tex,"Input c, imagename, {addnumbers=1}, {modcolours=1}, {compile=1}, {open=1}: list of circles c, string imagename, addnumbers/compile/open =0, 1, modcolours>=0.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If modcolours>=1, we colour the circles based on their remainders mod modcolours. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
+		addhelp(printcircles_tex,"Input c, imagename, {addnumbers=1}, {modcolours=0}, {compile=1}, {open=1}: list of circles c, string imagename, addnumbers/compile/open =0, 1, modcolours>=0.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If modcolours>=1, we colour the circles based on their remainders mod modcolours. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
 
 		addhelp(ap_visual,"Installed methods:\n.");
 
