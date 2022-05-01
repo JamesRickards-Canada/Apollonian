@@ -56,28 +56,28 @@ GEN disclist(GEN D1, GEN D2, int fund, GEN cop){
     if(gequal0(cop)){
       for(long i=0;i<=Dlen;i++){
         if(isdisc(D)) v=veclist_append(v, &vind, &vlen, D);
-		D=addis(D, 1);
-	  }
+        D=addis(D, 1);
+      }
     }
     else{
       for(long i=0;i<=Dlen;i++){
         if(equali1(gcdii(cop, D)) && isdisc(D)) v=veclist_append(v, &vind, &vlen, D);
-		D=addis(D, 1);
+        D=addis(D, 1);
       }
     }
   }
   else{
     if(gequal0(cop)){
       for(long i=0;i<=Dlen;i++){//coredisc(0)=0, coredisc(1)=1, but we don't want to count them.
-	    if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
-		D=addis(D, 1);
+        if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
+        D=addis(D, 1);
       }
     }
     else{
       for(long i=0;i<=Dlen;i++){
-		if(equali1(gcdii(cop, D))){
-		  if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
-		}
+        if(equali1(gcdii(cop, D))){
+          if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
+        }
         D=addis(D, 1);
       }
     }
@@ -88,7 +88,7 @@ GEN disclist(GEN D1, GEN D2, int fund, GEN cop){
 //Generate the list of primes dividing D for which D/p^2 is a discriminant, can pass in facs=factorization of D
 GEN discprimeindex(GEN D, GEN facs){
   pari_sp top=avma;
-  if(!isdisc(D)) pari_err_TYPE("discprimeindex, not a discriminant", D);
+  if(!isdisc(D)) pari_err_TYPE("Not a discriminant", D);
   if(gequal0(facs)) facs=Z_factor(D);
   long numprimes=itos(gel(matsize(facs), 1));
   GEN curp=gen_0, curexp=gen_0;
@@ -113,13 +113,13 @@ GEN discsuperorders(GEN D){
   long ld=lg(divs), j=ld, dsig=signe(D);
   GEN list=vectrunc_init(ld);
   for(long i=1;i<ld;i++){
-	j--;//i+j=ld
-	if(Z_issquare(gel(divs, j))){
-	  GEN D;
-	  if(dsig==1) D=gel(divs, i);
-	  else D=negi(gel(divs, i));//Making the appropriate sign change.
-	  if(isdisc(D)) vectrunc_append(list, D);
-	}
+    j--;//i+j=ld
+    if(Z_issquare(gel(divs, j))){
+      GEN D;
+      if(dsig==1) D=gel(divs, i);
+      else D=negi(gel(divs, i));//Making the appropriate sign change.
+      if(isdisc(D)) vectrunc_append(list, D);
+    }
   }
   return gerepilecopy(top, list);
 }
@@ -131,7 +131,7 @@ int isdisc(GEN D){
   return 0;
 }
 
-//Returns minimal positive solution [T,U] to T^2-DU^2=4
+//Returns minimal positive solution [T, U] to T^2-DU^2=4
 GEN pell(GEN D){
   pari_sp top=avma;
   if(!isdisc(D)) pari_err_TYPE("Please input a positive discriminant", D);
@@ -139,19 +139,11 @@ GEN pell(GEN D){
   GEN u=quadunit0(D, -1);
   if(gequalm1(quadnorm(u))) u=gsqr(u);//We need the smallest unit with norm 1, not -1
   if(smodis(D, 2)==1){//D is odd
-    GEN a=shifti(real_i(u), 1);//a,b are guarenteed integers since the input is a t_QUAD, and a/2+b*omega=u, omega=(D%2+sqrt(D))/2
-    GEN rvec=cgetg(3, t_VEC);
-    gel(rvec, 2)=gimag(u);//Must copy
-    gel(rvec, 1)=addii(a, gel(rvec, 2));
-    return gerepileupto(top, rvec);
+    GEN a=shifti(real_i(u), 1);//a, b are guarenteed integers since the input is a t_QUAD, and a/2+b*omega=u, omega=(D%2+sqrt(D))/2
+    GEN U=imag_i(u);
+    return gerepilecopy(top, mkvec2(addii(a, U), U));
   }
-  else{//D is even
-    GEN a=real_i(u);
-    GEN rvec=cgetg(3, t_VEC);
-    gel(rvec, 1)=shifti(a, 1);
-    gel(rvec, 2)=gimag(u);//Must copy
-    return gerepileupto(top, rvec);
-  }
+  else return gerepilecopy(top, mkvec2(shifti(real_i(u), 1), imag_i(u)));//D is even
 }
 
 //Returns log(epsilon(D)), where epsilon(D) is the fundamental unit of positive norm.
@@ -191,10 +183,10 @@ int bqf_compare(void *data, GEN q1, GEN q2){
   for(long j=1;j<=3;++j){
     i=cmpii(gel(q1,j),gel(q2,j));
     switch(i){
-	  case -1:
-	    return -1;
-	  case 1:
-	    return 1;
+      case -1:
+        return -1;
+      case 1:
+        return 1;
     }
   }
   return 0;
@@ -264,34 +256,34 @@ GEN bqf_random(GEN maxc, int type, int primitive){
   GEN A, B, C, D;
   for(;;){
     A=randomi(maxc);
-	if(signe(randomi(gen_2))==0) togglesign_safe(&A);
-	B=randomi(maxc);
-	if(signe(randomi(gen_2))==0) togglesign_safe(&B);
-	C=randomi(maxc);
-	if(signe(randomi(gen_2))==0) togglesign_safe(&C);
-	gel(q,1)=A;
-	gel(q,2)=B;
-	gel(q,3)=C;
-	D=bqf_disc(q);
-	if(type==1){
-	  if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
-	  if(signe(D)==1 && isdisc(D)==1) return gerepilecopy(top,q);
-	}
-	else if(type==-1){
-	  if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
-	  if(signe(D)==-1){
-		if(signe(A)==-1) ZV_togglesign(q);//Making positive definite
-		return gerepilecopy(top,q);
-	  }
-	}
-	else{
-	  if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
-	  if(signe(D)==-1){
-		if(signe(A)==-1) ZV_togglesign(q);//Making positive definite
-		return gerepilecopy(top,q);
-	  }
-	  if(isdisc(D)==1) return gerepilecopy(top,q);
-	}
+    if(signe(randomi(gen_2))==0) togglesign_safe(&A);
+    B=randomi(maxc);
+    if(signe(randomi(gen_2))==0) togglesign_safe(&B);
+    C=randomi(maxc);
+    if(signe(randomi(gen_2))==0) togglesign_safe(&C);
+    gel(q,1)=A;
+    gel(q,2)=B;
+    gel(q,3)=C;
+    D=bqf_disc(q);
+    if(type==1){
+      if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
+      if(signe(D)==1 && isdisc(D)==1) return gerepilecopy(top,q);
+    }
+    else if(type==-1){
+      if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
+      if(signe(D)==-1){
+        if(signe(A)==-1) ZV_togglesign(q);//Making positive definite
+        return gerepilecopy(top,q);
+      }
+    }
+    else{
+      if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
+      if(signe(D)==-1){
+        if(signe(A)==-1) ZV_togglesign(q);//Making positive definite
+        return gerepilecopy(top,q);
+      }
+      if(isdisc(D)==1) return gerepilecopy(top,q);
+    }
   }
 }
 
@@ -312,16 +304,16 @@ GEN bqf_random_D(GEN maxc, GEN D){
   long r, lx=lg(Aposs);
   for(;;){
     r=itos(randomi(stoi(lx-1)))+1;
-	A=gel(Aposs,r);
-	C=gel(Aposs,lx-r);
-	if(equali1(ggcd(ggcd(A,C),g))) break;
+    A=gel(Aposs,r);
+    C=gel(Aposs,lx-r);
+    if(equali1(ggcd(ggcd(A,C),g))) break;
   }
   if(signe(D)==1 && signe(AC)==-1){
-	if(signe(randomi(gen_2))==0) A=negi(A);
-	else togglesign_safe(&C);
+    if(signe(randomi(gen_2))==0) A=negi(A);
+    else togglesign_safe(&C);
   }
   else if(signe(D)==1){
-	if(signe(randomi(gen_2))==0){A=negi(A);C=negi(C);}
+    if(signe(randomi(gen_2))==0){A=negi(A);C=negi(C);}
   }
   return gerepilecopy(top, mkvec3(A, B, C));
 }
@@ -472,10 +464,10 @@ GEN bqf_trans_coprime(GEN q, GEN n){
   q=ZV_copy(q);
   GEN r, x=stoi(3);
   while(!equali1(gcdii(gel(q,1),n))){
-	r=randomi(x);
-	if(signe(r)==0) q=bqf_transL(q, gen_1);
-	else if(equali1(r)) q=bqf_transR(q, gen_1);
-	else q=bqf_transS(q);
+    r=randomi(x);
+    if(signe(r)==0) q=bqf_transL(q, gen_1);
+    else if(equali1(r)) q=bqf_transR(q, gen_1);
+    else q=bqf_transS(q);
   }
   return gerepileupto(top,q);
 }
@@ -899,13 +891,13 @@ GEN ibqf_redorbit_tmat(GEN q, GEN rootD){
   GEN qseekL=qred, qseekR=qred;
   long nforms=1;
   for(;;){
-	qseekR=ibqf_rightnbr_update(qseekR,rootD);//No need to check as this will NEVER equal qseekL; the signs of the first coefficient will always be distinct here.
-	clist_putafter(&right,qseekR);
-	nforms++;
-	qseekL=ibqf_leftnbr_update(qseekL,rootD);
-	if(ZV_equal(gel(qseekL,1),gel(qseekR,1))) break;//Done!
-	clist_putbefore(&left,qseekL);
-	nforms++;
+    qseekR=ibqf_rightnbr_update(qseekR,rootD);//No need to check as this will NEVER equal qseekL; the signs of the first coefficient will always be distinct here.
+    clist_putafter(&right,qseekR);
+    nforms++;
+    qseekL=ibqf_leftnbr_update(qseekL,rootD);
+    if(ZV_equal(gel(qseekL,1),gel(qseekR,1))) break;//Done!
+    clist_putbefore(&left,qseekL);
+    nforms++;
   }
   return gerepileupto(top,clist_togvec(origin,nforms,1));
 }
@@ -936,14 +928,14 @@ GEN ibqf_redorbit_posonly_tmat(GEN q, GEN rootD){
   GEN qseekL=qred, qseekR=qred;
   long nforms=1;
   for(;;){
-	qseekR=ibqf_rightnbr_update(ibqf_rightnbr_update(qseekR,rootD),rootD);
-	if(ZV_equal(gel(qseekL,1),gel(qseekR,1))) break;//Done!
-	clist_putafter(&right,qseekR);
-	nforms++;
-	qseekL=ibqf_leftnbr_update(ibqf_leftnbr_update(qseekL,rootD),rootD);
-	if(ZV_equal(gel(qseekL,1),gel(qseekR,1))) break;//Done!
-	clist_putbefore(&left,qseekL);
-	nforms++;
+    qseekR=ibqf_rightnbr_update(ibqf_rightnbr_update(qseekR,rootD),rootD);
+    if(ZV_equal(gel(qseekL,1),gel(qseekR,1))) break;//Done!
+    clist_putafter(&right,qseekR);
+    nforms++;
+    qseekL=ibqf_leftnbr_update(ibqf_leftnbr_update(qseekL,rootD),rootD);
+    if(ZV_equal(gel(qseekL,1),gel(qseekR,1))) break;//Done!
+    clist_putbefore(&left,qseekL);
+    nforms++;
   }
   return gerepileupto(top,clist_togvec(origin,nforms,1));
 }
@@ -1171,14 +1163,14 @@ GEN ibqf_river_positions(GEN q, GEN rootD){
     trans=ibqf_rightnbr_tmat(qpos,rootD);
     qpos=gel(trans,1);
     change=itos(gcoeff(gel(trans,2),2,2));
-	if(curdir==1){
-	  for(long i=1;i<=change;i++){llist_putstart(&R,ind);ind++;}
-	  rlen=rlen+change;curdir=2;
-	}
-	else{
-	  for(long i=1;i<=change;i++){llist_putstart(&L,ind);ind++;}
-	  llen=llen+change;curdir=1;
-	}
+    if(curdir==1){
+      for(long i=1;i<=change;i++){llist_putstart(&R,ind);ind++;}
+      rlen=rlen+change;curdir=2;
+    }
+    else{
+      for(long i=1;i<=change;i++){llist_putstart(&L,ind);ind++;}
+      llen=llen+change;curdir=1;
+    }
     if(gc_needed(mid,1)) gerepileupto(mid,qpos);//Garbage collection.
   }
   while(!ZV_equal(qriv,qpos));//Generate the sequence
@@ -1210,7 +1202,7 @@ GEN ibqf_river_positions_forms(GEN q, GEN rootD){
   do{
     glist_putstart(&orbit,qseek);
     mid=avma;
-	nforms++;
+    nforms++;
     ApB=addii(gel(qseek,1),gel(qseek,2));
     if(cmpii(ApB,negi(gel(qseek,3)))==1){//A+B+C>0, go right 1
       avma=mid;
@@ -1410,8 +1402,8 @@ GEN bqf_isequiv(GEN q1, GEN q2, GEN rootD, int Dsign, int tmat){
 //The collector method for determining if q is equivalent to an element of S. Returns -1 if no, and the first index for which it is otherwise. Pass tmat=1 to also return the transition matrix as the second output. If D<0, rootD is not required and can be passed in as gen_0. Does NOT check that disc(w)=disc(q) for w in S, so if matrices in S may not obey this then you should really eliminate them first for optimal efficiency
 GEN bqf_isequiv_set(GEN q, GEN S, GEN rootD, int Dsign, int tmat){
   if(Dsign==-1){
-	if(tmat==1) return dbqf_isequiv_set_tmat(q,S);
-	return stoi(dbqf_isequiv_set(q,S));
+    if(tmat==1) return dbqf_isequiv_set_tmat(q,S);
+    return stoi(dbqf_isequiv_set(q,S));
   }//Now D>0
   if(tmat==1) return ibqf_isequiv_set_byS_tmat(q,S,rootD);
   return stoi(ibqf_isequiv_set_byS(q,S,rootD));
@@ -1423,27 +1415,27 @@ GEN bqf_isequiv_tc(GEN q1, GEN q2, int tmat, long prec){
   GEN D=bqf_checkdisc(q1);
   if(typ(q2)!=t_VEC)  pari_err_TYPE("please supply a BQF or a set of BQFs",q2);
   if(typ(gel(q2,1))==t_VEC){//q2 is a set of BQFs
-	GEN D2;
-	long ncount=1;//Let's eliminate the non-D-discriminants
-	int keep[lg(q2)-1];//To keep or not; initially all zeroes
+    GEN D2;
+    long ncount=1;//Let's eliminate the non-D-discriminants
+    int keep[lg(q2)-1];//To keep or not; initially all zeroes
     for(long i=1;i<lg(q2);++i){
-	  D2=bqf_checkdisc(gel(q2,i));
-	  if(equalii(D,D2)){ncount++;keep[i]=1;}
-	  else{keep[i]=0;}
-	}
-	if(ncount==1){avma=top;return gen_m1;}
-	GEN S=cgetg(ncount,t_VEC);
-	long pos=1;
-	long translate[ncount];//Translate back to the originial indices
-	for(long i=1;i<lg(q2);++i){//Putting the correct discriminant entries back; note S is NOT gerepile safe
-	  if(keep[i]==1){translate[pos]=i;gel(S,pos)=gel(q2,i);pos++;}
-	}
-	GEN result=bqf_isequiv_set(q1,S,gsqrt(D,prec),signe(D),tmat);
-	if(gequal(result,gen_m1)){avma=top; return gen_m1;}//Nope
-	if(tmat==0) return gerepileupto(top,stoi(translate[itos(result)]));
-	GEN rvec=cgetg(3,t_VEC);
-	gel(rvec,1)=stoi(translate[itos(gel(result,1))]);
-	gel(rvec,2)=ZM_copy(gel(result,2));
+      D2=bqf_checkdisc(gel(q2,i));
+      if(equalii(D,D2)){ncount++;keep[i]=1;}
+      else{keep[i]=0;}
+    }
+    if(ncount==1){avma=top;return gen_m1;}
+    GEN S=cgetg(ncount,t_VEC);
+    long pos=1;
+    long translate[ncount];//Translate back to the originial indices
+    for(long i=1;i<lg(q2);++i){//Putting the correct discriminant entries back; note S is NOT gerepile safe
+      if(keep[i]==1){translate[pos]=i;gel(S,pos)=gel(q2,i);pos++;}
+    }
+    GEN result=bqf_isequiv_set(q1,S,gsqrt(D,prec),signe(D),tmat);
+    if(gequal(result,gen_m1)){avma=top; return gen_m1;}//Nope
+    if(tmat==0) return gerepileupto(top,stoi(translate[itos(result)]));
+    GEN rvec=cgetg(3,t_VEC);
+    gel(rvec,1)=stoi(translate[itos(gel(result,1))]);
+    gel(rvec,2)=ZM_copy(gel(result,2));
     return gerepileupto(top,rvec);
   }
   GEN D2=bqf_checkdisc(q2);
@@ -1480,9 +1472,9 @@ long dbqf_isequiv_set(GEN q, GEN S){
   GEN qred=dbqf_red(q);
   GEN sred;
   for(long i=1;i<lg(S);++i){
-	sred=dbqf_red(gel(S,i));
-	if(ZV_equal(qred,sred)){avma=top;return i;}//Done
-	cgiv(sred);//Don't need this memory slot
+    sred=dbqf_red(gel(S,i));
+    if(ZV_equal(qred,sred)){avma=top;return i;}//Done
+    cgiv(sred);//Don't need this memory slot
   }
   avma=top;
   return -1;
@@ -1494,15 +1486,15 @@ GEN dbqf_isequiv_set_tmat(GEN q, GEN S){
   GEN qred=dbqf_red_tmat(q);
   GEN sred;
   for(long i=1;i<lg(S);++i){
-	sred=dbqf_red_tmat(gel(S,i));
-	if(ZV_equal(gel(qred,1),gel(sred,1))){
-	  GEN smatinv=ZM_inv(gel(sred,2),NULL);
-	  GEN rvec=cgetg(3,t_VEC);
-	  gel(rvec,1)=stoi(i);
-	  gel(rvec,2)=ZM_mul(gel(qred,2),smatinv);
-	  return gerepileupto(top,rvec);
-	}//Done
-	cgiv(sred);//Don't need this memory slot
+    sred=dbqf_red_tmat(gel(S,i));
+    if(ZV_equal(gel(qred,1),gel(sred,1))){
+      GEN smatinv=ZM_inv(gel(sred,2),NULL);
+      GEN rvec=cgetg(3,t_VEC);
+      gel(rvec,1)=stoi(i);
+      gel(rvec,2)=ZM_mul(gel(qred,2),smatinv);
+      return gerepileupto(top,rvec);
+    }//Done
+    cgiv(sred);//Don't need this memory slot
   }
   avma=top;
   return gen_m1;
@@ -1522,7 +1514,7 @@ GEN ibqf_isequiv(GEN q1, GEN q2, GEN rootD){
   }
   for(;;){//seek varaiables get hit with ibqf_rightnbr until loop or hit q1red,q2red. Should have approximately the same average time usage as only doing this with q1, has lower variance, more memory needed, but (crucially) will produce matrices with smaller coefficients, which is why we use this approach.
     bot=avma;
-	q1seek=ibqf_rightnbr(q1seek,rootD);
+    q1seek=ibqf_rightnbr(q1seek,rootD);
     if(ZV_equal(q1seek,q1red)){//Loop completed, not equal :(
       avma=top;
       return gen_0;
@@ -1555,11 +1547,11 @@ GEN ibqf_isequiv_tmat(GEN q1, GEN q2, GEN rootD){
   for(;;){//go right with q1R and left with q1L until loop or hit q2red. Should have approximately the same average time usage as only going right and take more memory, but has lower variance, and (crucially) will produce matrices with smaller coefficients, which is why we use this approach.
     bot=avma;
     q1R=ibqf_rightnbr_update(ibqf_rightnbr_update(q1R,rootD),rootD);//Right twice
-	if(ZV_equal(gel(q1R,1),gel(q2red,1))) return gerepileupto(top,ZM_mul(gel(q1R,2),ZM_inv(gel(q2red,2),NULL)));//Done!
-	if(ZV_equal(gel(q1R,1),gel(q1L,1))){avma=top;return gen_0;}//Loop completed, not equal :(
-	q1L=ibqf_leftnbr_update(ibqf_leftnbr_update(q1L,rootD),rootD);//Left twice
-	if(ZV_equal(gel(q1L,1),gel(q2red,1))) return gerepileupto(top,ZM_mul(gel(q1L,2),ZM_inv(gel(q2red,2),NULL)));//Done!
-	if(ZV_equal(gel(q1R,1),gel(q1L,1))){avma=top;return gen_0;}//Loop completed, not equal :(
+    if(ZV_equal(gel(q1R,1),gel(q2red,1))) return gerepileupto(top,ZM_mul(gel(q1R,2),ZM_inv(gel(q2red,2),NULL)));//Done!
+    if(ZV_equal(gel(q1R,1),gel(q1L,1))){avma=top;return gen_0;}//Loop completed, not equal :(
+    q1L=ibqf_leftnbr_update(ibqf_leftnbr_update(q1L,rootD),rootD);//Left twice
+    if(ZV_equal(gel(q1L,1),gel(q2red,1))) return gerepileupto(top,ZM_mul(gel(q1L,2),ZM_inv(gel(q2red,2),NULL)));//Done!
+    if(ZV_equal(gel(q1R,1),gel(q1L,1))){avma=top;return gen_0;}//Loop completed, not equal :(
     if(gc_needed(mid,1)) gerepileallsp(mid,bot,2,&q1R,&q1L);//Garbage collection if memory needed.
   }
 }
@@ -1580,10 +1572,10 @@ long ibqf_isequiv_set_byq_presorted(GEN qredsorted, GEN S, GEN rootD){
   GEN Sred;
   long ind;
   for(long i=1;i<lg(S);++i){
-	Sred=ibqf_red_pos(gel(S,i), rootD);
-	ind=gen_search(qredsorted,Sred,0,NULL,&bqf_compare);
-	if(ind>0){avma=top;return i;}
-	cgiv(Sred);
+    Sred=ibqf_red_pos(gel(S,i), rootD);
+    ind=gen_search(qredsorted,Sred,0,NULL,&bqf_compare);
+    if(ind>0){avma=top;return i;}
+    cgiv(Sred);
   }
   return -1;//No garbage!
 }
@@ -1602,16 +1594,16 @@ GEN ibqf_isequiv_set_byq_tmat_presorted(GEN qredsorted, GEN S, GEN rootD){
   GEN Sred;
   long ind;
   for(long i=1;i<lg(S);++i){
-	Sred=ibqf_red_pos_tmat(gel(S,i), rootD);
-	ind=gen_search(qredsorted,Sred,0,NULL,&bqf_compare_tmat);
-	if(ind>0){
-	  GEN Sredinv=ZM_inv(gel(Sred,2),NULL);
-	  GEN rvec=cgetg(3,t_VEC);
-	  gel(rvec,1)=stoi(i);
-	  gel(rvec,2)=ZM_mul(gel(gel(qredsorted,ind),2),Sredinv);
-	  return gerepileupto(top,rvec);
-	}
-	cgiv(Sred);
+    Sred=ibqf_red_pos_tmat(gel(S,i), rootD);
+    ind=gen_search(qredsorted,Sred,0,NULL,&bqf_compare_tmat);
+    if(ind>0){
+      GEN Sredinv=ZM_inv(gel(Sred,2),NULL);
+      GEN rvec=cgetg(3,t_VEC);
+      gel(rvec,1)=stoi(i);
+      gel(rvec,2)=ZM_mul(gel(gel(qredsorted,ind),2),Sredinv);
+      return gerepileupto(top,rvec);
+    }
+    cgiv(Sred);
   }
   return gen_m1;
 }
@@ -1636,9 +1628,9 @@ long ibqf_isequiv_set_byS_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD){
   GEN qseek=qred;
   long ind;
   do{
-	ind=gen_search(Sreds,qseek,0,NULL,&bqf_compare);
-	if(ind>0){avma=top; return perm[ind];}//Done!
-	qseek=ibqf_rightnbr(ibqf_rightnbr(qseek,rootD),rootD);
+    ind=gen_search(Sreds,qseek,0,NULL,&bqf_compare);
+    if(ind>0){avma=top; return perm[ind];}//Done!
+    qseek=ibqf_rightnbr(ibqf_rightnbr(qseek,rootD),rootD);
   }
   while(!ZV_equal(qred,qseek));
   avma=top;
@@ -1667,14 +1659,14 @@ GEN ibqf_isequiv_set_byS_tmat_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD){
   if(ind>0) isdone=1;
   else{
     for(;;){//At start of each loop, both q1L and q1R have been checked already
-	  q1R=ibqf_rightnbr_update(ibqf_rightnbr_update(q1R,rootD),rootD);//Update q1R
-	  if(ZV_equal(gel(q1L,1),gel(q1R,1))) break;//Done, no solution
-	  ind=gen_search(Sreds,q1R,0,NULL,&bqf_compare_tmat);
-	  if(ind>0){isdone=1;break;}//Finished with R
-	  q1L=ibqf_leftnbr_update(ibqf_leftnbr_update(q1L,rootD),rootD);//Update q1L
-	  if(ZV_equal(gel(q1L,1),gel(q1R,1))) break;//Done, no solution
-	  ind=gen_search(Sreds,q1L,0,NULL,&bqf_compare_tmat);
-	  if(ind>0){isdone=-1;break;}//Finished with L
+      q1R=ibqf_rightnbr_update(ibqf_rightnbr_update(q1R,rootD),rootD);//Update q1R
+      if(ZV_equal(gel(q1L,1),gel(q1R,1))) break;//Done, no solution
+      ind=gen_search(Sreds,q1R,0,NULL,&bqf_compare_tmat);
+      if(ind>0){isdone=1;break;}//Finished with R
+      q1L=ibqf_leftnbr_update(ibqf_leftnbr_update(q1L,rootD),rootD);//Update q1L
+      if(ZV_equal(gel(q1L,1),gel(q1R,1))) break;//Done, no solution
+      ind=gen_search(Sreds,q1L,0,NULL,&bqf_compare_tmat);
+      if(ind>0){isdone=-1;break;}//Finished with L
     }
   }
   if(isdone==0){avma=top;return gen_m1;}//No solution
@@ -1702,26 +1694,26 @@ GEN bqf_allforms(GEN D, int prim, int GL, long prec){
     long ld;
     forms=cgetg_copy(discs, &ld);
     for(long i=1;i<ld;i++){
-	  gel(forms, i)=gel(bqf_ncgp_lexic(gel(discs, i), prec), 3);//The forms.
-	  GEN scale=sqrti(diviiexact(D, gel(discs, i)));//What we must scale the forms by.
-	  if(!equali1(scale)){//If scale=1, no scaling!
-	    for(long j=1;j<lg(gel(forms, i));j++){
-		  for(int k=1;k<=3;k++) gmael3(forms, i, j, k)=mulii(gmael3(forms, i, j, k), scale);//Scale up!
-	    }
-	  }
+      gel(forms, i)=gel(bqf_ncgp_lexic(gel(discs, i), prec), 3);//The forms.
+      GEN scale=sqrti(diviiexact(D, gel(discs, i)));//What we must scale the forms by.
+      if(!equali1(scale)){//If scale=1, no scaling!
+        for(long j=1;j<lg(gel(forms, i));j++){
+          for(int k=1;k<=3;k++) gmael3(forms, i, j, k)=mulii(gmael3(forms, i, j, k), scale);//Scale up!
+        }
+      }
     }
     forms=shallowconcat1(forms);
   }
   GEN newforms=forms;
   if(GL){
-	if(signe(D)==1) pari_warn(warner, "GL not yet implemented for D>0");
-	else{
-	  long lf=lg(forms);
-	  newforms=vectrunc_init(lf);
-	  for(long i=1;i<lf;i++){
-		if(signe(gmael(forms, i, 2))!=-1) vectrunc_append(newforms, gel(forms, i));//Only keep B>=0.
-	  }
-	}
+    if(signe(D)==1) pari_warn(warner, "GL not yet implemented for D>0");
+    else{
+      long lf=lg(forms);
+      newforms=vectrunc_init(lf);
+      for(long i=1;i<lf;i++){
+        if(signe(gmael(forms, i, 2))!=-1) vectrunc_append(newforms, gel(forms, i));//Only keep B>=0.
+      }
+    }
   }
   return gerepilecopy(top, newforms);
 }
@@ -1828,8 +1820,8 @@ GEN bqf_lexicind_tobasis(GEN orders, long ind){
   long u=ind-1, n, v;//we start with ind-1
   for(long i=lord-1;i>0;i--){//Go backwards.
     n=orders[i];
-	u=sdivss_rem(u, n, &v);//u_{i+1}=u_i*n_i+v_i; u_{r+1}=i-1.
-	es[i]=v;
+    u=sdivss_rem(u, n, &v);//u_{i+1}=u_i*n_i+v_i; u_{r+1}=i-1.
+    es[i]=v;
   }
   return gerepilecopy(top, es);
 }
@@ -1840,7 +1832,7 @@ GEN bqf_ncgp(GEN D, long prec){
   GEN fd=coredisc(D);
   if(equalii(fd, D)){
     GEN field=Buchall(gsub(gsqr(pol_x(0)), D), 0, prec);//The field Q(sqrt(D))
-	GEN gpclgp=bnfnarrow(field);//The narrow class group of the maximal order
+    GEN gpclgp=bnfnarrow(field);//The narrow class group of the maximal order
     if(equali1(gel(gpclgp, 1))){//Class number 1, may as well do this separately
       GEN rvec=cgetg(4, t_VEC);
       gel(rvec, 1)=gen_1;
@@ -1851,12 +1843,12 @@ GEN bqf_ncgp(GEN D, long prec){
     }
     long j=lg(gel(gpclgp, 3));
     long ngens=j-1, lx;//Number of generators
-	GEN idtobqf=cgetg_copy(gel(gpclgp,3), &lx);
-	for(long i=1;i<=ngens;i++) gel(idtobqf, i)=ideal_tobqf(field, gmael(gpclgp, 3, i));//Making the generators into quadratic forms
+    GEN idtobqf=cgetg_copy(gel(gpclgp,3), &lx);
+    for(long i=1;i<=ngens;i++) gel(idtobqf, i)=ideal_tobqf(field, gmael(gpclgp, 3, i));//Making the generators into quadratic forms
     GEN rootD=gsqrt(D, prec);
     GEN rvec=cgetg(4, t_VEC);
     gel(rvec, 1)=icopy(gel(gpclgp, 1));//clgp size
-	gel(rvec, 2)=cgetg(lg(gel(gpclgp, 3)), t_VECSMALL);//Shape of group
+    gel(rvec, 2)=cgetg(lg(gel(gpclgp, 3)), t_VECSMALL);//Shape of group
     gel(rvec, 3)=cgetg_copy(gel(gpclgp, 3), &lx);//Generators
     for(long i=1;i<=ngens;i++){//Inputting backwards, as bnfnarrow does the reverse order to what we want.
       j--;
@@ -1880,9 +1872,9 @@ GEN bqf_ncgp(GEN D, long prec){
   }
   newgens=cgetg_copy(gel(FULLgp, 3), &lx);
   for(long i=1;i<lg(gel(FULLgp, 3));i++){
-	temp=gtovec(gmael(FULLgp, 3, i));
-	setlg(temp, 4);//Truncate
-	gel(newgens, i)=bqf_red(temp, rootD, signe(D), 0);
+    temp=gtovec(gmael(FULLgp, 3, i));
+    setlg(temp, 4);//Truncate
+    gel(newgens, i)=bqf_red(temp, rootD, signe(D), 0);
   }
   GEN rvec=cgetg(4, t_VEC);
   gel(rvec, 1)=icopy(gel(FULLgp, 1));//Size
@@ -1890,9 +1882,9 @@ GEN bqf_ncgp(GEN D, long prec){
   gel(rvec, 3)=cgetg_copy(gel(FULLgp, 3), &lx);
   long j=lx;
   for(long i=1;i<lx;i++){
-	j--;
-	gel(rvec, 2)[j]=itos(gmael(FULLgp, 2, i));
-	gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
+    j--;
+    gel(rvec, 2)[j]=itos(gmael(FULLgp, 2, i));
+    gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
   }
   return gerepileupto(top,rvec);
   //GEN modulus;
@@ -1923,80 +1915,80 @@ static GEN bqf_ncgp_nonfundnarrow(GEN cgp, GEN D, GEN rootD){
   long lx;
   GEN newgens=cgetg_copy(gel(cgp, 3), &lx), temp;
   for(long i=1;i<lx;i++){
-	temp=gtovec(gmael(cgp, 3, i));
-	setlg(temp, 4);//Truncate
-	gel(newgens, i)=temp;
+    temp=gtovec(gmael(cgp, 3, i));
+    setlg(temp, 4);//Truncate
+    gel(newgens, i)=temp;
   }//Just making the initial conversion to BQFs on our form.
   long firstm1=-1;
   for(long i=1;i<lx;i++){
-	temp=bqf_pow_red(gel(newgens, i), gel(neworder, i), rootD, 1);
-	if(equali1(ibqf_isequiv(minus1, temp, rootD))){firstm1=i;break;}
+    temp=bqf_pow_red(gel(newgens, i), gel(neworder, i), rootD, 1);
+    if(equali1(ibqf_isequiv(minus1, temp, rootD))){firstm1=i;break;}
   }
   if(firstm1==-1){//Just add in new Z/2Z copy
-	long lastodd=-1;
-	for(long i=1;i<lx;i++){if(smodis(gel(neworder, i), 2)==1){lastodd=i;break;}}
-	if(lastodd==-1){//All even, add a new Z/2Z
-	  GEN rvec=cgetg(4,t_VEC);
-	  long j=lx;
-	  gel(rvec, 1)=shifti(gel(cgp, 1), 1);
-	  gel(rvec, 2)=cgetg(j+1, t_VECSMALL);
-	  gel(rvec, 3)=cgetg(j+1, t_VEC);
-	  for(long i=1;i<lx;i++){
-		gel(rvec, 2)[j]=itos(gel(neworder, i));
-		gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
-		j--;
-	  }
-	  gel(rvec, 2)[1]=2;
-	  gmael(rvec, 3, 1)=ibqf_red(minus1, rootD);
-	  return gerepileupto(top, rvec);
-	}//OK, now there is an odd number.
-	GEN rvec=cgetg(4, t_VEC);
-	long j=lx-1;
-	gel(rvec, 1)=shifti(gel(cgp, 1), 1);
-	gel(rvec, 2)=cgetg(lx, t_VECSMALL);
-	gel(rvec, 3)=cgetg_copy(newgens, &lx);
-	for(long i=1;i<lastodd;i++){
-	  gel(rvec, 2)[j]=itos(gel(neworder, i));
-	  gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
-	  j--;
-	}
-	gel(rvec, 2)[j]=2*itos(gel(neworder, lastodd));
-	gmael(rvec, 3, j)=bqf_comp_red(minus1, gel(newgens, lastodd), rootD, 1);
-	j--;
-	for(long i=lastodd+1;i<lx;i++){
-	  gel(rvec, 2)[j]=itos(gel(neworder, i));
-	  gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
-	  j--;
-	}
-	return gerepileupto(top, rvec);
+    long lastodd=-1;
+    for(long i=1;i<lx;i++){if(smodis(gel(neworder, i), 2)==1){lastodd=i;break;}}
+    if(lastodd==-1){//All even, add a new Z/2Z
+      GEN rvec=cgetg(4,t_VEC);
+      long j=lx;
+      gel(rvec, 1)=shifti(gel(cgp, 1), 1);
+      gel(rvec, 2)=cgetg(j+1, t_VECSMALL);
+      gel(rvec, 3)=cgetg(j+1, t_VEC);
+      for(long i=1;i<lx;i++){
+        gel(rvec, 2)[j]=itos(gel(neworder, i));
+        gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
+        j--;
+      }
+      gel(rvec, 2)[1]=2;
+      gmael(rvec, 3, 1)=ibqf_red(minus1, rootD);
+      return gerepileupto(top, rvec);
+    }//OK, now there is an odd number.
+    GEN rvec=cgetg(4, t_VEC);
+    long j=lx-1;
+    gel(rvec, 1)=shifti(gel(cgp, 1), 1);
+    gel(rvec, 2)=cgetg(lx, t_VECSMALL);
+    gel(rvec, 3)=cgetg_copy(newgens, &lx);
+    for(long i=1;i<lastodd;i++){
+      gel(rvec, 2)[j]=itos(gel(neworder, i));
+      gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
+      j--;
+    }
+    gel(rvec, 2)[j]=2*itos(gel(neworder, lastodd));
+    gmael(rvec, 3, j)=bqf_comp_red(minus1, gel(newgens, lastodd), rootD, 1);
+    j--;
+    for(long i=lastodd+1;i<lx;i++){
+      gel(rvec, 2)[j]=itos(gel(neworder, i));
+      gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
+      j--;
+    }
+    return gerepileupto(top, rvec);
   }//OK SO now we have an element powering to -1 and not 1. We must fix the previous and subsequent entries.
   GEN g=gel(newgens, firstm1), gpow=g, aj=gel(neworder, firstm1);//gpow represents g^(.5order(g)/aj)
   for(long j=firstm1+1;j<lx;j++){//Fix the later ones by modifying by gpow^(a_j/a_g) if they power to -1 instead of 1
-	temp=bqf_pow_red(gel(newgens, j), gel(neworder, j), rootD, 1);
-	if(equali1(ibqf_isequiv(minus1, temp, rootD))){//If =0 then we have the identity and there is no need to fix it.
-		gpow=bqf_pow_red(gpow, diviiexact(aj, gel(neworder,j)), rootD, 1);
-		aj=gel(neworder, j);//Updating
-		gel(newgens, j)=bqf_comp_red(gel(newgens, j), gpow, rootD, 1);//Fixing it
+    temp=bqf_pow_red(gel(newgens, j), gel(neworder, j), rootD, 1);
+    if(equali1(ibqf_isequiv(minus1, temp, rootD))){//If =0 then we have the identity and there is no need to fix it.
+        gpow=bqf_pow_red(gpow, diviiexact(aj, gel(neworder,j)), rootD, 1);
+        aj=gel(neworder, j);//Updating
+        gel(newgens, j)=bqf_comp_red(gel(newgens, j), gpow, rootD, 1);//Fixing it
     }
   }//Now we are done fixing the generators past firstm1; we shift focus to those before it.  
   long optplace=1;//The place where we should be inserting the 2x in the class group
   long lastv=vali(gel(neworder, firstm1));//2-adic valuation  
   for(long i=firstm1-1;i>0;i--){
-	if(vali(gel(neworder, i))>lastv){optplace=i+1;break;}
+    if(vali(gel(neworder, i))>lastv){optplace=i+1;break;}
   }//If this for method never triggers, we are left with optplace=1=the start, as desired.
   //Now we must modify the elements between firstm1 and lastv to only double the order of lastv and retain the other orders. In fact, we only need to modify these two elements
   if(firstm1!=optplace){//If equal, there is nothing left to do! If !=, we must shift the elements appropriately
-	if(lastv==0){//The elements between firstm1 and optplace are all ODD powered, so we can adjust firstm1 and lastv by minus1
-	  gel(newgens, firstm1)=bqf_comp_red(minus1, gel(newgens, firstm1), rootD, 1);
-	  gel(newgens, optplace)=bqf_comp_red(minus1, gel(newgens, optplace), rootD, 1);
-	}
-	else{//firstm1 is g1 and has order 2^(v+1)h1, optplace is g2 and has order g^vh2 with h1, h2 odd and h1|h2. Replace g1 by g1^(2^(v+1))*g2^h2 which has order 2^vh1, and replace g2 by g2^(2^v)*g1^h1 which has order 2^(v+1)h2. These elements generate the same subgroup as well since 2h2 is coprime to 2^(2v+1)-h1h2.
-	  GEN twovali=shifti(gen_1, lastv);
-	  GEN h1=diviiexact(gel(neworder, firstm1), twovali);
-	  GEN h2=diviiexact(gel(neworder, optplace), twovali);
-	  gel(newgens, firstm1)=bqf_comp_red(bqf_square_red(bqf_pow_red(g, twovali, rootD, 1), rootD, 1), bqf_pow_red(gel(newgens, optplace), h2, rootD, 1), rootD, 1);
+    if(lastv==0){//The elements between firstm1 and optplace are all ODD powered, so we can adjust firstm1 and lastv by minus1
+      gel(newgens, firstm1)=bqf_comp_red(minus1, gel(newgens, firstm1), rootD, 1);
+      gel(newgens, optplace)=bqf_comp_red(minus1, gel(newgens, optplace), rootD, 1);
+    }
+    else{//firstm1 is g1 and has order 2^(v+1)h1, optplace is g2 and has order g^vh2 with h1, h2 odd and h1|h2. Replace g1 by g1^(2^(v+1))*g2^h2 which has order 2^vh1, and replace g2 by g2^(2^v)*g1^h1 which has order 2^(v+1)h2. These elements generate the same subgroup as well since 2h2 is coprime to 2^(2v+1)-h1h2.
+      GEN twovali=shifti(gen_1, lastv);
+      GEN h1=diviiexact(gel(neworder, firstm1), twovali);
+      GEN h2=diviiexact(gel(neworder, optplace), twovali);
+      gel(newgens, firstm1)=bqf_comp_red(bqf_square_red(bqf_pow_red(g, twovali, rootD, 1), rootD, 1), bqf_pow_red(gel(newgens, optplace), h2, rootD, 1), rootD, 1);
       gel(newgens, optplace)=bqf_comp_red(bqf_pow_red(g, h1, rootD, 1), bqf_pow_red(gel(newgens, optplace), twovali, rootD, 1), rootD, 1);
-	}
+    }
   }
   gel(neworder, optplace)=shifti(gel(neworder, optplace), 1);//Doubling the correct place
   //Ok, now we just need to reverse the vectors and compile it into rvec and return it.
@@ -2006,9 +1998,9 @@ static GEN bqf_ncgp_nonfundnarrow(GEN cgp, GEN D, GEN rootD){
   gel(rvec, 2)=cgetg(lx, t_VECSMALL);
   gel(rvec, 3)=cgetg_copy(newgens, &lx);
   for(long i=1;i<lx;i++){
-	gel(rvec, 2)[j]=itos(gel(neworder, i));
-	gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
-	j--;
+    gel(rvec, 2)[j]=itos(gel(neworder, i));
+    gmael(rvec, 3, j)=ZV_copy(gel(newgens, i));
+    j--;
   }
   return gerepileupto(top, rvec);
 }
@@ -2047,16 +2039,16 @@ GEN bqf_pow(GEN q, GEN n){
   if(gequal0(n)){GEN D=bqf_disc(q);return gerepileupto(top, bqf_idelt(D));}
   GEN qpow=ZV_copy(q);
   if(signe(n)==-1){
-	togglesign_safe(&gel(qpow, 2));//Taking the inverse
-	if(equalis(n, -1)) return qpow;
-	q=qpow;//Need to repoint q to here
-	n=negi(n);
+    togglesign_safe(&gel(qpow, 2));//Taking the inverse
+    if(equalis(n, -1)) return qpow;
+    q=qpow;//Need to repoint q to here
+    n=negi(n);
   }
   else if(equali1(n)) return qpow;
   GEN nbin=binary_zv(n);
   for(long i=2;i<lg(nbin);i++){
-	qpow=bqf_square(qpow);
-	if(nbin[i]==1) qpow=bqf_comp(qpow, q);
+    qpow=bqf_square(qpow);
+    if(nbin[i]==1) qpow=bqf_comp(qpow, q);
   }
   return gerepileupto(top, qpow);
 }
@@ -2067,16 +2059,16 @@ GEN bqf_pow_red(GEN q, GEN n, GEN rootD, int Dsign){
   if(gequal0(n)){GEN D=bqf_disc(q);return gerepileupto(top, bqf_idelt(D));}
   GEN qpow=ZV_copy(q);
   if(signe(n)==-1){
-	togglesign_safe(&gel(qpow, 2));//Taking the inverse
-	if(equalis(n, -1)) return gerepileupto(top, bqf_red(qpow, rootD, Dsign, 0));
-	q=qpow;//Need to repoint q to here
-	n=negi(n);
+    togglesign_safe(&gel(qpow, 2));//Taking the inverse
+    if(equalis(n, -1)) return gerepileupto(top, bqf_red(qpow, rootD, Dsign, 0));
+    q=qpow;//Need to repoint q to here
+    n=negi(n);
   }
   else if(equali1(n)) return gerepileupto(top, bqf_red(qpow, rootD, Dsign, 0));
   GEN nbin=binary_zv(n);
   for(long i=2;i<lg(nbin);i++){
-	qpow=bqf_square_red(qpow, rootD, Dsign);
-	if(nbin[i]==1) qpow=bqf_comp_red(qpow, q, rootD, Dsign);
+    qpow=bqf_square_red(qpow, rootD, Dsign);
+    if(nbin[i]==1) qpow=bqf_comp_red(qpow, q, rootD, Dsign);
   }
   return gerepileupto(top, qpow);
 }
@@ -2192,14 +2184,14 @@ GEN bqf_reps(GEN q, GEN n, int proper, int half, long prec){
   if(signe(D)==-1){//Negative disc
     if(signe(gel(q,1))==-1){ZV_togglesign(q);togglesign_safe(&n);}//Negating q and n to make positive definite.
     GEN qred=dbqf_red_tmat(q);//The reduction of q and the transition matrix
-	return gerepileupto(top,dbqf_reps(qred,D,n,proper,half));
+    return gerepileupto(top,dbqf_reps(qred,D,n,proper,half));
   }
   if(signe(D)==0){//Disc=0
     if(signe(gel(q,1))==-1 || signe(gel(q,3))==-1){ZV_togglesign(q);togglesign_safe(&n);}//Making positive
-	GEN A=sqrti(gel(q,1));
-	GEN B=sqrti(gel(q,3));//must be squares
-	if(signe(gel(q,2))==-1) togglesign_safe(&B);//Now (Ax+By)^2=n is to be solved
-	return gerepileupto(top,zbqf_reps(A,B,n,half));
+    GEN A=sqrti(gel(q,1));
+    GEN B=sqrti(gel(q,3));//must be squares
+    if(signe(gel(q,2))==-1) togglesign_safe(&B);//Now (Ax+By)^2=n is to be solved
+    return gerepileupto(top,zbqf_reps(A,B,n,half));
   }//Now D>0
   GEN rootD;
   long issquare=Z_issquareall(D,&rootD);//sets rootD to sqrt(D) if it is a square
@@ -2244,15 +2236,15 @@ GEN dbqf_reps(GEN qred, GEN D, GEN n, int proper, int half){
   long totnsols=0;//Total number of solutions overall
   GEN thescale;
   for(long i=1;i<lg(divs);++i){
-	oppi--;
-	if(!Z_issquareall(gel(divs, oppi), &thescale)) continue;//Continue on
-	count++;
-	glist_putstart(&scales, thescale);//The scale
-	nsols=0;//Resetting solution count
-	dbqf_reps_proper(qred, D, gel(divs,i), &sols, &nsols, f, &terminate);//Doing the proper solve
-	if(count==1 && terminate==1){avma=top;return gen_0;}//No solutions to the residue for the fundamental disc, so there will be none EVER!
-	llist_putstart(&nsolslist, nsols);
-	totnsols=totnsols+nsols;
+    oppi--;
+    if(!Z_issquareall(gel(divs, oppi), &thescale)) continue;//Continue on
+    count++;
+    glist_putstart(&scales, thescale);//The scale
+    nsols=0;//Resetting solution count
+    dbqf_reps_proper(qred, D, gel(divs,i), &sols, &nsols, f, &terminate);//Doing the proper solve
+    if(count==1 && terminate==1){avma=top;return gen_0;}//No solutions to the residue for the fundamental disc, so there will be none EVER!
+    llist_putstart(&nsolslist, nsols);
+    totnsols=totnsols+nsols;
   }//Now we have our solutions
   if(sols==NULL){avma=top;return gen_0;}//No solution
   GEN rvec=bqf_reps_creatervec(sols, scales, nsolslist, &totnsols, &count, half);//Initialize the solution vector
@@ -2279,48 +2271,48 @@ static void dbqf_reps_proper(GEN qred, GEN D, GEN n, glist **sols, long *nsols, 
     fred=dbqf_red_tmat(f);
     if(ZV_equal(gel(qred,1),gel(fred,1))){//Solution!
       transmat=ZM_mul(gel(qred,2),ZM_inv(gel(fred,2),NULL));//transmat circ f=[n,b,c]
-	  bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
+      bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
     }
-	else cgiv(fred);//May as well discard
+    else cgiv(fred);//May as well discard
     for(long k=1;k<=kmax;++k){//Go through the other possibilities
-	  gel(f,3)=addii(gel(f,3),diviiexact(mulii(modu,addii(modu,shifti(B,1))),fourn));//f[3]=f[3]+modu(modu+2B)/(4n)
-	  B=addii(B,modu);//So B=k*modu+resclass[2][j] in the end
-	  gel(f,2)=B;
-	  fred=dbqf_red_tmat(f);
+      gel(f,3)=addii(gel(f,3),diviiexact(mulii(modu,addii(modu,shifti(B,1))),fourn));//f[3]=f[3]+modu(modu+2B)/(4n)
+      B=addii(B,modu);//So B=k*modu+resclass[2][j] in the end
+      gel(f,2)=B;
+      fred=dbqf_red_tmat(f);
       if(ZV_equal(gel(qred,1),gel(fred,1))){//Solution!
         transmat=ZM_mul(gel(qred,2),ZM_inv(gel(fred,2),NULL));//transmat circ f=[n,b,c]
-	    bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
+        bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
       }
-	  else cgiv(fred);//May as well discard
-	}
+      else cgiv(fred);//May as well discard
+    }
   }
   if(equalis(D,-4)){//Must account for extra automorph
-	GEN mat=ZM_mul(gel(qred,2),ZM_mul(mkmat22(gen_0,gen_1,gen_m1,gen_0),ZM_inv(gel(qred,2),NULL)));//Conjugating [0,1;-1,0] by gel(qred,2) to get the non-trivial autormorph of q.
-	B=gcoeff(mat,1,2);
-	gcoeff(mat,1,2)=gcoeff(mat,2,1);
-	gcoeff(mat,2,1)=B;//Transposing mat
-	glist *seeker=*sols;//This runs through sols, and we must add sol*mat each time.
-	for(long i=1;i<=*nsols;i++){
-	  transmat=ZV_ZM_mul(seeker->data,mat);
-	  glist_putstart(sols,transmat);
+    GEN mat=ZM_mul(gel(qred,2),ZM_mul(mkmat22(gen_0,gen_1,gen_m1,gen_0),ZM_inv(gel(qred,2),NULL)));//Conjugating [0,1;-1,0] by gel(qred,2) to get the non-trivial autormorph of q.
+    B=gcoeff(mat,1,2);
+    gcoeff(mat,1,2)=gcoeff(mat,2,1);
+    gcoeff(mat,2,1)=B;//Transposing mat
+    glist *seeker=*sols;//This runs through sols, and we must add sol*mat each time.
+    for(long i=1;i<=*nsols;i++){
+      transmat=ZV_ZM_mul(seeker->data,mat);
+      glist_putstart(sols,transmat);
       seeker=seeker->next;
-	}
-	*nsols=*nsols*2;//This doubled the solutions
+    }
+    *nsols=*nsols*2;//This doubled the solutions
   }
   else if(equalis(D,-3)){//Must account for extra automorphs (two of them)
-	GEN mat=ZM_mul(gel(qred,2),ZM_mul(mkmat22(gen_1,gen_1,gen_m1,gen_0),ZM_inv(gel(qred,2),NULL)));//Conjugating [1,1;-1,0] by gel(qred,2) to get a non-trivial autormorph of q.
-	B=gcoeff(mat,1,2);
-	gcoeff(mat,1,2)=gcoeff(mat,2,1);
-	gcoeff(mat,2,1)=B;//Transposing mat
-	glist *seeker=*sols;//This runs through sols, and we must add sol*mat each time.
-	for(long i=1;i<=*nsols;i++){
-	  transmat=ZV_ZM_mul(seeker->data,mat);
-	  glist_putstart(sols,transmat);
-	  transmat=ZV_ZM_mul(transmat,mat);//The square must also be added
-	  glist_putstart(sols,transmat);
+    GEN mat=ZM_mul(gel(qred,2),ZM_mul(mkmat22(gen_1,gen_1,gen_m1,gen_0),ZM_inv(gel(qred,2),NULL)));//Conjugating [1,1;-1,0] by gel(qred,2) to get a non-trivial autormorph of q.
+    B=gcoeff(mat,1,2);
+    gcoeff(mat,1,2)=gcoeff(mat,2,1);
+    gcoeff(mat,2,1)=B;//Transposing mat
+    glist *seeker=*sols;//This runs through sols, and we must add sol*mat each time.
+    for(long i=1;i<=*nsols;i++){
+      transmat=ZV_ZM_mul(seeker->data,mat);
+      glist_putstart(sols,transmat);
+      transmat=ZV_ZM_mul(transmat,mat);//The square must also be added
+      glist_putstart(sols,transmat);
       seeker=seeker->next;
-	}
-	*nsols=*nsols*3;//This tripled the solutions
+    }
+    *nsols=*nsols*3;//This tripled the solutions
   }
 }
 
@@ -2338,7 +2330,7 @@ GEN ibqf_reps(GEN qorb, GEN qautom, GEN D, GEN rootD, GEN n, int proper, int hal
     GEN rvec=bqf_reps_creatervec_proper(sols, nsols, half);//Make return vector minus the first component.
     gel(rvec,1)=cgetg(3,t_VEC);
     gel(gel(rvec,1),1)=gen_1;//Positive
-	gel(gel(rvec,1),2)=ZM_copy(qautom);
+    gel(gel(rvec,1),2)=ZM_copy(qautom);
     return gerepileupto(top,rvec);
   }//Now we seek all solutions, not just proper ones
   GEN divs=divisors(n);//Divisors of n
@@ -2348,16 +2340,16 @@ GEN ibqf_reps(GEN qorb, GEN qautom, GEN D, GEN rootD, GEN n, int proper, int hal
   long count=0;//Number of divisors which we try
   long totnsols=0;//Total number of solutions overall
   for(long i=1;i<lg(divs);++i){
-	oppi--;
-	if(!Z_issquare(gel(divs,oppi))) continue;//Continue on
-	count++;
-	glist_putstart(&scales,sqrti(gel(divs,oppi)));//The scale
-	nsols=0;//Resetting solution count
-	if(signe(n)==-1) ibqf_reps_proper(qorb,D,rootD,negi(gel(divs,i)),&sols,&nsols,f,&terminate);
-	else ibqf_reps_proper(qorb,D,rootD,gel(divs,i),&sols,&nsols,f,&terminate);//Doing the proper solve
-	if(count==1 && terminate==1){avma=top;return gen_0;}//No solutions to the residue for the fundamental disc, so there will be none EVER!
-	llist_putstart(&nsolslist,nsols);
-	totnsols=totnsols+nsols;
+    oppi--;
+    if(!Z_issquare(gel(divs,oppi))) continue;//Continue on
+    count++;
+    glist_putstart(&scales,sqrti(gel(divs,oppi)));//The scale
+    nsols=0;//Resetting solution count
+    if(signe(n)==-1) ibqf_reps_proper(qorb,D,rootD,negi(gel(divs,i)),&sols,&nsols,f,&terminate);
+    else ibqf_reps_proper(qorb,D,rootD,gel(divs,i),&sols,&nsols,f,&terminate);//Doing the proper solve
+    if(count==1 && terminate==1){avma=top;return gen_0;}//No solutions to the residue for the fundamental disc, so there will be none EVER!
+    llist_putstart(&nsolslist,nsols);
+    totnsols=totnsols+nsols;
   }//Now we have our solutions
   if(sols==NULL){avma=top;return gen_0;}//No solution
   GEN rvec=bqf_reps_creatervec(sols,scales,nsolslist,&totnsols,&count,half);//Initialize the solution vector
@@ -2384,24 +2376,24 @@ static void ibqf_reps_proper(GEN qorb, GEN D, GEN rootD, GEN n, glist **sols, lo
     gel(f, 2)=B;
     gel(f, 3)=diviiexact(subii(sqri(B), D),fourn);//(B^2-D)/(4n)
     fred=ibqf_red_pos_tmat(f, rootD);
-	ind=gen_search(qorb, fred, 0, NULL, &bqf_compare_tmat);
+    ind=gen_search(qorb, fred, 0, NULL, &bqf_compare_tmat);
     if(ind>0){//Solution!
       transmat=ZM_mul(gel(gel(qorb,ind),2),ZM_inv(gel(fred,2),NULL));//transmat circ f=[n,b,c]
-	  bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
+      bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
     }
-	else cgiv(fred);//May as well discard
+    else cgiv(fred);//May as well discard
     for(long k=1;k<=kmax;++k){//Go through the other possibilities
-	  gel(f,3)=addii(gel(f,3),diviiexact(mulii(modu,addii(modu,shifti(B,1))),fourn));//f[3]=f[3]+modu(modu+2B)/(4n)
-	  B=addii(B,modu);//So B=k*modu+resclass[2][j] in the end
-	  gel(f,2)=B;
-	  fred=ibqf_red_pos_tmat(f,rootD);
-	  ind=gen_search(qorb,fred,0,NULL,&bqf_compare_tmat);
+      gel(f,3)=addii(gel(f,3),diviiexact(mulii(modu,addii(modu,shifti(B,1))),fourn));//f[3]=f[3]+modu(modu+2B)/(4n)
+      B=addii(B,modu);//So B=k*modu+resclass[2][j] in the end
+      gel(f,2)=B;
+      fred=ibqf_red_pos_tmat(f,rootD);
+      ind=gen_search(qorb,fred,0,NULL,&bqf_compare_tmat);
       if(ind>0){//Solution!
         transmat=ZM_mul(gel(gel(qorb,ind),2),ZM_inv(gel(fred,2),NULL));//transmat circ f=[n,b,c]
-	    bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
+        bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
       }
-	  else cgiv(fred);//May as well discard
-	}
+      else cgiv(fred);//May as well discard
+    }
   }
 }
 
@@ -2419,33 +2411,33 @@ GEN sbqf_reps(GEN q, GEN D, GEN rootD, GEN n, int half){
     d=diviiexact(d,a);//d=d/g
   }
   else{//A=0
-	if(signe(gel(q,2))==1){//We want to make sure det(a,b;c,d)=-sqrt(D) to be consistent with the A!=0 case
-	  a=gen_0;
-	  b=gen_1;
-	  c=icopy(gel(q,2));
-	  d=icopy(gel(q,3));
-	}
-	else{
-		a=icopy(gel(q,2));
-		b=icopy(gel(q,3));
-		c=gen_0;
-		d=gen_1;
-	}
+    if(signe(gel(q,2))==1){//We want to make sure det(a,b;c,d)=-sqrt(D) to be consistent with the A!=0 case
+      a=gen_0;
+      b=gen_1;
+      c=icopy(gel(q,2));
+      d=icopy(gel(q,3));
+    }
+    else{
+        a=icopy(gel(q,2));
+        b=icopy(gel(q,3));
+        c=gen_0;
+        d=gen_1;
+    }
   }
   //Now we are factored as (gx+(B+sqrt(D))/2(A/g))(A/gx+(B-sqrt(D))/(2g)) with corresponding a,b,c,d for coefficients.
   if(isexactzero(n)){//Two linears through 0,0
-	GEN rvec=cgetg(4,t_VEC);
-	gel(rvec,1)=mkvec(gen_2);//Linear
-	togglesign_safe(&a);
-	gel(rvec,2)=cgetg(3,t_VEC);
-	gel(gel(rvec,2),1)=mkvec2copy(b, a);
-	gel(gel(rvec,2),2)=mkvec2(gen_0, gen_0);
-	togglesign_safe(&c);
-	long lx;
-	gel(rvec,3)=cgetg_copy(gel(rvec,2),&lx);
-	gel(gel(rvec,3),1)=mkvec2copy(d, c);
-	gel(gel(rvec,3),2)=mkvec2(gen_0, gen_0);
-	return gerepileupto(top,rvec);
+    GEN rvec=cgetg(4,t_VEC);
+    gel(rvec,1)=mkvec(gen_2);//Linear
+    togglesign_safe(&a);
+    gel(rvec,2)=cgetg(3,t_VEC);
+    gel(gel(rvec,2),1)=mkvec2copy(b, a);
+    gel(gel(rvec,2),2)=mkvec2(gen_0, gen_0);
+    togglesign_safe(&c);
+    long lx;
+    gel(rvec,3)=cgetg_copy(gel(rvec,2),&lx);
+    gel(gel(rvec,3),1)=mkvec2copy(d, c);
+    gel(gel(rvec,3),2)=mkvec2(gen_0, gen_0);
+    return gerepileupto(top,rvec);
   }
   GEN den;
   if(signe(n)==-1){togglesign_safe(&a);togglesign_safe(&b);den=rootD;}//Toggling a and b; there is no need to update n to -n as divisors(n) spits out positive numbers
@@ -2458,14 +2450,14 @@ GEN sbqf_reps(GEN q, GEN D, GEN rootD, GEN n, int half){
   long nsols=0;
   long mi=lg(divs);
   for(long i=1;i<lg(divs);++i){//Run through the divisors
-	mi--;//i+mi=lg(divs), so divs[i]*divs[mi]=|n|
-	x=dvmdii(addii(mulii(d,gel(divs,i)),mulii(b,gel(divs,mi))),den,&r);
-	if(!isexactzero(r)){cgiv(r);cgiv(x);continue;}//Does not divide exactly!
-	cgiv(r);
-	y=dvmdii(addii(mulii(c,gel(divs,i)),mulii(a,gel(divs,mi))),den,&r);
-	if(!isexactzero(r)){cgiv(r);cgiv(y);cgiv(x);continue;}//Does not divide exactly!
-	cgiv(r);
-	bqf_reps_updatesolutions(&sols,&nsols,&x,&y);
+    mi--;//i+mi=lg(divs), so divs[i]*divs[mi]=|n|
+    x=dvmdii(addii(mulii(d,gel(divs,i)),mulii(b,gel(divs,mi))),den,&r);
+    if(!isexactzero(r)){cgiv(r);cgiv(x);continue;}//Does not divide exactly!
+    cgiv(r);
+    y=dvmdii(addii(mulii(c,gel(divs,i)),mulii(a,gel(divs,mi))),den,&r);
+    if(!isexactzero(r)){cgiv(r);cgiv(y);cgiv(x);continue;}//Does not divide exactly!
+    cgiv(r);
+    bqf_reps_updatesolutions(&sols,&nsols,&x,&y);
   }
   GEN rvec=bqf_reps_creatervec_proper(sols,nsols,half);
   gel(rvec,1)=cgetg(2,t_VEC);
@@ -2478,26 +2470,26 @@ GEN zbqf_reps(GEN A, GEN B, GEN n, int half){
   pari_sp top=avma;
   long lx;
   if(isexactzero(n)){//n=0
-	GEN rvec=cgetg(3,t_VEC);
-	gel(rvec,1)=mkvec(gen_2);//Linear
-	gel(rvec,2)=cgetg_copy(rvec,&lx);
-	gel(gel(rvec,2),1)=cgetg_copy(rvec,&lx);
-	gel(gel(gel(rvec,2),1),1)=icopy(B);
-	gel(gel(gel(rvec,2),1),2)=negi(A);
-	gel(gel(rvec,2),2)=mkvec2(gen_0,gen_0);
-	return rvec;	  
+    GEN rvec=cgetg(3,t_VEC);
+    gel(rvec,1)=mkvec(gen_2);//Linear
+    gel(rvec,2)=cgetg_copy(rvec,&lx);
+    gel(gel(rvec,2),1)=cgetg_copy(rvec,&lx);
+    gel(gel(gel(rvec,2),1),1)=icopy(B);
+    gel(gel(gel(rvec,2),1),2)=negi(A);
+    gel(gel(rvec,2),2)=mkvec2(gen_0,gen_0);
+    return rvec;      
   }
   GEN rootn;
   long sq=Z_issquareall(n,&rootn);
   if(sq==0){avma=top;return gen_0;}
   GEN S=lin_intsolve(A,B,rootn);
   if(half==1){
-	GEN rvec=cgetg(3,t_VEC);
-	gel(rvec,1)=mkvec(gen_2);//Linear
-	gel(rvec,2)=cgetg_copy(rvec,&lx);
-	gel(gel(rvec,2),1)=ZV_copy(gel(S,1));
-	gel(gel(rvec,2),2)=ZV_copy(gel(S,2));
-	return gerepileupto(top,rvec);
+    GEN rvec=cgetg(3,t_VEC);
+    gel(rvec,1)=mkvec(gen_2);//Linear
+    gel(rvec,2)=cgetg_copy(rvec,&lx);
+    gel(gel(rvec,2),1)=ZV_copy(gel(S,1));
+    gel(gel(rvec,2),2)=ZV_copy(gel(S,2));
+    return gerepileupto(top,rvec);
   }
   GEN rvec=cgetg(4,t_VEC);
   gel(rvec,1)=mkvec(gen_2);//Linear
@@ -2534,39 +2526,39 @@ static GEN bqf_reps_trivial(void){
 //Creates the return vector given the list of solutions, the number of solutions, and the integer half. This does NOT initialize the first component, must be done in the individual method.
 static GEN bqf_reps_creatervec(glist *sols, glist *scales, llist *nsolslist, long *totnsols, long *count, int half){
   if(half==0){
-	long lind1=2*(*totnsols)+1;
-	long lind2=*totnsols+1, nsols;
-	GEN rvec=cgetg(lind1+1,t_VEC);
-	GEN scale;
-	for(long i=1;i<=*count;++i){
-	  scale=scales->data;
-	  nsols=nsolslist->data;
-	  for(long j=1;j<=nsols;++j){
+    long lind1=2*(*totnsols)+1;
+    long lind2=*totnsols+1, nsols;
+    GEN rvec=cgetg(lind1+1,t_VEC);
+    GEN scale;
+    for(long i=1;i<=*count;++i){
+      scale=scales->data;
+      nsols=nsolslist->data;
+      for(long j=1;j<=nsols;++j){
         gel(rvec,lind2)=ZV_Z_mul(sols->data,scale);
-		gel(rvec,lind1)=ZV_copy(gel(rvec,lind2));
-		ZV_togglesign(gel(rvec,lind1));//Negating it
-	    sols=sols->next;
-	    lind1--;
-		lind2--;
-	  }
-	  scales=scales->next;
-	  nsolslist=nsolslist->next;
+        gel(rvec,lind1)=ZV_copy(gel(rvec,lind2));
+        ZV_togglesign(gel(rvec,lind1));//Negating it
+        sols=sols->next;
+        lind1--;
+        lind2--;
+      }
+      scales=scales->next;
+      nsolslist=nsolslist->next;
     }
-	return rvec;	  
+    return rvec;      
   }
   GEN rvec=cgetg(*totnsols+2,t_VEC);
   long lind=*totnsols+1, nsols;
   GEN scale;
   for(long i=1;i<=*count;++i){
-	scale=scales->data;
-	nsols=nsolslist->data;
-	for(long j=1;j<=nsols;++j){
+    scale=scales->data;
+    nsols=nsolslist->data;
+    for(long j=1;j<=nsols;++j){
       gel(rvec,lind)=ZV_Z_mul(sols->data,scale);
-	  sols=sols->next;
-	  lind--;
-	}
-	scales=scales->next;
-	nsolslist=nsolslist->next;
+      sols=sols->next;
+      lind--;
+    }
+    scales=scales->next;
+    nsolslist=nsolslist->next;
   }
   return rvec;
 }
@@ -2575,24 +2567,24 @@ static GEN bqf_reps_creatervec(glist *sols, glist *scales, llist *nsolslist, lon
 static GEN bqf_reps_creatervec_proper(glist *sols, long nsols, int half){
   if(half==0){
     long lind1=2*nsols+1;
-	long lind2=nsols+1;
-	GEN rvec=cgetg(lind1+1,t_VEC);
+    long lind2=nsols+1;
+    GEN rvec=cgetg(lind1+1,t_VEC);
     while(lind2>1){
-	  gel(rvec,lind2)=ZV_copy(sols->data);
-	  gel(rvec,lind1)=ZV_copy(sols->data);
-	  ZV_togglesign(gel(rvec,lind1));//Negating it
-	  sols=sols->next;
-	  lind1--;
-	  lind2--;
+      gel(rvec,lind2)=ZV_copy(sols->data);
+      gel(rvec,lind1)=ZV_copy(sols->data);
+      ZV_togglesign(gel(rvec,lind1));//Negating it
+      sols=sols->next;
+      lind1--;
+      lind2--;
     }
-	return rvec;
+    return rvec;
   }
   GEN rvec=cgetg(nsols+2,t_VEC);
   long lind=nsols+1;
   while(lind>1){
-	gel(rvec,lind)=ZV_copy(sols->data);
-	sols=sols->next;
-	lind--;
+    gel(rvec,lind)=ZV_copy(sols->data);
+    sols=sols->next;
+    lind--;
   }
   return rvec;
 }
@@ -2632,8 +2624,8 @@ GEN bqf_bigreps(GEN q, GEN n, long prec){
   if(q==NULL){avma=top; return gen_0;}//No solution; gcd(q) did not divide n.
   GEN disc=bqf_disc(q);//Still works as B^2-4AC even though q has length 5
   if(gequal0(disc)){//Disc 0
-	if(signe(gel(q,1))==-1 || signe(gel(q,3))==-1){ZV_togglesign(q);togglesign_safe(&n);}//Making positive
-	return gerepileupto(top,zbqf_bigreps(q, n));
+    if(signe(gel(q,1))==-1 || signe(gel(q,3))==-1){ZV_togglesign(q);togglesign_safe(&n);}//Making positive
+    return gerepileupto(top,zbqf_bigreps(q, n));
   }
   GEN newq=cgetg(4,t_VEC);
   for(int i=1;i<=3;i++) gel(newq,i)=icopy(gel(q,i));//newq=[A,B,C]
@@ -2666,16 +2658,16 @@ static GEN zbqf_bigreps(GEN q, GEN n){
   pari_sp top=avma, mid;
   if(gequal0(gel(q,4)) && gequal0(gel(q,5))){//D=E=0, this is just bqf_reps
     GEN A=sqrti(gel(q,1));
-	GEN B=sqrti(gel(q,3));//must be squares
-	if(signe(gel(q,2))==-1) togglesign_safe(&B);//Now (Ax+By)^2=n is to be solved
-	return gerepileupto(top,zbqf_reps(A,B,n,0));
+    GEN B=sqrti(gel(q,3));//must be squares
+    if(signe(gel(q,2))==-1) togglesign_safe(&B);//Now (Ax+By)^2=n is to be solved
+    return gerepileupto(top,zbqf_reps(A,B,n,0));
   }
   if(gequal0(gel(q,1)) && gequal0(gel(q,3))){//A=B=C=0, just a linear equation
-	GEN rvec=cgetg(3,t_VEC);
-	gel(rvec,1)=cgetg(2,t_VEC);
-	gel(gel(rvec,1),1)=gen_2;//Linear
-	gel(rvec,2)=lin_intsolve(gel(q,4), gel(q,5), n);//As q is primitive, this is guarenteed to have solutions
-	return rvec;//No garbage!!
+    GEN rvec=cgetg(3,t_VEC);
+    gel(rvec,1)=cgetg(2,t_VEC);
+    gel(gel(rvec,1),1)=gen_2;//Linear
+    gel(rvec,2)=lin_intsolve(gel(q,4), gel(q,5), n);//As q is primitive, this is guarenteed to have solutions
+    return rvec;//No garbage!!
   }
   GEN g=gcdii(gcdii(gel(q,1),gel(q,2)),gel(q,3));
   GEN A=sqrti(diviiexact(gel(q,1),g)), B;
@@ -2685,28 +2677,28 @@ static GEN zbqf_bigreps(GEN q, GEN n){
   if(!gequal0(det)){//Invertible
     glist *S=NULL;
     long nsols=1;//Only because we have the first element
-	glist_putstart(&S, mkvec(gen_m2));//Type
-	GEN basex=mkvec3(mulii(B, g), gel(q, 5), negi(mulii(B, n)));
-	GEN basey=mkvec3(negi(mulii(A, g)), negi(gel(q,4)), mulii(A, n));
-	GEN gnew=gcdii(ZV_content(basex), gcdii(det, ZV_content(basey)));//Removing trivial factors
-	det=diviiexact(det,gnew);
-	basex=ZV_Z_divexact(basex, gnew);
-	basey=ZV_Z_divexact(basey, gnew);
-	//Now det*x=basex[1]u^2+basex[2]u+basex[3], similarly for det*y with basey instead. So we just need to solve this quadratic to be ==0 mod det.
-	GEN u=gen_0, dx, dy, x, y, r, v;
-	for(;cmpii(u,absi(det))<0;u=addis(u,1)){
-	  mid=avma;
-	  dx=addii(mulii(addii(mulii(gel(basex,1),u),gel(basex,2)),u),gel(basex,3));//Should really do this for u=0 and add the difference each time, maybe I'll do this later
-	  x=dvmdii(dx,det,&r);
-	  if(!gequal0(r)){avma=mid;continue;}//No good, continue on
-	  dy=addii(mulii(addii(mulii(gel(basey,1),u),gel(basey,2)),u),gel(basey,3));//Same comment as above
-	  y=dvmdii(dy,det,&r);
-	  if(!gequal0(r)){avma=mid;continue;}//No good, continue on
-	  v=mkvec2(mkvec3(mulii(gel(basex,1),det),addii(shifti(mulii(gel(basex,1),u),1),gel(basex,2)),x), mkvec3(mulii(gel(basey,1),det),addii(shifti(mulii(gel(basey,1),u),1),gel(basey,2)),y));//Substituting u=det*X+u and dividing by det.
-	  glist_putstart(&S, v);
-	  nsols++;
-	}
-	if(nsols==1){glist_free(S);avma=top;return gen_0;}//No solutions
+    glist_putstart(&S, mkvec(gen_m2));//Type
+    GEN basex=mkvec3(mulii(B, g), gel(q, 5), negi(mulii(B, n)));
+    GEN basey=mkvec3(negi(mulii(A, g)), negi(gel(q,4)), mulii(A, n));
+    GEN gnew=gcdii(ZV_content(basex), gcdii(det, ZV_content(basey)));//Removing trivial factors
+    det=diviiexact(det,gnew);
+    basex=ZV_Z_divexact(basex, gnew);
+    basey=ZV_Z_divexact(basey, gnew);
+    //Now det*x=basex[1]u^2+basex[2]u+basex[3], similarly for det*y with basey instead. So we just need to solve this quadratic to be ==0 mod det.
+    GEN u=gen_0, dx, dy, x, y, r, v;
+    for(;cmpii(u,absi(det))<0;u=addis(u,1)){
+      mid=avma;
+      dx=addii(mulii(addii(mulii(gel(basex,1),u),gel(basex,2)),u),gel(basex,3));//Should really do this for u=0 and add the difference each time, maybe I'll do this later
+      x=dvmdii(dx,det,&r);
+      if(!gequal0(r)){avma=mid;continue;}//No good, continue on
+      dy=addii(mulii(addii(mulii(gel(basey,1),u),gel(basey,2)),u),gel(basey,3));//Same comment as above
+      y=dvmdii(dy,det,&r);
+      if(!gequal0(r)){avma=mid;continue;}//No good, continue on
+      v=mkvec2(mkvec3(mulii(gel(basex,1),det),addii(shifti(mulii(gel(basex,1),u),1),gel(basex,2)),x), mkvec3(mulii(gel(basey,1),det),addii(shifti(mulii(gel(basey,1),u),1),gel(basey,2)),y));//Substituting u=det*X+u and dividing by det.
+      glist_putstart(&S, v);
+      nsols++;
+    }
+    if(nsols==1){glist_free(S);avma=top;return gen_0;}//No solutions
     return gerepileupto(top,glist_togvec(S, nsols, -1));//Solutions!
   }//Not invertible. We also know that [A,B] and [D,E] are both not [0,0] as we already checked for this.
   GEN w;
@@ -2718,32 +2710,32 @@ static GEN zbqf_bigreps(GEN q, GEN n){
   GEN u1=Qdivii(negi(addii(w,urootpart)),shifti(g,1));//(-w-urootpart)/(2g), one of the roots for u
   if(gequal0(urootpart)){//Only one solution
     if(typ(u1)!=t_INT){avma=top;return gen_0;}//Not integral, no solution.
-	GEN rvec=cgetg(3,t_VEC);
-	gel(rvec,1)=cgetg(2,t_VEC);
-	gel(gel(rvec,1),1)=gen_2;//Linear
-	gel(rvec,2)=lin_intsolve(A, B, u1);
-	return gerepileupto(top,rvec);
+    GEN rvec=cgetg(3,t_VEC);
+    gel(rvec,1)=cgetg(2,t_VEC);
+    gel(gel(rvec,1),1)=gen_2;//Linear
+    gel(rvec,2)=lin_intsolve(A, B, u1);
+    return gerepileupto(top,rvec);
   }//Two solutions potentially
   GEN u2=gadd(u1,Qdivii(urootpart,g));//The other root.
   if(typ(u1)==t_INT){
     if(typ(u2)==t_INT){
       GEN rvec=cgetg(4,t_VEC);gel(rvec,1)=cgetg(2,t_VEC);gel(gel(rvec,1),1)=gen_2;//Linear
-	  gel(rvec,2)=lin_intsolve(A,B,u1);gel(rvec,3)=lin_intsolve(A,B,u2);
-	  return gerepileupto(top,rvec);
-	}
+      gel(rvec,2)=lin_intsolve(A,B,u1);gel(rvec,3)=lin_intsolve(A,B,u2);
+      return gerepileupto(top,rvec);
+    }
     else{
       GEN rvec=cgetg(3,t_VEC);gel(rvec,1)=cgetg(2,t_VEC);gel(gel(rvec,1),1)=gen_2;//Linear
-	  gel(rvec,2)=lin_intsolve(A,B,u1);
-	  return gerepileupto(top,rvec);
-    }	
+      gel(rvec,2)=lin_intsolve(A,B,u1);
+      return gerepileupto(top,rvec);
+    }   
   }
   else{
-	if(typ(u2)==t_INT){
-	  GEN rvec=cgetg(3,t_VEC);gel(rvec,1)=cgetg(2,t_VEC);gel(gel(rvec,1),1)=gen_2;//Linear
-	  gel(rvec,2)=lin_intsolve(A,B,u2);
-	  return gerepileupto(top,rvec);
-	}
-	else{avma=top;return gen_0;}//No solution
+    if(typ(u2)==t_INT){
+      GEN rvec=cgetg(3,t_VEC);gel(rvec,1)=cgetg(2,t_VEC);gel(gel(rvec,1),1)=gen_2;//Linear
+      gel(rvec,2)=lin_intsolve(A,B,u2);
+      return gerepileupto(top,rvec);
+    }
+    else{avma=top;return gen_0;}//No solution
   }
 }
 
@@ -2755,15 +2747,15 @@ static GEN bqf_bigreps_creatervecfin(GEN newsols, GEN a, GEN b, GEN disc){
   glist_putstart(&S, mkvec(gen_0));//Finite solutions
   GEN xpa, ypb, newx, newy, r;
   for(long i=2;i<lg(newsols);i++){
-	mid=avma;
-	xpa=addii(gel(gel(newsols,i),1),a);
-	newx=dvmdii(xpa,disc,&r);
-	if(!gequal0(r)){avma=mid;continue;}//Did not satisfy congruence
-	ypb=addii(gel(gel(newsols,i),2),b);
-	newy=dvmdii(ypb,disc,&r);
-	if(!gequal0(r)){avma=mid;continue;}//Did not satisfy congruence
-	glist_putstart(&S, mkvec2(newx, newy));//Not clean, but we copy it later with glist_togvec so OK
-	nsols++;
+    mid=avma;
+    xpa=addii(gel(gel(newsols,i),1),a);
+    newx=dvmdii(xpa,disc,&r);
+    if(!gequal0(r)){avma=mid;continue;}//Did not satisfy congruence
+    ypb=addii(gel(gel(newsols,i),2),b);
+    newy=dvmdii(ypb,disc,&r);
+    if(!gequal0(r)){avma=mid;continue;}//Did not satisfy congruence
+    glist_putstart(&S, mkvec2(newx, newy));//Not clean, but we copy it later with glist_togvec so OK
+    nsols++;
   }
   if(nsols==1){glist_free(S);avma=top;return gen_0;}//No solutions
   return gerepileupto(top,glist_togvec(S, nsols, -1));//Solutions!
@@ -2778,20 +2770,20 @@ static GEN bqf_bigreps_createrveclin(GEN newsols, GEN a, GEN b, GEN disc){
   glist_putstart(&S, mkvec(gen_2));//Linear solutions
   GEN slope,g, u, v, res, amod=Fp_red(a, disc), bmod=Fp_red(b, disc), l1, l2;
   for(long i=2;i<lg(newsols);i++){//Each solution is [slope,[0,0]]
-	mid=avma;
-	slope=gel(gel(newsols,i),1);
-	g=bezout(gel(slope,1),gel(slope,2),&u,&v);//us1+vs2=g=1 since s1 and s2 are coprime
-	u=Fp_red(u, disc);v=Fp_red(v, disc);
-	res=Fp_neg(Fp_add(Fp_mul(u,amod,disc),Fp_mul(v,bmod,disc), disc), disc);//res=-ua-vb; now N===res modulo disc
-	l1=addii(mulii(res,gel(slope,1)),a);
-	l1=dvmdii(l1,disc,&g);
-	if(signe(g)!=0){avma=mid;continue;}//No solution
-	l2=addii(mulii(res,gel(slope,2)),b);
-	l2=dvmdii(l2,disc,&g);
-	if(signe(g)!=0){avma=mid;continue;}//No solution
-	//Now we have Us1+l1, Us2+l2
-	glist_putstart(&S, mkvec2(slope,mkvec2(l1,l2)));//Very unclean, but everything is copied later.
-	nsols++;
+    mid=avma;
+    slope=gel(gel(newsols,i),1);
+    g=bezout(gel(slope,1),gel(slope,2),&u,&v);//us1+vs2=g=1 since s1 and s2 are coprime
+    u=Fp_red(u, disc);v=Fp_red(v, disc);
+    res=Fp_neg(Fp_add(Fp_mul(u,amod,disc),Fp_mul(v,bmod,disc), disc), disc);//res=-ua-vb; now N===res modulo disc
+    l1=addii(mulii(res,gel(slope,1)),a);
+    l1=dvmdii(l1,disc,&g);
+    if(signe(g)!=0){avma=mid;continue;}//No solution
+    l2=addii(mulii(res,gel(slope,2)),b);
+    l2=dvmdii(l2,disc,&g);
+    if(signe(g)!=0){avma=mid;continue;}//No solution
+    //Now we have Us1+l1, Us2+l2
+    glist_putstart(&S, mkvec2(slope,mkvec2(l1,l2)));//Very unclean, but everything is copied later.
+    nsols++;
   }
   if(nsols==1){glist_free(S);avma=top;return gen_0;}//No solutions
   return gerepileupto(top,glist_togvec(S, nsols, -1));//Solutions!
@@ -2811,12 +2803,12 @@ static GEN bqf_bigreps_creatervecpos(GEN newsols, GEN a, GEN b, GEN disc){
   for(long i=1;i<lg(newsols)-1;i++) gel(newsolsmod,i)=mkcol2(Fp_red(gel(gel(newsols,i+1),1), disc), Fp_red(gel(gel(newsols,i+1),2), disc));//Making [x;y] mod disc for all solutions [x,y]
   GEN sol=baseres;//Represents M^(-pow)[a;b] mod disc. Any time this appears in newsols, we append (M^pow[x;y]+[a;b])/disc to the solution set
   do{
-	for(long i=1;i<lg(newsolsmod);i++){
-	  if(gequal(sol,gel(newsolsmod,i))){//Can make slightly? faster with Qdivii on a vector
-		glist_putstart(&S, gdiv(ZV_ZM_mul(gel(newsols,i+1),M),disc));//We use M^T so that ([x,y]*M^T)^T=M*[x;y] as desired.
-		nsols++;
-	  }
-	}
+    for(long i=1;i<lg(newsolsmod);i++){
+      if(gequal(sol,gel(newsolsmod,i))){//Can make slightly? faster with Qdivii on a vector
+        glist_putstart(&S, gdiv(ZV_ZM_mul(gel(newsols,i+1),M),disc));//We use M^T so that ([x,y]*M^T)^T=M*[x;y] as desired.
+        nsols++;
+      }
+    }
     M=ZM_mul(M, Mbase);//Updating M
     sol=FpM_FpC_mul(Mmod, sol, disc);//Updating sol
   }
@@ -2832,15 +2824,15 @@ GEN bqf_linearsolve(GEN q, GEN n1, GEN lin, GEN n2, long prec){
   pari_sp top=avma;
   GEN g=ZV_content(q), r;
   if(!equali1(g)){
-	n1=dvmdii(n1, g, &r);
-	if(!gequal0(r)){avma=top;return gen_0;}//Instant fail
-	q=ZV_Z_divexact(q,g);
+    n1=dvmdii(n1, g, &r);
+    if(!gequal0(r)){avma=top;return gen_0;}//Instant fail
+    q=ZV_Z_divexact(q,g);
   }
   g=ZV_content(lin);
   if(!equali1(g)){
-	n2=dvmdii(n2, g, &r);
-	if(!gequal0(r)){avma=top;return gen_0;}//Instant fail
-	lin=ZV_Z_divexact(lin,g);
+    n2=dvmdii(n2, g, &r);
+    if(!gequal0(r)){avma=top;return gen_0;}//Instant fail
+    lin=ZV_Z_divexact(lin,g);
   }
   GEN Mshift=mat3_complete(gel(lin,1),gel(lin,2),gel(lin,3));//M[x;y;z]=[x';y';z'], and lin is now x'=n2
   GEN Mshiftinv=ZM_inv(Mshift, NULL);
@@ -2899,10 +2891,10 @@ static GEN bqf_linearsolve_zfin(GEN yzsols, GEN n2, GEN Minv){
   GEN sols=cgetg_copy(yzsols, &lx);
   gel(sols,1)=mkvec(gen_0);//Finite
   for(long i=2;i<lg(yzsols);i++){
-	gel(v,2)=gel(gel(yzsols,i),1);
-	gel(v,3)=gel(gel(yzsols,i),2);
-	gel(sols,i)=ZM_ZC_mul(Minv, v);
-	settyp(gel(sols,i), t_VEC);
+    gel(v,2)=gel(gel(yzsols,i),1);
+    gel(v,3)=gel(gel(yzsols,i),2);
+    gel(sols,i)=ZM_ZC_mul(Minv, v);
+    settyp(gel(sols,i), t_VEC);
   }
   return gerepileupto(top, sols);
 }
@@ -2916,15 +2908,15 @@ static GEN bqf_linearsolve_zlin(GEN yzsols, GEN n2, GEN Minv){
   GEN sols=cgetg_copy(yzsols, &lx);
   gel(sols,1)=mkvec(gen_2);//Linear
   for(long i=2;i<lg(yzsols);i++){
-	gel(v1,2)=gel(gel(gel(yzsols,i),2),1);//y0
-	gel(v1,3)=gel(gel(gel(yzsols,i),2),2);//z0
-	gel(v2,2)=gel(gel(gel(yzsols,i),1),1);//s
-	gel(v2,3)=gel(gel(gel(yzsols,i),1),2);//t
-	gel(sols,i)=cgetg(3,t_VEC);
-	gel(gel(sols,i),1)=ZM_ZC_mul(Minv, v2);
-	gel(gel(sols,i),2)=ZM_ZC_mul(Minv, v1);
-	settyp(gel(gel(sols,i),1), t_VEC);
-	settyp(gel(gel(sols,i),2), t_VEC);
+    gel(v1,2)=gel(gel(gel(yzsols,i),2),1);//y0
+    gel(v1,3)=gel(gel(gel(yzsols,i),2),2);//z0
+    gel(v2,2)=gel(gel(gel(yzsols,i),1),1);//s
+    gel(v2,3)=gel(gel(gel(yzsols,i),1),2);//t
+    gel(sols,i)=cgetg(3,t_VEC);
+    gel(gel(sols,i),1)=ZM_ZC_mul(Minv, v2);
+    gel(gel(sols,i),2)=ZM_ZC_mul(Minv, v1);
+    settyp(gel(gel(sols,i),1), t_VEC);
+    settyp(gel(gel(sols,i),2), t_VEC);
   }
   return gerepileupto(top, sols);
 }
@@ -2950,10 +2942,10 @@ static GEN bqf_linearsolve_zpos(GEN yzsols, GEN n2, GEN Minv, GEN M){
   gel(gel(sols,1),3)=gmul(Minv, shiftext);//New shift
   settyp(gel(gel(sols,1),3), t_VEC);
   for(long i=2;i<lg(yzsols);i++){
-	gel(v,2)=gel(gel(yzsols,i),1);
-	gel(v,3)=gel(gel(yzsols,i),2);
-	gel(sols,i)=gmul(Minv, v);
-	settyp(gel(sols,i), t_VEC);
+    gel(v,2)=gel(gel(yzsols,i),1);
+    gel(v,3)=gel(gel(yzsols,i),2);
+    gel(sols,i)=gmul(Minv, v);
+    settyp(gel(sols,i), t_VEC);
   }
   return gerepileupto(top, sols);
 }
@@ -2969,17 +2961,17 @@ static GEN bqf_linearsolve_zquad(GEN yzsols, GEN n2, GEN Minv){
   GEN sols=cgetg_copy(yzsols, &lx);
   gel(sols,1)=mkvec(gen_m2);//quadratic
   for(long i=2;i<lg(yzsols);i++){
-	gel(v1,2)=gel(gel(gel(yzsols,i),1),1);
-	gel(v1,3)=gel(gel(gel(yzsols,i),2),1);
-	gel(v2,2)=gel(gel(gel(yzsols,i),1),2);
-	gel(v2,3)=gel(gel(gel(yzsols,i),2),2);
-	gel(v3,2)=gel(gel(gel(yzsols,i),1),3);
-	gel(v3,3)=gel(gel(gel(yzsols,i),2),3);
-	t1=ZM_ZC_mul(Minv, v1);
-	t2=ZM_ZC_mul(Minv, v2);
-	t3=ZM_ZC_mul(Minv, v3);
-	gel(sols,i)=cgetg(4, t_VEC);
-	for(int j=1;j<4;j++) gel(gel(sols,i),j)=mkvec3(gel(t1,j),gel(t2,j),gel(t3,j));
+    gel(v1,2)=gel(gel(gel(yzsols,i),1),1);
+    gel(v1,3)=gel(gel(gel(yzsols,i),2),1);
+    gel(v2,2)=gel(gel(gel(yzsols,i),1),2);
+    gel(v2,3)=gel(gel(gel(yzsols,i),2),2);
+    gel(v3,2)=gel(gel(gel(yzsols,i),1),3);
+    gel(v3,3)=gel(gel(gel(yzsols,i),2),3);
+    t1=ZM_ZC_mul(Minv, v1);
+    t2=ZM_ZC_mul(Minv, v2);
+    t3=ZM_ZC_mul(Minv, v3);
+    gel(sols,i)=cgetg(4, t_VEC);
+    for(int j=1;j<4;j++) gel(gel(sols,i),j)=mkvec3(gel(t1,j),gel(t2,j),gel(t3,j));
   }
   return gerepilecopy(top, sols);//Must copy
 }
