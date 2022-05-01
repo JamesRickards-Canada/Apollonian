@@ -239,9 +239,6 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\GENERAL HELP
 		addhelp(geo, "These methods deal with geometry. There are 5 types of objects:\n     Points: stored as a complex number or oo.\n     Circles: [centre, radius, curvature]. The curvature may be set to negative to denote the exterior.\n     Lines: [slope, intercept]. If slope<oo, we give the y-intercept, else we give the x-intercept.\n     Arcs: [centre, radius, curvature, start pt, end pt, start angle, end angle, dir]. We take the arc counterclockwise between startpt and endpt. If dir=-1 we orient it in the opposite direction.\n     Segments: [slope, intercept, start pt, end pt, ooendptdir, dir]. Same as lines, where we also have a start and end point. dir=1 means we go on the line in the upper half plane, dir=-1 means through oo. If one endpoint is oo, ooendptdir=1 means the segment travels vertically upward or right, and -1 means vertically down or left.\n\nInstalled methods: circle_fromcp, circle_fromppp, line_fromsp, line_frompp, mat_eval, mobius.");
 
-		install("arc_init","GGGD0,L,p",,"./libapol.so");
-
-
 \\visual.c
 	\\DATA
 		install("integerbin","GGD0,G,",,"./libapol.so");

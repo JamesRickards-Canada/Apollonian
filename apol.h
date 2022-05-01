@@ -253,7 +253,6 @@ GEN fareyup(GEN r);
 //geo.c
 
 //BASIC LINE, CIRCLE, AND POINT OPERATIONS
-GEN arc_init(GEN c, GEN p1, GEN p2, int dir, long prec);
 GEN circle_fromcp(GEN cent, GEN p, long prec);
 GEN circle_fromppp(GEN p1, GEN p2, GEN p3, GEN tol, long prec);
 GEN line_fromsp(GEN s, GEN p);

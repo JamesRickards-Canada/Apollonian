@@ -42,91 +42,47 @@ static GEN bqf_linearsolve_zquad(GEN yzsols, GEN n2, GEN Minv);
 //DISCRIMINANT METHODS
 
 
-
 //Generates list of discriminants from D1 to D2, can specify if they are fundamental and coprime to a given input.
 GEN disclist(GEN D1, GEN D2, int fund, GEN cop){
-  pari_sp ltop = avma;
-  if (typ(D1) != t_INT) pari_err_TYPE("disclist",D1);
-  if (typ(D2) != t_INT) pari_err_TYPE("disclist",D2);
-  if (typ(cop) != t_INT) pari_err_TYPE("disclist",cop);
-  glist *S=NULL;//Pointer to the list start
-  long count=0;//Counts how many
+  pari_sp top = avma;
+  if (typ(D1) != t_INT) pari_err_TYPE("D1 must be an integer", D1);
+  if (typ(D2) != t_INT) pari_err_TYPE("D2 must be an integer", D2);
+  if (typ(cop) != t_INT) pari_err_TYPE("cop must be an integer", cop);
+  long Dlen=itos(subii(D2, D1));
+  long vind=0, vlen=Dlen/8;
+  GEN v=cgetg(vlen+1, t_VEC);
+  GEN D=D1;
   if(fund==0){
     if(gequal0(cop)){
-      GEN D = gen_0; //int
-      for(D=icopy(D1); cmpii(D, D2) <= 0; D = addis(D, 1)){//Need to icopy as we give back the memory space for D
-        if(isdisc(D)){
-          glist_putstart(&S,D);
-          count++;
-        }
-        else cgiv(D);//This is OK as addis(D,1) will still work, it will just overwrite the memory location which is OK.
-      }
+      for(long i=0;i<=Dlen;i++){
+        if(isdisc(D)) v=veclist_append(v, &vind, &vlen, D);
+		D=addis(D, 1);
+	  }
     }
     else{
-      GEN D = gen_0;//int
-      GEN gc=gen_0;
-      for(D=icopy(D1); cmpii(D, D2) <= 0; D = addis(D, 1)){
-        gc=gcdii(cop, D);
-        if(equali1(gc) && isdisc(D)){
-          cgiv(gc);
-          glist_putstart(&S,D);
-          count++;
-        }
-        else{
-          cgiv(gc);
-          cgiv(D);
-        }
+      for(long i=0;i<=Dlen;i++){
+        if(equali1(gcdii(cop, D)) && isdisc(D)) v=veclist_append(v, &vind, &vlen, D);
+		D=addis(D, 1);
       }
     }
   }
   else{
     if(gequal0(cop)){
-      GEN D=gen_0;
-      GEN fD=gen_0;
-      for(D=icopy(D1); cmpii(D, D2) <= 0; D = addis(D, 1)){
-		if(isdisc(D)==0){cgiv(D);continue;}
-        fD=coredisc(D);
-        if(equalii(fD, D)){
-          cgiv(fD);
-          glist_putstart(&S,D);
-          count++;
-        }
-        else{
-          cgiv(fD);
-          cgiv(D);
-        }
+      for(long i=0;i<=Dlen;i++){//coredisc(0)=0, coredisc(1)=1, but we don't want to count them.
+	    if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
+		D=addis(D, 1);
       }
     }
     else{
-      GEN D= gen_0;
-      GEN fD=gen_0;
-      GEN gc=gen_0;
-      for(D=icopy(D1); cmpii(D, D2) <= 0; D = addis(D, 1)){
-        gc=gcdii(cop,D);
-        if(equali1(gc)){
-            cgiv(gc);
-			if(isdisc(D)==0){cgiv(D);continue;}
-            fD=coredisc(D);
-            if(equalii(fD, D)){
-              cgiv(fD);
-              glist_putstart(&S,D);
-              count++;
-            }
-            else{
-              cgiv(fD);
-              cgiv(D);
-            }
-        }
-        else{
-          cgiv(gc);
-          cgiv(D);
-        }
+      for(long i=0;i<=Dlen;i++){
+		if(equali1(gcdii(cop, D))){
+		  if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
+		}
+        D=addis(D, 1);
       }
     }
   }
-  GEN Svec=glist_togvec(S, count, -1);
-  Svec = gerepileupto(ltop, Svec);
-  return Svec;
+  return gerepilecopy(top, vec_shorten(v, vind));
 }
 
 //Generate the list of primes dividing D for which D/p^2 is a discriminant, can pass in facs=factorization of D

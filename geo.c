@@ -55,9 +55,9 @@ static int toleq0(GEN x, GEN tol, long prec);
 
 //BASIC LINE, CIRCLE, AND POINT OPERATIONS
 
-
+/*
 //Creates the arc on circle c going from p1 to p2 counterclockwise. if dir=1, the arc is oriented counterclockwise, else it is clockwise (i.e. clockwise from p2 to p1). If dir=0, we take it to be unoriented
-GEN arc_init(GEN c, GEN p1, GEN p2, int dir, long prec){
+static GEN arc_init(GEN c, GEN p1, GEN p2, int dir, long prec){
   pari_sp top=avma;
   GEN ang2=radialangle(c, p2, gen_0, prec);//No tolerance need
   GEN arc=cgetg(9, t_VEC);
@@ -73,6 +73,7 @@ GEN arc_init(GEN c, GEN p1, GEN p2, int dir, long prec){
   else gel(arc, 8)=gen_m1;
   return gerepileupto(top, arc);
 }
+*/
 
 //Returns the midpoint of the arc between p1 and p2 (counterclockwise) on c.
 static GEN arc_midpoint(GEN c, GEN p1, GEN p2, GEN tol, long prec){
