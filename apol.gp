@@ -54,10 +54,14 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\STRIP PACKING METHODS
 		install("apol_depthelt_circle","G",,"./libapol.so");
 		addhelp(apol_depthelt_circle,"Input L, an integer between 1 and 4, or a vector/vecsmall of integers between 1 and 4.\n Returns the circle/line corresponding to the depth element L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n].");
+		install("apol_farey_allqf","G",,"./libapol.so");
+		addhelp(apol_farey_allqf,"Input q, a positive integer.\n Returns the set of primitive quadratic forms (Kate's construction) corresponding to the upside down Farey circle at x=p/q, over all p. The forms are all non-equivalent.");
+		install("apol_farey_qf","GG",,"./libapol.so");
+		addhelp(apol_farey_qf,"Inputs p and q, positive integers.\n Returns the quadratic forms (Kate's construction) corresponding to the upside down Farey circle at x=p/q.");
 		install("apol_strip_qf","GD0,L,",,"./libapol.so");
 		addhelp(apol_strip_qf,"Inputs L, {red=0}: L an integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, red=0 or 1.\n Returns the quadratic form corresponding to this circle in the strip packing, i.e. generating the curvatures of PSL(2, Z) times this circle.");
 
-		addhelp(ap_strip,"Installed methods:\napol_depthelt_circle, apol_strip_qf.");
+		addhelp(ap_strip,"Installed methods:\napol_depthelt_circle, apol_farey_allqf, apol_farey_qf, apol_strip_qf.");
 
 	\\VISUALIZATION
 		install("printcircles_desmos","vG",,"./libapol.so");
@@ -65,13 +69,13 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("printcircles_tex","GrD1,L,D0,L,D1,L,D1,L,p",,"./libapol.so");
 		addhelp(printcircles_tex,"Input c, imagename, {addnumbers=1}, {modcolours=0}, {compile=1}, {open=1}: list of circles c, string imagename, addnumbers/compile/open =0, 1, modcolours>=0.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If modcolours>=1, we colour the circles based on their remainders mod modcolours. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
 
-		addhelp(ap_visual,"Installed methods:\n.");
+		addhelp(ap_visual,"Installed methods:\nprintcircles_desmos, printcircles_tex.");
 
 	\\SUPPORTING METHODS
 		install("apol_words","L",,"./libapol.so");
 		addhelp(apol_words,"Input d>0, the depth.\n Returns all reduced words of length d in the Apollonian group, as a Vecsmall of 1-4's (no consecutive repeats).");
 
-		addhelp(ap_support,"Installed methods:\n.");
+		addhelp(ap_support,"Installed methods:\napol_words.");
 
 	\\SPECIALIZED METHODS
 		install("apol_ncgp_depths","Gp",,"./libapol.so");

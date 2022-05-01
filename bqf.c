@@ -48,37 +48,32 @@ GEN disclist(GEN D1, GEN D2, int fund, GEN cop){
   if (typ(D1) != t_INT) pari_err_TYPE("D1 must be an integer", D1);
   if (typ(D2) != t_INT) pari_err_TYPE("D2 must be an integer", D2);
   if (typ(cop) != t_INT) pari_err_TYPE("cop must be an integer", cop);
-  long Dlen=itos(subii(D2, D1));
-  long vind=0, vlen=Dlen/8;
+  long vind=0, vlen=itos(subii(D2, D1))/8;
   GEN v=cgetg(vlen+1, t_VEC);
   GEN D=D1;
   if(fund==0){
     if(gequal0(cop)){
-      for(long i=0;i<=Dlen;i++){
+      for(;cmpii(D, D2)<=0;D=addis(D, 1)){
         if(isdisc(D)) v=veclist_append(v, &vind, &vlen, D);
-        D=addis(D, 1);
       }
     }
     else{
-      for(long i=0;i<=Dlen;i++){
+      for(;cmpii(D, D2)<=0;D=addis(D, 1)){
         if(equali1(gcdii(cop, D)) && isdisc(D)) v=veclist_append(v, &vind, &vlen, D);
-        D=addis(D, 1);
       }
     }
   }
   else{
     if(gequal0(cop)){
-      for(long i=0;i<=Dlen;i++){//coredisc(0)=0, coredisc(1)=1, but we don't want to count them.
+      for(;cmpii(D, D2)<=0;D=addis(D, 1)){//coredisc(0)=0, coredisc(1)=1, but we don't want to count them.
         if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
-        D=addis(D, 1);
       }
     }
     else{
-      for(long i=0;i<=Dlen;i++){
+      for(;cmpii(D, D2)<=0;D=addis(D, 1)){
         if(equali1(gcdii(cop, D))){
           if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
         }
-        D=addis(D, 1);
       }
     }
   }

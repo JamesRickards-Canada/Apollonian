@@ -747,6 +747,27 @@ GEN apol_depthelt_circle(GEN L){
   return gerepilecopy(top, mkvec3(mkcomplex(a, b), r, twow));
 }
 
+//Returns the set of apol_farey_qf(p, q) for -q/2<p<0 and gcd(p^3-p, q)=1
+GEN apol_farey_allqf(GEN q){
+  pari_sp top=avma;
+  GEN maxp=shifti(subis(q, 1), -1);
+  GEN v=vectrunc_init(itos(q)+1);
+  for(GEN p=gen_1;cmpii(p, maxp)<=0;p=addis(p, 1)){
+	if(!equali1(gcdii(subis(sqri(p), 1), q))) continue;
+	GEN qf=apol_farey_qf(p, q);
+	if(!gequal0(qf)) vectrunc_append(v, qf);
+  }
+  return gerepilecopy(top, v);
+}
+
+//Returns the quadratic form corresponding to the PSL(2, Z) orbit of the upside down Farey circle at (p, q), where p, q are coprime and q>0. This might not be primitive (it is not if gcd(p^2-1, q)>1 or q is even).
+GEN apol_farey_qf(GEN p, GEN q){
+  pari_sp top=avma;
+  if(!equali1(gcdii(p, q))) return gen_0;
+  GEN qsqr=sqri(q);
+  return gerepilecopy(top, mkvec3(qsqr, shifti(mulii(p, q), 1), subis(addii(sqri(p), qsqr), 1)));//[q^2, 2pq, p^2+q^2-1]
+}
+
 //Returns the quadratic form corresponding to the circle in the stip packing designated by L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n]. We can't have L=1 or 2, this doesn't give a circle.
 GEN apol_strip_qf(GEN L, int red){
   pari_sp top=avma;
@@ -890,6 +911,7 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
 
 //Returns all 4*3^(d-1) reduced words of depth d.
 GEN apol_words(int d){
+  if(d<=0) return cgetg(1, t_VEC);
   pari_sp top=avma;
   int ind=1;//We reuse ind to track which depth we are going towards.
   GEN I=vecsmall_ei(d, 1);//Tracks the words
