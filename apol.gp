@@ -41,15 +41,16 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_curvatures,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
 		install("apol_curvatures_depth","GLD0,G,",,"./libapol.so");
 		addhelp(apol_curvatures_depth,"Inputs v, depth, {bound=0}: Descartes quadruple v, depth>=1, bound>=0.\n Returns a sorted list of curvatures of circles at most depth circle replacements away from v. If bound>0, we also only save the ones of size at most bound.");
+		install("apol_curvatures_layer","GLGD0,L,",,"./libapol.so");
+		addhelp(apol_curvatures_layer,"Inputs v, maxlayers, bound, {countsymm=0}: Descartes quadruple v, maxlayers>=1 bound>=0, countsymm=0, 1. Returns the curvatures at most bound in the first maxlayers outer layers of the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicity.");
 		install("apol_find","GGD0,L,",,"./libapol.so");
 		addhelp(apol_find,"Inputs v, N, {countsymm=0}: Descartes quadruple v, positive integer N, countsymm=0, 1.\n Returns the Descartes quadruples in the ACP of v containing N. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
-		
-		install("apol_orbit_layers","GLG",,"./libapol.so");
-		addhelp(apol_orbit_layers,"Inputs v, maxlayers, bound.\n Returns the curvatures in the first maxlayers layers up to bound bound, with respect to the circle v[1].");
-		install("apol_orbit_primes","GLG",,"./libapol.so");
-		addhelp(apol_orbit_primes,"Inputs v, maxlayers, bound.\n Returns the prime curvatures in the first maxlayers layers up to bound bound, with respect to the circle v[1]. Does not include curvatures 2 or 3, and removes repeats.");
+		install("apol_primes","GGD0,L,",,"./libapol.so");
+		addhelp(apol_primes,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns the prime curvatures at most bound in the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicities.");
+		install("apol_primes_layer","GLGD0,L,",,"./libapol.so");
+		addhelp(apol_primes_layer,"Inptus v, maxlayer, bound, {countsymm=0}: Descartes quadruple v, maxlayer>=1, bound>=0, countsymm=0, 1.\n Returns the prime curvatures in layer at most maxlayer with curvature at most bound. If countsymm=1, symmetries are counted with their multiplicities.");
 
-		addhelp(ap_search,"Installed methods:\napol_circles, apol_curvatures, apol_curvatures_depth, apol_find.");
+		addhelp(ap_search,"Installed methods:\napol_circles, apol_curvatures, apol_curvatures_depth, apol_curvatures_layer, apol_find, apol_primes, apol_primes_layer.");
 
 	\\STRIP PACKING METHODS
 		install("apol_depthelt_circle","G",,"./libapol.so");

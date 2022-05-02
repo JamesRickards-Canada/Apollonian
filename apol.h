@@ -41,10 +41,10 @@ GEN apol_makeall(GEN n, int red, long prec);
 GEN apol_circles(GEN v, GEN maxcurv);
 GEN apol_curvatures(GEN v, GEN bound, int countsymm);
 GEN apol_curvatures_depth(GEN v, int depth, GEN bound);
+GEN apol_curvatures_layer(GEN v, int maxlayers, GEN bound, int countsymm);
 GEN apol_find(GEN v, GEN N, int countsymm);
-
-GEN apol_orbit_layers(GEN v, int maxlayers, GEN bound);
-GEN apol_orbit_primes(GEN v, int maxlayers, GEN bound);
+GEN apol_primes(GEN v, GEN bound, int countsymm);
+GEN apol_primes_layer(GEN v, int maxlayers, GEN bound, int countsymm);
 
 //STRIP PACKING METHODS
 GEN apol_depthelt_circle(GEN L);
