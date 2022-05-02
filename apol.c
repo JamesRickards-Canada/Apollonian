@@ -841,7 +841,7 @@ GEN apol_words(int d){
 
 
 //Computes apol_makeall, and returns the external depths of the corresponding circles of curvature n. This works because we use the reduced quadratic forms: A-n<=C-n<=A+C-B-n. Swapping A+C-B-n gives A+C+B-n, so this cannot decrease it. Thus either we are already reduced (and A-n<=0 necessarily), or it is not the largest term (which thus must be n). Thus n is immediately swapped if depth>0, and this gives the circle depth.
-GEN apol_ncgp_depths(GEN n, long prec){
+GEN apol_makeall_extdepths(GEN n, long prec){
   pari_sp top=avma;
   GEN forms=apol_makeall(n, 0, prec);//The forms
   long maxdepth=0, lf=lg(forms);
@@ -856,8 +856,8 @@ GEN apol_ncgp_depths(GEN n, long prec){
   return gerepileupto(top, dcount);
 }
 
-//Computes apol_ncgpforms, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative). If red=0, we actually just take the data as is, and output the smallest curvature in each of the quadruples (no negation).
-GEN apol_ncgp_smallcurve(GEN n, int red, long prec){
+//Computes apol_makeall, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative). If red=0, we actually just take the data as is, and output the smallest curvature in each of the quadruples (no negation).
+GEN apol_makeall_small(GEN n, int red, long prec){
   pari_sp top=avma;
   GEN forms=apol_makeall(n, red, prec);
   long lf;
@@ -869,8 +869,8 @@ GEN apol_ncgp_smallcurve(GEN n, int red, long prec){
   return gerepileupto(top, ZV_sort(curves));
 }
 
-//apol_ncgp_smallcurve, but we only reduce maxsteps steps.
-GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec){
+//apol_makeall_small, but we only reduce maxsteps steps.
+GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec){
   pari_sp top=avma;
   GEN forms=apol_makeall(n, 0, prec);
   long lf;

@@ -60,9 +60,9 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
 GEN apol_words(int d);
 
 //SPECIALIZED METHODS
-GEN apol_ncgp_depths(GEN n, long prec);
-GEN apol_ncgp_smallcurve(GEN n, int red, long prec);
-GEN apol_ncgp_smallcurve_bsteps(GEN n, long maxsteps, long prec);
+GEN apol_makeall_extdepths(GEN n, long prec);
+GEN apol_makeall_small(GEN n, int red, long prec);
+GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 
 
 //base.c

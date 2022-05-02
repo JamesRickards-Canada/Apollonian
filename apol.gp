@@ -79,14 +79,14 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(ap_support,"Installed methods:\napol_words.");
 
 	\\SPECIALIZED METHODS
-		install("apol_ncgp_depths","Gp",,"./libapol.so");
-		addhelp(apol_ncgp_depths,"Input n.\n Computes apol_makeall(n), and returns [d0,d1,...,dk], where the number of forms at depth i is given by di.");
-		install("apol_ncgp_smallcurve","GD1,L,p",,"./libapol.so");
-		addhelp(apol_ncgp_smallcurve,"Input n, {red=1}: n a positive integer.\n Computes apol_makeall(n, 1, red), takes the corresponding smallest curvatures and returns the sorted list. If red=1, we reduce the quadruples, and negate the curvature (since it is <=0 always). If red=0, we do not do so, since it could be positive or negative. The return vector has length h^{+/-}(-4n^2), and each entry is from the set {0,1,...,n-1}.");
-		install("apol_ncgp_smallcurve_bsteps","GLp",,"./libapol.so");
-		addhelp(apol_ncgp_smallcurve_bsteps,"Input n, maxsteps.\n Does apol_ncgp_smallcurve, but does NOT reduce the forms; instead, we reduce them by at most maxsteps only. We then return the raw data of the smallest element (without negating the curvature).");
+		install("apol_makeall_extdepths","Gp",,"./libapol.so");
+		addhelp(apol_makeall_extdepths,"Input n.\n Computes apol_makeall(n), and returns [d0,d1,...,dk], where the number of forms at depth i is given by di.");
+		install("apol_makeall_small","GD1,L,p",,"./libapol.so");
+		addhelp(apol_makeall_small,"Input n, {red=1}: n a positive integer.\n Computes apol_makeall(n, red), takes the corresponding smallest curvatures and returns the sorted list. If red=1, we reduce the quadruples, and negate the curvature (since it is <=0 always). If red=0, we do not do so, since it could be positive or negative.");
+		install("apol_makeall_small_maxsteps","GLp",,"./libapol.so");
+		addhelp(apol_makeall_small_maxsteps,"Input n, maxsteps.\n Does apol_makeall_small, but does NOT reduce the forms; instead, we reduce them by at most maxsteps only. We then return the raw data of the smallest element (without negating the curvature).");
 		
-		addhelp(ap_special,"Installed methods:\n.");
+		addhelp(ap_special,"Installed methods:\napol_makeall_extdepths, apol_makeall_small, apol_makeall_small_maxsteps.");
 
 	\\GENERAL HELP
 		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)\nSpecialized methods (?ap_special)");
