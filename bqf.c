@@ -227,37 +227,21 @@ int bqf_isreduced(GEN q, GEN D){
 //Generates a random proper bqf with max coefficient maxc. If type=1 it will be indefinite, type=-1 positive definite, type=0 either. primitive=1 means primitive, =0 means don't care. This is not designed for efficiency
 GEN bqf_random(GEN maxc, int type, int primitive){
   pari_sp top=avma;
-  setrand(getwalltime());
-  if(typ(maxc)!=t_INT) return gen_0;
-  if(signe(maxc)!=1) return gen_0;//Just making sure maxc is a positive integer.
-  GEN q=cgetg(4,t_VEC);
-  GEN A, B, C, D;
+  GEN rmax=addis(shifti(maxc, 1), 1);//2*maxc+1
   for(;;){
-    A=randomi(maxc);
-    if(signe(randomi(gen_2))==0) togglesign_safe(&A);
-    B=randomi(maxc);
-    if(signe(randomi(gen_2))==0) togglesign_safe(&B);
-    C=randomi(maxc);
-    if(signe(randomi(gen_2))==0) togglesign_safe(&C);
-    gel(q,1)=A;
-    gel(q,2)=B;
-    gel(q,3)=C;
-    D=bqf_disc(q);
-    if(type==1){
-      if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
-      if(signe(D)==1 && isdisc(D)==1) return gerepilecopy(top,q);
-    }
+	GEN q=mkvec3(subii(randomi(rmax), maxc), subii(randomi(rmax), maxc), subii(randomi(rmax), maxc));//Random numbers between -maxc and maxc
+    GEN D=bqf_disc(q);
+	if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
+    if(type==1){if(signe(D)==1 && isdisc(D)==1) return gerepilecopy(top, q);}//Correct sign!
     else if(type==-1){
-      if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
       if(signe(D)==-1){
-        if(signe(A)==-1) ZV_togglesign(q);//Making positive definite
-        return gerepilecopy(top,q);
+        if(signe(gel(q, 1))==-1) ZV_togglesign(q);//Making positive definite
+        return gerepilecopy(top, q);
       }
     }
     else{
-      if(primitive==1){if(!equali1(ZV_content(q))) continue;}// Not primitive
       if(signe(D)==-1){
-        if(signe(A)==-1) ZV_togglesign(q);//Making positive definite
+        if(signe(gel(q, 1))==-1) ZV_togglesign(q);//Making positive definite
         return gerepilecopy(top,q);
       }
       if(isdisc(D)==1) return gerepilecopy(top,q);
@@ -268,30 +252,28 @@ GEN bqf_random(GEN maxc, int type, int primitive){
 //Generates a random bqf of discriminant D with |B|<=2maxc and primitive. This is not designed for efficiency
 GEN bqf_random_D(GEN maxc, GEN D){
   pari_sp top=avma;
-  //setrand(getwalltime());
-  if(typ(maxc)!=t_INT) return gen_0;
-  if(signe(maxc)!=1) return gen_0;//Just making sure maxc is a positive integer.
   if(!isdisc(D)) return gen_0;
-  GEN B=randomi(maxc);
-  B=shifti(B,1);
-  if(smodis(D,2)==1) B=addii(B,gen_1);
-  GEN AC=shifti(subii(sqri(B),D),-2);
-  if(signe(randomi(gen_2))==0) B=negi(B);
-  GEN g=ggcd(D,B);
+  GEN B=shifti(addis(randomi(maxc), 1), 1);//Random even number in [2, 2*maxc]
+  if(smodis(D, 2)) B=subis(B, 1);//Random odd number in [1, 2*maxc-1]
+  GEN AC=shifti(subii(sqri(B), D), -2);//A*C
+  if(random_Fl(2)) B=negi(B);
+  GEN g=gcdii(D, B);
   GEN Aposs=divisors(AC), A, C;
   long r, lx=lg(Aposs);
   for(;;){
-    r=itos(randomi(stoi(lx-1)))+1;
-    A=gel(Aposs,r);
-    C=gel(Aposs,lx-r);
-    if(equali1(ggcd(ggcd(A,C),g))) break;
+	r=1+random_Fl(lx-1);
+    A=gel(Aposs, r);
+    C=gel(Aposs, lx-r);
+    if(equali1(gcdii(gcdii(A, C), g))) break;
   }
-  if(signe(D)==1 && signe(AC)==-1){
-    if(signe(randomi(gen_2))==0) A=negi(A);
-    else togglesign_safe(&C);
-  }
-  else if(signe(D)==1){
-    if(signe(randomi(gen_2))==0){A=negi(A);C=negi(C);}
+  if(signe(D)==1){
+	if(signe(AC)==-1){
+      if(random_Fl(2)) A=negi(A);
+      else C=negi(C);
+	}
+	else{
+      if(random_Fl(2)){A=negi(A);C=negi(C);}
+    }
   }
   return gerepilecopy(top, mkvec3(A, B, C));
 }

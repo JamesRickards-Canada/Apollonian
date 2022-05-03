@@ -265,10 +265,7 @@ GEN primes_mod(GEN range, GEN residues, long modulus){
 
 
 //Returns a random element from the vector v. NOT STACK CLEAN
-GEN rand_elt(GEN v){
-  if(typ(v)!=t_VEC) pari_err_TYPE("Not a vector", v);
-  return gel(v, 1+random_Fl(lg(v)-1));
-}
+GEN rand_elt(GEN v){return gel(v, 1+random_Fl(lg(v)-1));}
 
 
 

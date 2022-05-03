@@ -145,9 +145,9 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(bqf_isequiv, "Inputs: q, S, {tmat=0}: q a BQF, S either a BQF or a set of BQFs, tmat=0,1.\n This method tests if q is PSL(2,Z) equivalent to S or any form in S. If S is a form, this returns 1 if equivalent and 0 if not (if tmat!=0, returns a possible transition matrix).\n If S is a set of forms, this returns 0 if not equivalent and an index i such that q is equivalent to S[i] otherwise. If tmat!=0, this returns [index, transition matrix].");
 		install("bqf_isreduced","iGDG",,"./libapol.so");
 		addhelp(bqf_isreduced,"Inputs q, {D=NULL}: q an integral quadratic form of non-zero discriminant D.\n Returns 1 if q is reduced, and 0 if not. D is optional, and you only need to pass the sign of D.");
-		install("bqf_random","GD0,L,D1,L,","bqf_random","./libapol.so");
+		install("bqf_random","GD0,L,D1,L,",,"./libapol.so");
 		addhelp(bqf_random,"Inputs maxc, {type=0}, {primitive=1}; maxc a positive integer, type=-1,0,1, and primitive=0,1.\n Returns a random BQF with coefficients bounded by maxc. If type=-1 it is positive definite, =1 is indefinite, and =0 means either. If primitive=1 the form is primitive, else it doesn't have to be.");
-		install("bqf_random_D","GG","bqf_random_D","./libapol.so");
+		install("bqf_random_D","GG",,"./libapol.so");
 		addhelp(bqf_random_D,"Inputs maxc, D: maxc a positive integer, and D a discriminant.\n Returns a random primitive form (positive definite if D<0) of discriminant D whose B coefficient is bounded by maxc.");
 		install("bqf_red_tc","GD0,L,p","bqf_red","./libapol.so");
 		addhelp(bqf_red, "Inputs: q, {tmat=0}: BQF q, (tmat=0,1).\n Returns a reduced form equivalent to q, and if tmat!=0, we return [q_red, transition matrix].");
