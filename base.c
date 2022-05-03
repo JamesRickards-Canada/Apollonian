@@ -199,7 +199,7 @@ GEN mat3_complete_tc(GEN A, GEN B, GEN C){
 /* Sample use of veclist_append:
 pari_sp top=avma;
 long vind=0, vlen=10;
-GEN v=cgetg(vlen+1, t_VEC);
+GEN v=zerovec(vlen);//So that we can garbage collect.
 ...
 GEN x=...;
 v=veclist_append(v, &vind, &vlen, x);

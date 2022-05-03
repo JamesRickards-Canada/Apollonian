@@ -265,7 +265,7 @@ The outline of the searching methods is:
         
     getdata:
         vdat is the newest node, and keeps track of the Descartes quadruple and whatever extra info we need
-		1<=ind<=4 is the index of the circle we last swapped
+        1<=ind<=4 is the index of the circle we last swapped
         reps passes in the current set of data found. This is used if W stores indices of elements in reps, and is also used at the end to clean up the data (we may want to sort the final answer, or do something else, etc.)
         info tracks extra information you may want, and may not be modified. It is not touched in apol_search_(type). If not needed, pass it as NULL.
         state tracks what we are doing with this method.
@@ -347,7 +347,7 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*
       if(goback){forward=0;continue;}//We've already done this element in a previous move.
     }
     GEN newvdat=nextquad(gel(W, ind), I[ind], info);//The data for the move.
-	if(!newvdat){forward=0;continue;}//We must go backwards.
+    if(!newvdat){forward=0;continue;}//We must go backwards.
     GEN newcurv=gel(retquad(newvdat), I[ind]);
     if(cmpii(newcurv, bound)>0){forward=0;continue;}//Must go back, elt too big
     if(ind==1 && !countsymm){//The replacement being the same can ONLY happen for the reduced form.
@@ -409,7 +409,7 @@ static GEN apol_search_depth(GEN v, int depth, GEN bound, void *info, GEN (*getd
     //At this point, we can go on with valid and new inputs.
     v=retquad(gel(W, ind));//Current Descartes quadruple
     GEN newvdat=nextquad(gel(W, ind), I[ind], info);//Make the move
-	if(!newvdat){forward=0;continue;}//We must go backwards.
+    if(!newvdat){forward=0;continue;}//We must go backwards.
     GEN newcurv=gel(retquad(newvdat), I[ind]);//The new element
     if(usebound && cmpii(newcurv, bound)>0){forward=0;continue;}//Must go back, new curvature too big
     GEN dat=getdata(newvdat, I[ind], reps, info, 1);//Retrieve the data
@@ -651,9 +651,9 @@ GEN apol_farey_allqf(GEN q){
   GEN maxp=shifti(subis(q, 1), -1);
   GEN v=vectrunc_init(itos(q)+1);
   for(GEN p=gen_1;cmpii(p, maxp)<=0;p=addis(p, 1)){
-	if(!equali1(gcdii(subis(sqri(p), 1), q))) continue;
-	GEN qf=apol_farey_qf(p, q);
-	if(!gequal0(qf)) vectrunc_append(v, qf);
+    if(!equali1(gcdii(subis(sqri(p), 1), q))) continue;
+    GEN qf=apol_farey_qf(p, q);
+    if(!gequal0(qf)) vectrunc_append(v, qf);
   }
   return gerepilecopy(top, v);
 }
@@ -803,7 +803,6 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
 
 
 
-
 //SUPPORTING METHODS
 
 
@@ -837,7 +836,6 @@ GEN apol_words(int d){
 
 //SPECIALIZED METHODS
 //These are scripts that are useful to me, but not likely useful in general.
-
 
 
 //Computes apol_makeall, and returns the external depths of the corresponding circles of curvature n. This works because we use the reduced quadratic forms: A-n<=C-n<=A+C-B-n. Swapping A+C-B-n gives A+C+B-n, so this cannot decrease it. Thus either we are already reduced (and A-n<=0 necessarily), or it is not the largest term (which thus must be n). Thus n is immediately swapped if depth>0, and this gives the circle depth.
@@ -881,5 +879,4 @@ GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec){
   }
   return gerepileupto(top, ZV_sort(curves));
 }
-
 

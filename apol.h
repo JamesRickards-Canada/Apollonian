@@ -125,13 +125,9 @@ GEN posreg(GEN D, long prec);
 GEN quadroot(GEN D);
 
 //BASIC OPERATIONS ON BINARY QUADRATIC FORMS
-GEN bqf_automorph_tc(GEN q);
-int bqf_compare(void *data, GEN q1, GEN q2);
-int bqf_compare_tmat(void *data, GEN d1, GEN d2);
+GEN bqf_automorph(GEN q);
 GEN bqf_disc(GEN q);
-GEN bqf_disc_tc(GEN q);
-int bqf_isreduced(GEN q, int Dsign);
-int bqf_isreduced_tc(GEN q);
+int bqf_isreduced(GEN q, GEN D);
 GEN bqf_random(GEN maxc, int type, int primitive);
 GEN bqf_random_D(GEN maxc, GEN D);
 GEN bqf_red(GEN q, GEN rootD, int Dsign, int tmat);

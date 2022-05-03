@@ -119,30 +119,32 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 \\bqf.c
 
 	\\DISCRIMINANT METHODS
-		install("disclist","GGD0,L,D0,G,","disclist","./libapol.so");
+		install("disclist","GGD0,L,D0,G,",,"./libapol.so");
 		addhelp(disclist, "Inputs d1, d2, {fund=0}, {cop=0}: d1 and d2 integers with d1<=d2, fund=0,1, cop integer.\n Returns the set of proper discriminants between d1 and d2, inclusive. If fund=1, only returns fundamental discriminants. If cop!=0, only returns discriminants coprime to cop.");
-		install("discprimeindex","G","discprimeindex","./libapol.so");
+		install("discprimeindex","G",,"./libapol.so");
 		addhelp(discprimeindex, "Inputs: D, a proper discriminant.\n Returns all prime divisors p of D for which D/p^2 is a proper discriminant.");
-		install("discsuperorders","G","discsuperorders","./libapol.so");
+		install("discsuperorders","G",,"./libapol.so");
 		addhelp(discsuperorders,"Input D, a proper discriminant. Returns the vector of divisors D' of D such that D' is a discriminant and D/D' is a square.\n ");
-		install("isdisc","iG","isdisc","./libapol.so");
+		install("isdisc","iG",,"./libapol.so");
 		addhelp(isdisc, "Inputs: D a real number.\n Returns 1 if D is a proper discriminant, and 0 otherwise.");
-		install("pell","G","pell","./libapol.so");
+		install("pell","G",,"./libapol.so");
 		addhelp(pell, "Inputs: D a positive discriminant.\n Returns [T, U], which is the smallest positive integer solution to T^2-DU^2=4 (and so (T+Usqrt(D))/2 is the fundamental unit in O_D).");
-		install("posreg","Gp","posreg","./libapol.so");
+		install("posreg","Gp",,"./libapol.so");
 		addhelp(posreg, "Inputs: D a positive discriminant.\n Returns the positive regulator of O_D, i.e. the logarithm of the fundamental totally positive unit.");
-		install("quadroot","G","quadroot","./libapol.so");
+		install("quadroot","G",,"./libapol.so");
 		addhelp(quadroot, "Input D, a non-square integer.\n Returns sqrt(D) of type t_QUAD.");
 
+		addhelp(disc,"Installed methods:\ndisclist, discprimeindex, discsuperorders, isdisc, pell, posreg, quadroot.");
+
 	\\BASIC OPERATIONS ON BINARY QUADRATIC FORMS
-		install("bqf_automorph_tc","G","bqf_automorph","./libapol.so");
-		addhelp(bqf_automorph, "Inputs: q a BQF.\n Returns a generator of the automorph group of q in PSL(2,Z).");
-		install("bqf_disc_tc","G","bqf_disc","./libapol.so");
-		addhelp(bqf_disc, "Inputs: q, quadratic form.\n Returns the discriminant of q.");
+		install("bqf_automorph","G",,"./libapol.so");
+		addhelp(bqf_automorph, "Input q, a BQF.\n Returns a generator of the automorph group of q in PSL(2,Z).");
+		install("bqf_disc","G",,"./libapol.so");
+		addhelp(bqf_disc, "Input q, an integral quadratic form.\n Returns the discriminant of q.");
 		install("bqf_isequiv_tc","GGD0,L,p","bqf_isequiv","./libapol.so");
 		addhelp(bqf_isequiv, "Inputs: q, S, {tmat=0}: q a BQF, S either a BQF or a set of BQFs, tmat=0,1.\n This method tests if q is PSL(2,Z) equivalent to S or any form in S. If S is a form, this returns 1 if equivalent and 0 if not (if tmat!=0, returns a possible transition matrix).\n If S is a set of forms, this returns 0 if not equivalent and an index i such that q is equivalent to S[i] otherwise. If tmat!=0, this returns [index, transition matrix].");
-		install("bqf_isreduced_tc","iG","bqf_isreduced","./libapol.so");
-		addhelp(bqf_isreduced,"Input q, quadratic form.\n Returns 1 if q is reduced, and 0 if not.");
+		install("bqf_isreduced","iGDG",,"./libapol.so");
+		addhelp(bqf_isreduced,"Inputs q, {D=NULL}: q an integral quadratic form of non-zero discriminant D.\n Returns 1 if q is reduced, and 0 if not. D is optional, and you only need to pass the sign of D.");
 		install("bqf_random","GD0,L,D1,L,","bqf_random","./libapol.so");
 		addhelp(bqf_random,"Inputs maxc, {type=0}, {primitive=1}; maxc a positive integer, type=-1,0,1, and primitive=0,1.\n Returns a random BQF with coefficients bounded by maxc. If type=-1 it is positive definite, =1 is indefinite, and =0 means either. If primitive=1 the form is primitive, else it doesn't have to be.");
 		install("bqf_random_D","GG","bqf_random_D","./libapol.so");
@@ -206,7 +208,6 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 
 	\\GENERAL HELP
 		addhelp(bqf, "This package deals with binary quadratic forms with integer coefficients. A homogeneous binary quadratic form Ax^2+Bxy+Cy^2 is stored as [A,B,C]. A proper discriminant is an integer that is equivalent to 0 or 1 modulo 4 and is not a square. \n Subtopics:\n Discriminants (disc)\n Basic operations (bqfbasic)\n Indefinite forms (ibqf)\n Class group and composition (bqfclass)\n Representation of numbers (bqfsolve)");
-		addhelp(disc,"disclist, discprimeindex, discsuperorders, isdisc, pell, posreg, quadroot.");
 		addhelp(bqfbasic,"bqf_automorph, bqf_disc, bqf_isequiv, bqf_isreduced, bqf_random, bqf_random_D, bqf_red, bqf_roots, bqf_trans, bqf_trans_coprime, ideal_tobqf.");
 		addhelp(ibqf,"ibqf_isrecip, ibqf_leftnbr, ibqf_redorbit, ibqf_rightnbr, ibqf_river, ibqf_riverforms, ibqf_symmetricarc, mat_toibqf.");
 		addhelp(bqfclass,"bqf_allforms, bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");

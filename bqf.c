@@ -13,6 +13,10 @@
 
 //STATIC DECLARATIONS
 
+//BASIC OPERATIONS ON BINARY QUADRATIC FORMS
+static int bqf_compare(void *data, GEN q1, GEN q2);
+static int bqf_compare_tmat(void *data, GEN d1, GEN d2);
+
 //COMPOSITION/CLASS GROUP
 static GEN bqf_ncgp_nonfundnarrow(GEN cgp, GEN D, GEN rootD);
 
@@ -165,7 +169,7 @@ GEN quadroot(GEN D){
 
 
 //Returns the generator of the automorphism group of q in PSL(2,Z) (which is Z if D>0, Z/2Z if D=-4, Z/3Z if D=-3, and 1 if D<-4
-GEN bqf_automorph_tc(GEN q){
+GEN bqf_automorph(GEN q){
   pari_sp top=avma;
   GEN D=bqf_checkdisc(q);
   if(signe(D)==-1) return gerepileupto(top, dbqf_automorph(q, D));
@@ -173,11 +177,9 @@ GEN bqf_automorph_tc(GEN q){
 }
 
 //Compares two bqfs based on A, then B, then C. It is safe to modify this method, as sorting/searching will call the pointer to this function
-int bqf_compare(void *data, GEN q1, GEN q2){
-  int i;
+static int bqf_compare(void *data, GEN q1, GEN q2){
   for(long j=1;j<=3;++j){
-    i=cmpii(gel(q1,j),gel(q2,j));
-    switch(i){
+    switch(cmpii(gel(q1, j), gel(q2, j))){
       case -1:
         return -1;
       case 1:
@@ -187,58 +189,39 @@ int bqf_compare(void *data, GEN q1, GEN q2){
   return 0;
 }
 
-//bqf_compare, but assumes the inputs are d1=[q1,mat1] and d2=[q2,mat2], and compares q1 and q2. This returns 0 if q1=q2, even if mat1!=mat2 (the mats don't matter)
-int bqf_compare_tmat(void *data, GEN d1, GEN d2){
-  return bqf_compare(data,gel(d1,1),gel(d2,1));
+//bqf_compare, but assumes the inputs are d1=[q1, mat1] and d2=[q2, mat2], and compares q1 and q2. This returns 0 if q1=q2, even if mat1!=mat2 (the mats don't matter)
+static int bqf_compare_tmat(void *data, GEN d1, GEN d2){
+  return bqf_compare(data, gel(d1, 1), gel(d2, 1));
 }
 
 //Returns the discriminant of q, which must be length 3 vector and integral.
 GEN bqf_disc(GEN q){
   pari_sp top = avma;
-  return gerepileupto(top,subii(sqri(gel(q,2)),shifti(mulii(gel(q,1),gel(q,3)),2)));
+  return gerepileupto(top, subii(sqri(gel(q, 2)), shifti(mulii(gel(q, 1), gel(q, 3)), 2)));
 }
 
-//Returns the discriminant of q after performing a type check.
-GEN bqf_disc_tc(GEN q){
-  bqf_check(q);
-  return bqf_disc(q);//No avma necessary
-}
-
-//Returns 1 if the BQF q (indefinite/positive definite) of discriminant D with sign Dsign is reduced, and 0 if not.
-int bqf_isreduced(GEN q, int Dsign){
+//Returns 1 if the BQF q (indefinite/positive definite) of discriminant D is reduced, and 0 if not. D needs to only have the correct sign.
+int bqf_isreduced(GEN q, GEN D){
   pari_sp top=avma;
-  int answer=0;
+  if(!D) D=bqf_disc(q);
+  int Dsign=signe(D);
   if(Dsign==1){//D>0, so AC<0 and B>|A+C|
-    if(signe(gel(q,1))==signe(gel(q,3))) return 0;
-    GEN s=addii(gel(q,1),gel(q,3));
-    GEN abss=absi(s);
-    if(cmpii(gel(q,2),abss)==1) answer=1;//Only need to update it if this happens
-    avma=top;
-    return answer;
+    if(signe(gel(q, 1))==signe(gel(q, 3))) return gc_int(top, 0);//AC>0, not reduced.
+    GEN s=addii(gel(q, 1),gel(q, 3));
+    if(cmpii(gel(q, 2), absi(s))>0) return gc_int(top, 1);//Reduced!
+	return gc_int(top, 0);//B<=|A+C|, not reduced.
   }
   else{//D<0, so |B|<=A<=C and if A=|B| or A=C then B>=0
-    if(cmpii(gel(q,1),gel(q,3))<=0){
-      GEN babs=absi(gel(q,2));
-      if(cmpii(babs,gel(q,1))<=0){
-        if(equalii(gel(q,1),babs) || equalii(gel(q,1),gel(q,3))){
-          if(cmpis(gel(q,2),0)>=0) answer=1;
-        }
-        else answer=1;
-      }
-    }
-    avma=top;
-    return answer;
+    int ACcomp=cmpii(gel(q, 1), gel(q, 3));
+    if(ACcomp>0) return gc_int(top, 0);//A>C, not reduced
+    GEN babs=absi(gel(q, 2));//|B|
+	int Bcomp=cmpii(babs, gel(q, 1));
+    if(Bcomp>0) return gc_int(top, 0);//|B|>A, not reduced.
+    if(Bcomp<0 && ACcomp<0) return gc_int(top, 1);//|B|<A<C
+    if(signe(gel(q, 2))>=0) return gc_int(top, 1);//A=C or |B|=A, so need B>=0
+	return gc_int(top, 0);//A=C or |B|=A, and B<0.
   }
-}
-
-//bqf_isreduced with typecheck
-int bqf_isreduced_tc(GEN q){
-  pari_sp top=avma;
-  bqf_check(q);
-  GEN D=bqf_disc(q);
-  int ans=bqf_isreduced(q,signe(D));
-  avma=top;
-  return ans;
+  return gc_int(top, -1);//Some error with the inputs
 }
 
 //Generates a random proper bqf with max coefficient maxc. If type=1 it will be indefinite, type=-1 positive definite, type=0 either. primitive=1 means primitive, =0 means don't care. This is not designed for efficiency
@@ -506,7 +489,7 @@ GEN dbqf_red(GEN q){
     return gerepileupto(top,gneg(negans));
   }//Now q is positive definite.
   pari_sp top=avma;
-  if(bqf_isreduced(q,-1)) return ZV_copy(q);//No garbage needed
+  if(bqf_isreduced(q, gen_m1)) return ZV_copy(q);//No garbage needed
   //Now q is not reduced, so the pointer to it will change and not point at the original q.
   GEN n=gen_0;//n represents if we are doing L^n or R^n
   if(signe(gel(q,2))==1) q=bqf_trans(q,mkmat22s(0,1,-1,0));//Pointing wrong way
@@ -560,7 +543,7 @@ GEN dbqf_red_tmat(GEN q){
   GEN rvec=cgetg(3,t_VEC);
   pari_sp top=avma;
   GEN Lmat=mkmat22s(1,0,0,1);//Will represent L^n
-  if(bqf_isreduced(q,-1)){
+  if(bqf_isreduced(q, gen_m1)){
     gel(rvec,1)=ZV_copy(q);
     gel(rvec,2)=Lmat;//Just reusing the variable
     return rvec;//No garbage needed
@@ -832,7 +815,7 @@ GEN ibqf_leftnbr_tc(GEN q, int tmat, long prec){
 GEN ibqf_red(GEN q, GEN rootD){
   pari_sp top=avma;
   GEN toriv=ibqf_toriver(q,rootD);//Now the form is on the river
-  if(bqf_isreduced(toriv,1)) return toriv;//No garbage!
+  if(bqf_isreduced(toriv, gen_1)) return toriv;//No garbage!
   return gerepilecopy(top,ibqf_rightnbr(toriv,rootD));//If not reduced, take the right neighbour
 }
 
@@ -840,7 +823,7 @@ GEN ibqf_red(GEN q, GEN rootD){
 GEN ibqf_red_tmat(GEN q, GEN rootD){
   pari_sp top=avma;
   GEN toriv=ibqf_toriver_tmat(q,rootD);//Now the form is on the river
-  if(bqf_isreduced(gel(toriv,1),1)) return toriv;
+  if(bqf_isreduced(gel(toriv, 1), gen_1)) return toriv;
   return gerepileupto(top,ibqf_rightnbr_update(toriv,rootD));
 }
 
