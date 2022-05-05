@@ -295,21 +295,17 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*
   int forward=1;//Tracks if we are going forward or not.
   long Nreps=400;//Initial size of the return.
   GEN reps=vectrunc_init(Nreps);//We may need to extend the length of reps later on.
+  int isstrip=gequal0(gel(v, 1));//If we have the strip packing or not, which causes some subtle issues.
+  if(isstrip) countsymm=0;//Strip packing, must not count symmetry
   if(countsymm){
-    if(gequal0(gel(v, 1))){
-      countsymm=0;
-      pari_warn(warner, "Strip packing, must not count symmetry");
-    }
-    else{
-      for(int i=1;i<=4;i++){
-        if(cmpii(gel(v, i), bound)<=0){//First 4 reps
-          GEN dat=getdata(vdat, i, reps, info, 2);
-          if(dat) vectrunc_append(reps, dat);//We have data to store.
-        }
+    for(int i=1;i<=4;i++){
+      if(cmpii(gel(v, i), bound)<=0){//First 4 reps
+        GEN dat=getdata(vdat, i, reps, info, 2);
+        if(dat) vectrunc_append(reps, dat);//We have data to store.
       }
     }
   }
-  if(!countsymm){//Must ignore symmetry. v is already sorted.
+  else{//Must ignore symmetry. v is already sorted.
     for(int i=1;i<=4;i++){
       if(cmpii(gel(v, i), bound)<=0 && (i==1 || !equalii(gel(v, i-1), gel(v, i)))){//First 4 reps
         GEN dat=getdata(vdat, i, reps, info, 2);
@@ -339,7 +335,7 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*
     if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
     //At this point, we can go on with valid and new inputs.
     v=retquad(gel(W, ind));//Current Descartes quadruple
-    if(ind==1 && !countsymm){//Make sure we haven't seen this element before. If this happens at some point, then it ALSO happens at the reduced form!
+    if(isstrip || (ind==1 && !countsymm)){//Make sure we haven't seen this element before. If this happens at some point, then it ALSO happens at the reduced form!
       int goback=0;
       for(int j=1;j<I[ind];j++){
         if(equalii(gel(v, j), gel(v, I[ind]))){goback=1;break;}
@@ -350,7 +346,7 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*
     if(!newvdat){forward=0;continue;}//We must go backwards.
     GEN newcurv=gel(retquad(newvdat), I[ind]);
     if(cmpii(newcurv, bound)>0){forward=0;continue;}//Must go back, elt too big
-    if(ind==1 && !countsymm){//The replacement being the same can ONLY happen for the reduced form.
+    if(ind==1 && !countsymm){//The replacement being the same can ONLY happen for the reduced form, even for the strip packing.
       if(equalii(gel(v, I[ind]), newcurv)){forward=0;continue;}//Must go back, same thing (e.g. the strip packing)
     }
     GEN dat=getdata(newvdat, I[ind], reps, info, 1);//Retrieve the data
@@ -567,7 +563,10 @@ static GEN apol_layer_getdata(GEN vdat, int ind, GEN reps, void *nul, int state)
 //An element of vdat is [v, current layer], unless ind=0, when vdat=v. The current layer is [L(v[1]), L(v[2]), L(v[3]), L(v[4]), min layer, freq of min layer], where L(v[i]) is the layer of the ith circle in v.
 static GEN apol_layer_nextquad(GEN vdat, int ind, void *maxlayers){
   pari_sp top=avma;
-  if(ind==0) return mkvec2(vdat, mkvecsmalln(6, 0L, 1L, 1L, 1L, 0L, 1L));//First circles are in layers 0, 1, 1, 1; min 0 1 time
+  if(ind==0){
+    if(gequal0(gel(vdat, 1))) return mkvec2(vdat, mkvecsmalln(6, 0L, 0L, 1L, 1L, 0L, 2L));//Strip packing; layers 0, 0, 1, 1; min 0 1 time
+    return mkvec2(vdat, mkvecsmalln(6, 0L, 1L, 1L, 1L, 0L, 1L));//First circles are in layers 0, 1, 1, 1; min 0 1 time
+  }
   GEN curlayer=gel(vdat, 2), nextlayer=vecsmall_copy(curlayer);//Current layer, next layer
   if(curlayer[ind]==curlayer[5]){//Currently min. If max, it MUST be repeated, and does not change anything.
     if(curlayer[6]==1){nextlayer[ind]=nextlayer[ind]+2;nextlayer[5]++;nextlayer[6]=3;}//go from x, x+1, x+1, x+1 to x+2, x+1, x+1, x+1.
@@ -722,7 +721,7 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
   long lc;
   GEN cscale=cgetg_copy(c, &lc);//Scale it so the first circle has radius 3in and centre at (0, 0). The first circle is supposed to be the biggest, having negative curvature, and centre 0, 0. If it is not the largest, we have some work to do.
   GEN largestcirc=stoi(3);//Radius of largest circle
-  if(lg(gel(c, 1))==3 || gcmpgs(gmael(c, 1, 3), 0)<0){//First circle neg curvature, so everything is a circle.
+  if(lg(gel(c, 1))==4 && gcmpgs(gmael(c, 1, 3), 0)<0){//First circle neg curvature, assume all circles
     GEN scalingfactor=gdiv(largestcirc, gmael(c, 1, 2));//Scaling factor.
     gel(cscale, 1)=mkvec3(largestcirc, gen_0, gen_0);
     for(long i=2;i<lc;i++){
@@ -773,8 +772,9 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
       if(modcolours>0) options=", white";
       else options="";
     for(long i=1;i<lc;i++){
+      if(lg(gel(c, i))==3) continue;//No numbers for horizontal lines
       GEN curv=gmael(c, i, 3), scaleby;
-      if(gsigne(curv)!=1) continue;//Don't add numbers for curvatures <=0.
+      if(signe(curv)!=1) continue;//Don't add numbers for curvatures <0.
       long ndigits=logint(curv, ten)+1;
       switch(ndigits){//Scaling the font.
         case 1:
