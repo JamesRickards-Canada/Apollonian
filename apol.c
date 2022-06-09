@@ -314,12 +314,13 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*
     }
   }
   do{//1<=ind<=depth is assumed.
-    if(gc_needed(top, 2)){//Garbage day!
+    if(gc_needed(top, 1)){//Garbage day!
       GEN oldreps=reps;
       mid=avma;
       W=gcopy(W);
       I=gcopy(I);
       reps=vectrunc_init(Nreps);
+      output(ghalf);
       for(long i=1;i<lg(oldreps);i++) vectrunc_append(reps, gcopy(gel(oldreps, i)));//Copying reps; can't use vectrunc_append_batch.
       gerepileallsp(top, mid, 3, &W, &I, &reps);
     }

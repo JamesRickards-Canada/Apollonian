@@ -105,14 +105,21 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("mat3_complete_tc", "GGG", "mat3_complete", "./libapol.so");
 		addhelp(mat3_complete, "Inputs A,B,C integers with gcd 1.\n Outputs a 3x3 integer matrix with determinant 1 whose top row is [A, B, C].");
 	
+	\\MODS
+		install("modsquares","GD1,L,",,"./libapol.so");
+		addhelp(modsquares,"Inputs n, {cop=1}: n a positive integer, cop=0, 1.\n Returns the squares mod n, only keeping those coprime to n if cop=1.");
+		install("mod_breakdown","GG",,"./libapol.so");
+		addhelp(mod_breakdown,"Inputs res, n: list of residues modulo n>1.\n Returns the residues modulo q^e for all q^e||n. Each component of the return vector is [residues, [q, e, q^e]], and the vector is ordered by q.");
+	
 	\\PRIMES
 		install("primes_mod","GGL",,"./libapol.so");
 		addhelp(primes_mod,"Input range, residues, modulus.\n Returns the primes in the given range that have the given residues modulo the modulus. Range=[a, b] where a<b are integers, and residues can either be a single integer or a vector of integers.");
 	
 	\\GENERAL HELP
-		addhelp(base,"This package is a collection of miscellaneous methods that may be useful in a variety of settings, and not just for the programs they were originally created for \n Subtopics: \n Infinity (inf) \n Linear algebra (la) \n Primes (pr)");
+		addhelp(base,"This package is a collection of miscellaneous methods that may be useful in a variety of settings, and not just for the programs they were originally created for \n Subtopics: \n Infinity (inf) \n Linear algebra (la) \n Mod n (modn) \n Primes (pr)");
 		addhelp(inf,"addoo, divoo.");
 		addhelp(la,"lin_intsolve, mat3_complete.");
+		addhelp(modn,"modsquares, mod_breakdown.");
 		addhelp(pr,"primes_mod");
 
 
@@ -206,12 +213,21 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("bqf_linearsolve_tc","GGGGp","bqf_linearsolve","./libapol.so");
 		addhelp(bqf_linearsolve,"Inputs qf, n1, lin, n2: qf a six term integer vector representing the form Ax^2+By^2+Cz^2+Dxy+Exz+Fyz, n1 an integer, lin a three term integer vector representing Ax+By+Cz, and n2 an integer.\n Solves qf(x, y, z)=n1 and lin(x, y, z)=n2 simultaneously. If there are no solutions, this returns 0. Otherwise it returns a vector v. Let v[1][1]=t, and then the format of v is:\n\n -t=-2, v=[[-2], [[a1, a2, a3], [b1, b2, b3], [c1, c2, c3]], ...], where each general solution is x=a1U^2+a2U+a3, y=b1U^2+b2U+b3, z=c1U^2+c2U+c3 for any U integral;\n -t=-1, v=[[-1], [[a1, a2, a3], [b1, b2, b3], [c1, c2, c3]]], where the solution is x=a1U+b1V+c1, y=a2U+b2V+c2, z=a3U+v3V+c3 for any U, V integral;\n --t=0, v=[[0], [a1, b1, c1], ...], where the finite set of solutions are (x,y,z)=(ai, bi, ci);\n --t=1, v=[[1, M, [s1, s2, s3]], [a1, b1, c1], ...], where the general solution is [x;y;z]=M^k[ai;bi;ci]+[s1;s2;s3] for k integral. Note that ai and si need not be integral, though M is.\n --t=2, v=[[2], [[a1, a2, a3], [b1, b2, b3]], ...], where each general solution is x=a1U+b1, y=a2U+b2, z=a3U+b3 for any U integral;\n\n In general, -2=quadratic, -1=plane, 0=finite, 1=positive, 2=linear.");
 
+	\\TUPLE REPS OF PRIMES
+		install("bqf_primesmod","G",,"./libapol.so");
+		addhelp(bqf_primesmod,"Input q, an integral BQF.\n Returns the residue classes modulo D=disc(q) coprime to D that are represented by q.");
+		install("bqf_primetuplereps","GGD0,G,",,"./libapol.so");
+		addhelp(bqf_primetuplereps, "Inputs v, pmin, {pmax=0}. Returns the smallest prime between pmin and pmax represented by all BQFs in v. If pmax=0, we go from 2 to pmin.");
+		install("bqf_tuplevalid","iG",,"./libapol.so");
+		addhelp(bqf_tuplevalid,"Input v, a vector of integral BQFs.\n Returns 1 if there is a residue class containing primes that is represented by all forms, and 0 if not.");
+	
 	\\GENERAL HELP
-		addhelp(bqf, "This package deals with binary quadratic forms with integer coefficients. A homogeneous binary quadratic form Ax^2+Bxy+Cy^2 is stored as [A,B,C]. A proper discriminant is an integer that is equivalent to 0 or 1 modulo 4 and is not a square. \n Subtopics:\n Discriminants (disc)\n Basic operations (bqfbasic)\n Indefinite forms (ibqf)\n Class group and composition (bqfclass)\n Representation of numbers (bqfsolve)");
+		addhelp(bqf, "This package deals with binary quadratic forms with integer coefficients. A homogeneous binary quadratic form Ax^2+Bxy+Cy^2 is stored as [A,B,C]. A proper discriminant is an integer that is equivalent to 0 or 1 modulo 4 and is not a square. \n Subtopics:\n Discriminants (disc)\n Basic operations (bqfbasic)\n Indefinite forms (ibqf)\n Class group and composition (bqfclass)\n Representation of numbers (bqfsolve)\n Representation of primes (bqfprime)");
 		addhelp(bqfbasic,"bqf_automorph, bqf_disc, bqf_isequiv, bqf_isreduced, bqf_random, bqf_random_D, bqf_red, bqf_roots, bqf_trans, bqf_trans_coprime, ideal_tobqf.");
 		addhelp(ibqf,"ibqf_isrecip, ibqf_leftnbr, ibqf_redorbit, ibqf_rightnbr, ibqf_river, ibqf_riverforms, ibqf_symmetricarc, mat_toibqf.");
 		addhelp(bqfclass,"bqf_allforms, bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");
 		addhelp(bqfsolve,"bqf_bigreps, bqf_linearsolve, bqf_reps.");
+		addhelp(bqfprime,"bqf_primesmod, bqf_primetuplereps, bqf_tuplevalid.");
 
 \\farey.c
 		install("fareydenom_depths","L", ,"./libapol.so");

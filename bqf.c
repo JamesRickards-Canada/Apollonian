@@ -41,6 +41,10 @@ static GEN bqf_linearsolve_zlin(GEN yzsols, GEN n2, GEN Minv);
 static GEN bqf_linearsolve_zpos(GEN yzsols, GEN n2, GEN Minv, GEN M);
 static GEN bqf_linearsolve_zquad(GEN yzsols, GEN n2, GEN Minv);
 
+//TUPLE REPS OF PRIMES
+static int mod_collapse(GEN L);
+static int bqf_tuplevalid_cmp(void *data, GEN x, GEN y);
+
 
 
 //DISCRIMINANT METHODS
@@ -1532,8 +1536,8 @@ long ibqf_isequiv_set_byq_presorted(GEN qredsorted, GEN S, GEN rootD){
   GEN Sred;
   long ind;
   for(long i=1;i<lg(S);++i){
-    Sred=ibqf_red_pos(gel(S,i), rootD);
-    ind=gen_search(qredsorted,Sred,0,NULL,&bqf_compare);
+    Sred=ibqf_red_pos(gel(S, i), rootD);
+    ind=gen_search(qredsorted, Sred, NULL, &bqf_compare);
     if(ind>0){avma=top;return i;}
     cgiv(Sred);
   }
@@ -1554,14 +1558,14 @@ GEN ibqf_isequiv_set_byq_tmat_presorted(GEN qredsorted, GEN S, GEN rootD){
   GEN Sred;
   long ind;
   for(long i=1;i<lg(S);++i){
-    Sred=ibqf_red_pos_tmat(gel(S,i), rootD);
-    ind=gen_search(qredsorted,Sred,0,NULL,&bqf_compare_tmat);
+    Sred=ibqf_red_pos_tmat(gel(S, i), rootD);
+    ind=gen_search(qredsorted, Sred, NULL, &bqf_compare_tmat);
     if(ind>0){
-      GEN Sredinv=ZM_inv(gel(Sred,2),NULL);
-      GEN rvec=cgetg(3,t_VEC);
-      gel(rvec,1)=stoi(i);
-      gel(rvec,2)=ZM_mul(gel(gel(qredsorted,ind),2),Sredinv);
-      return gerepileupto(top,rvec);
+      GEN Sredinv=ZM_inv(gel(Sred, 2), NULL);
+      GEN rvec=cgetg(3, t_VEC);
+      gel(rvec, 1)=stoi(i);
+      gel(rvec, 2)=ZM_mul(gel(gel(qredsorted, ind), 2), Sredinv);
+      return gerepileupto(top, rvec);
     }
     cgiv(Sred);
   }
@@ -1584,15 +1588,15 @@ long ibqf_isequiv_set_byS(GEN q, GEN S, GEN rootD){
 //ibqf_isequiv_set_byS with Scodes sorted by the permutation perm^(-1)
 long ibqf_isequiv_set_byS_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD){
   pari_sp top=avma;
-  GEN qred=ibqf_red_pos(q,rootD);
+  GEN qred=ibqf_red_pos(q, rootD);
   GEN qseek=qred;
   long ind;
   do{
-    ind=gen_search(Sreds,qseek,0,NULL,&bqf_compare);
+    ind=gen_search(Sreds, qseek, NULL, &bqf_compare);
     if(ind>0){avma=top; return perm[ind];}//Done!
-    qseek=ibqf_rightnbr(ibqf_rightnbr(qseek,rootD),rootD);
+    qseek=ibqf_rightnbr(ibqf_rightnbr(qseek, rootD), rootD);
   }
-  while(!ZV_equal(qred,qseek));
+  while(!ZV_equal(qred, qseek));
   avma=top;
   return -1;//No solution
 }
@@ -1615,17 +1619,17 @@ GEN ibqf_isequiv_set_byS_tmat_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD){
   GEN q1L=qred, q1R=qred;
   long ind;
   int isdone=0;
-  ind=gen_search(Sreds,q1R,0,NULL,&bqf_compare_tmat);
+  ind=gen_search(Sreds,q1R,NULL,&bqf_compare_tmat);
   if(ind>0) isdone=1;
   else{
     for(;;){//At start of each loop, both q1L and q1R have been checked already
       q1R=ibqf_rightnbr_update(ibqf_rightnbr_update(q1R,rootD),rootD);//Update q1R
       if(ZV_equal(gel(q1L,1),gel(q1R,1))) break;//Done, no solution
-      ind=gen_search(Sreds,q1R,0,NULL,&bqf_compare_tmat);
+      ind=gen_search(Sreds,q1R,NULL,&bqf_compare_tmat);
       if(ind>0){isdone=1;break;}//Finished with R
       q1L=ibqf_leftnbr_update(ibqf_leftnbr_update(q1L,rootD),rootD);//Update q1L
       if(ZV_equal(gel(q1L,1),gel(q1R,1))) break;//Done, no solution
-      ind=gen_search(Sreds,q1L,0,NULL,&bqf_compare_tmat);
+      ind=gen_search(Sreds,q1L,NULL,&bqf_compare_tmat);
       if(ind>0){isdone=-1;break;}//Finished with L
     }
   }
@@ -2336,7 +2340,7 @@ static void ibqf_reps_proper(GEN qorb, GEN D, GEN rootD, GEN n, glist **sols, lo
     gel(f, 2)=B;
     gel(f, 3)=diviiexact(subii(sqri(B), D),fourn);//(B^2-D)/(4n)
     fred=ibqf_red_pos_tmat(f, rootD);
-    ind=gen_search(qorb, fred, 0, NULL, &bqf_compare_tmat);
+    ind=gen_search(qorb, fred, NULL, &bqf_compare_tmat);
     if(ind>0){//Solution!
       transmat=ZM_mul(gel(gel(qorb,ind),2),ZM_inv(gel(fred,2),NULL));//transmat circ f=[n,b,c]
       bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
@@ -2347,7 +2351,7 @@ static void ibqf_reps_proper(GEN qorb, GEN D, GEN rootD, GEN n, glist **sols, lo
       B=addii(B,modu);//So B=k*modu+resclass[2][j] in the end
       gel(f,2)=B;
       fred=ibqf_red_pos_tmat(f,rootD);
-      ind=gen_search(qorb,fred,0,NULL,&bqf_compare_tmat);
+      ind=gen_search(qorb, fred, NULL, &bqf_compare_tmat);
       if(ind>0){//Solution!
         transmat=ZM_mul(gel(gel(qorb,ind),2),ZM_inv(gel(fred,2),NULL));//transmat circ f=[n,b,c]
         bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
@@ -2965,4 +2969,115 @@ void intmatrix_check(GEN mtx){
   if(lg(gel(mtx, 1))!=3) pari_err(e_TYPE, "Please input a 2x2 intgral matrix", mtx);
   for(int i=1;i<=2;i++) for(int j=1;j<=2;j++) if(typ(gcoeff(mtx, i, j))!=t_INT) pari_err(e_TYPE, "Please input a 2x2 INTEGRAL matrix", mtx);
 }
+
+
+
+//TUPLE REPS OF PRIMES
+
+//Returns the residue classes modulo D that q could represent.
+GEN bqf_primesmod(GEN q){
+  pari_sp top=avma, mid;
+  GEN D=absi(bqf_disc(q));//WLOG work with a positive number.
+  mid=avma;
+  GEN divs=divisors(D);
+  GEN L=vectrunc_init(lg(divs)*itos(D));//Stores q(x, y) as x loops over divisors of D and 0, and y ranges from 0 to D-1
+  if(equali1(gcdii(gel(q, 3), D))) vectrunc_append(L, Fp_red(gel(q, 3), D));//q(0, 1), the only value we care about if x=0.
+  for(long i=1;i<lg(divs)-1;i++){//Don't want to include D as a divisor, already treated this case.
+    GEN x=gel(divs, i);
+	GEN c1=Fp_mul(gel(q, 1), Fp_sqr(x, D), D);//q[1]*x^2
+	GEN c2part=Fp_mul(gel(q, 2), x, D);//q[2]*x
+	for(GEN y=gen_0;cmpii(y, D)<0;y=addis(y, 1)){
+	  if(!equali1(gcdii(x, y))) continue;//gcd(x, y)!=1
+	  GEN val=Fp_addmul(c1, Fp_addmul(c2part, gel(q, 3), y, D), y, D);//q(x, y) mod D
+	  if(!equali1(gcdii(val, D))) continue;//gcd(D, q(x, y))!=1
+	  vectrunc_append(L, val);
+	}
+  }
+  L=gerepileupto(mid, ZV_sort_uniq(L));//All primitive values of q coprime to D are equal to a square times an element of L.
+  GEN gens=vectrunc_init(lg(L));//Stores one element per part.
+  GEN sq=modsquares(D, 1);//coprime squares mod D
+  long lg;
+  while(lg(L)>1){
+	GEN x=gel(L, 1);//New rep.
+	vectrunc_append(gens, x);
+	GEN xgen=cgetg_copy(sq, &lg);
+	for(long i=1;i<lg;i++) gel(xgen, i)=Fp_mul(gel(sq, i), x, D);
+	xgen=ZV_sort(xgen);//No need for uniq, already distinct guaranteed.
+	L=setminus(L, xgen);
+  }
+  long lsq=lg(sq), lgen=lg(gens);
+  GEN ret=vectrunc_init((lsq-1)*(lgen-1)+1);
+  for(long i=1;i<lsq;i++){
+	for(long j=1;j<lgen;j++) vectrunc_append(ret, Fp_mul(gel(sq, i), gel(gens, j), D));//Multiply sq and gens
+  }
+  return gerepileupto(top, ZV_sort(ret));//Again, no need for uniq
+}
+
+//Returns the smallest prime primitively represented by all BQFs in v in the range pmin to pmax
+GEN bqf_primetuplereps(GEN v, GEN pmin, GEN pmax){
+  pari_sp top=avma;
+  long lgv;
+  GEN vqfb=cgetg_copy(v, &lgv), Dlist=cgetg_copy(v, &lgv);
+  for(long i=1;i<lgv;i++){gel(vqfb, i)=Qfb0(gel(v, i), NULL, NULL);gel(Dlist, i)=negi(bqf_disc(gel(v, i)));}//Convert to Qfbs and get discs
+  Dlist=ZV_sort(Dlist);
+  int pbigenough=0;
+  forprime_t T;
+  if(gequal0(pmax)){pmax=pmin;pmin=gen_2;}//In case we only supply a maximum.
+  forprime_init(&T, pmin, pmax);
+  GEN p;
+  GEN fact=mkmat2(mkcol(gen_1), mkcol(gen_1));//Matrix [1 1], will be modified to be [p 1]=factor(p)
+  while((p=forprime_next(&T))){
+	int success=1;
+	if(!pbigenough){//Need to check that p is coprime to all discs.
+	  for(long i=1;i<lgv;i++) if(!equali1(gcdii(p, gel(Dlist, i)))){success=0;break;}
+	  if(!success) continue;//p not always coprime
+	  if(cmpii(gel(Dlist, lgv-1), p)<0) pbigenough=1;//p>all discs, no need to check for gcd=1 as it's guaranteed.
+	}
+	gcoeff(fact, 1, 1)=p;
+	for(long i=1;i<lgv;i++){
+	  if(lg(qfbsolve(gel(vqfb, i), fact, 0))==1){success=0;break;}
+	}
+	if(success) return gerepilecopy(top, p);
+  }
+  return gc_const(top, gen_0);
+}
+
+//Returns 1 if there are residue classes that could contain primes simultaneously represented by all BQF's in v, and 0 if not (some restrictions mod n).
+int bqf_tuplevalid(GEN v){
+  pari_sp top=avma;
+  long lv;
+  GEN res=cgetg_copy(v, &lv);
+  for(long i=1;i<lv;i++) gel(res, i)=mod_breakdown(bqf_primesmod(gel(v, i)), bqf_disc(gel(v, i)));
+  res=shallowconcat1(res);//Put the residues all together
+  return gc_int(top, mod_collapse(res));
+}
+
+//Given a bunch of residue classes [res, [p, e, p^e]], this returns 1 if there exists a number that obeys 1 congruence from each class, and 0 if not.
+static int mod_collapse(GEN L){
+  pari_sp top=avma;
+  GEN Lsort=gen_sort(L, NULL, &bqf_tuplevalid_cmp);
+  long i0=1;
+  for(long i=2;i<=lg(L);i++){
+	if(i<lg(L) && equalii(gmael3(Lsort, i, 2, 1), gmael3(Lsort, i-1, 2, 1))) continue;//Go until we hit a new prime
+	long i1=i-1;//We go from i0 to i1.
+	if(i1==i0){i0=i;continue;}//Fine!
+	//Go backwards and keep set intersecting
+	GEN resbase=gmael(Lsort, i1, 1);//The baseline to search with
+	for(long j=i1-1;j>=i0;j--){
+	  resbase=FpV_red(resbase, gmael3(Lsort, j, 2, 3));//Mod the lower prime power
+	  resbase=ZV_sort_uniq(resbase);//Sort it
+	  resbase=setintersect(resbase, gmael(Lsort, j, 1));
+	  if(lg(resbase)==1) return gc_int(top, 0);//No can do
+	}
+	i0=i;
+  }
+  return gc_int(top, 1);//Made it through, it works.
+}
+
+static int bqf_tuplevalid_cmp(void *data, GEN x, GEN y){//[res, [p, e, p^e]]. We sort by p, then by e.
+  int a=cmpii(gmael(x, 2, 1), gmael(y, 2, 1));
+  if(a!=0) return a;
+  return cmpii(gmael(x, 2, 2), gmael(y, 2, 2));
+}
+
 

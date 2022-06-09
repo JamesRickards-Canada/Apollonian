@@ -54,8 +54,8 @@ GEN divoo(GEN a, GEN b){//No garbage collection necessary
 //Copies an integer vector
 GEN ZV_copy(GEN v){
   long len=lg(v);
-  GEN rvec=cgetg(len,t_VEC);
-  for(long i=1;i<len;++i) gel(rvec,i)=icopy(gel(v,i));
+  GEN rvec=cgetg(len, t_VEC);
+  for(long i=1;i<len;i++) gel(rvec, i)=icopy(gel(v, i));
   return rvec;
 }
 
@@ -231,6 +231,40 @@ GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x){
   return v;
 }
 
+
+
+//MODS
+
+//Returns the squares mod n. If cop=1, only returns coprime squares
+GEN modsquares(GEN n, long cop){
+  pari_sp top=avma;
+  GEN no2=truedivis(n, 2);//floor(n/2)
+  GEN L=vectrunc_init(itos(no2)+1);
+  for(GEN y=gen_0;cmpii(y, no2)<=0;y=addis(y, 1)){//Only need to go 
+	if(cop && !equali1(gcdii(y, n))) continue;//cop=1 and gcd(y, n)>1
+	vectrunc_append(L, Fp_sqr(y, n));//Append y^2 mod n
+  }
+  return gerepileupto(top, ZV_sort_uniq(L));
+}
+
+//Given a bunch of residues modulo n, this breaks them down into classes mod q^e, for all prime powers q^e||n. The format is a vector, where each entry corresponds to a prime, and has the format [residues, [q, e, q^e]]. Assume n>1
+GEN mod_breakdown(GEN res, GEN n){
+  pari_sp top=avma;
+  n=absi(n);
+  GEN fact=factor(n);
+  long lgprimes=lg(gel(fact, 1));
+  GEN ret=cgetg(lgprimes, t_VEC);
+  for(long i=1;i<lgprimes;i++){
+	GEN p=gcoeff(fact, i, 1);//prime
+	GEN e=gcoeff(fact, i, 2);//exponent
+	GEN pe=powii(p, e);//p^e
+	long lgres;
+	GEN ppart=cgetg_copy(res, &lgres);
+	for(long j=1;j<lgres;j++) gel(ppart, j)=Fp_red(gel(res, j), pe);
+	gel(ret, i)=mkvec2(ZV_sort_uniq(ppart), mkvec3(p, e, pe));
+  }
+  return gerepilecopy(top, ret);
+}
 
 
 //PRIMES

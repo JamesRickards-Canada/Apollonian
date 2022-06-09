@@ -89,6 +89,10 @@ GEN mat3_complete_tc(GEN A, GEN B, GEN C);
 GEN veclist_append(GEN v, long *vind, long *vlen, GEN x);
 GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x);
 
+//MODS
+GEN modsquares(GEN n, long cop);
+GEN mod_breakdown(GEN res, GEN n);
+
 //PRIMES
 GEN primes_mod(GEN range, GEN residues, long modulus);
 
@@ -240,6 +244,10 @@ void bqf_check(GEN q);
 GEN bqf_checkdisc(GEN q);
 void intmatrix_check(GEN mtx);
 
+//TUPLE REPS OF PRIMES
+GEN bqf_primesmod(GEN q);
+GEN bqf_primetuplereps(GEN v, GEN pmin, GEN pmax);
+int bqf_tuplevalid(GEN v);
 
 //farey.c
 GEN fareydenom_depths(long n);
