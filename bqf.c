@@ -47,6 +47,28 @@ static int bqf_tuplevalid_cmp(void *data, GEN x, GEN y);
 
 
 
+
+
+//TEMPORARY FOR NOW
+static long gen_search_temp(GEN T, GEN x, void *data, int (*cmp)(void*,GEN,GEN));
+
+//Simply copied from bibli2.c, used in case we switch between 2.13.4 and 2.14
+static long gen_search_temp(GEN T, GEN x, void *data, int (*cmp)(void*,GEN,GEN)){
+  long u = lg(T)-1, i, l, s;
+
+  if (!u) return -1;
+  l = 1;
+  do
+  {
+    i = (l+u) >> 1; s = cmp(data, x, gel(T,i));
+    if (!s) return i;
+    if (s < 0) u = i-1; else l = i+1;
+  } while (u >= l);
+  return -((s < 0)? i: i+1);
+}
+
+
+
 //DISCRIMINANT METHODS
 
 
@@ -1537,7 +1559,7 @@ long ibqf_isequiv_set_byq_presorted(GEN qredsorted, GEN S, GEN rootD){
   long ind;
   for(long i=1;i<lg(S);++i){
     Sred=ibqf_red_pos(gel(S, i), rootD);
-    ind=gen_search(qredsorted, Sred, NULL, &bqf_compare);
+    ind=gen_search_temp(qredsorted, Sred, NULL, &bqf_compare);
     if(ind>0){avma=top;return i;}
     cgiv(Sred);
   }
@@ -1559,7 +1581,7 @@ GEN ibqf_isequiv_set_byq_tmat_presorted(GEN qredsorted, GEN S, GEN rootD){
   long ind;
   for(long i=1;i<lg(S);++i){
     Sred=ibqf_red_pos_tmat(gel(S, i), rootD);
-    ind=gen_search(qredsorted, Sred, NULL, &bqf_compare_tmat);
+    ind=gen_search_temp(qredsorted, Sred, NULL, &bqf_compare_tmat);
     if(ind>0){
       GEN Sredinv=ZM_inv(gel(Sred, 2), NULL);
       GEN rvec=cgetg(3, t_VEC);
@@ -1592,7 +1614,7 @@ long ibqf_isequiv_set_byS_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD){
   GEN qseek=qred;
   long ind;
   do{
-    ind=gen_search(Sreds, qseek, NULL, &bqf_compare);
+    ind=gen_search_temp(Sreds, qseek, NULL, &bqf_compare);
     if(ind>0){avma=top; return perm[ind];}//Done!
     qseek=ibqf_rightnbr(ibqf_rightnbr(qseek, rootD), rootD);
   }
@@ -1619,17 +1641,17 @@ GEN ibqf_isequiv_set_byS_tmat_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD){
   GEN q1L=qred, q1R=qred;
   long ind;
   int isdone=0;
-  ind=gen_search(Sreds,q1R,NULL,&bqf_compare_tmat);
+  ind=gen_search_temp(Sreds,q1R,NULL,&bqf_compare_tmat);
   if(ind>0) isdone=1;
   else{
     for(;;){//At start of each loop, both q1L and q1R have been checked already
       q1R=ibqf_rightnbr_update(ibqf_rightnbr_update(q1R,rootD),rootD);//Update q1R
       if(ZV_equal(gel(q1L,1),gel(q1R,1))) break;//Done, no solution
-      ind=gen_search(Sreds,q1R,NULL,&bqf_compare_tmat);
+      ind=gen_search_temp(Sreds,q1R,NULL,&bqf_compare_tmat);
       if(ind>0){isdone=1;break;}//Finished with R
       q1L=ibqf_leftnbr_update(ibqf_leftnbr_update(q1L,rootD),rootD);//Update q1L
       if(ZV_equal(gel(q1L,1),gel(q1R,1))) break;//Done, no solution
-      ind=gen_search(Sreds,q1L,NULL,&bqf_compare_tmat);
+      ind=gen_search_temp(Sreds,q1L,NULL,&bqf_compare_tmat);
       if(ind>0){isdone=-1;break;}//Finished with L
     }
   }
@@ -2340,7 +2362,7 @@ static void ibqf_reps_proper(GEN qorb, GEN D, GEN rootD, GEN n, glist **sols, lo
     gel(f, 2)=B;
     gel(f, 3)=diviiexact(subii(sqri(B), D),fourn);//(B^2-D)/(4n)
     fred=ibqf_red_pos_tmat(f, rootD);
-    ind=gen_search(qorb, fred, NULL, &bqf_compare_tmat);
+    ind=gen_search_temp(qorb, fred, NULL, &bqf_compare_tmat);
     if(ind>0){//Solution!
       transmat=ZM_mul(gel(gel(qorb,ind),2),ZM_inv(gel(fred,2),NULL));//transmat circ f=[n,b,c]
       bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!
@@ -2351,7 +2373,7 @@ static void ibqf_reps_proper(GEN qorb, GEN D, GEN rootD, GEN n, glist **sols, lo
       B=addii(B,modu);//So B=k*modu+resclass[2][j] in the end
       gel(f,2)=B;
       fred=ibqf_red_pos_tmat(f,rootD);
-      ind=gen_search(qorb, fred, NULL, &bqf_compare_tmat);
+      ind=gen_search_temp(qorb, fred, NULL, &bqf_compare_tmat);
       if(ind>0){//Solution!
         transmat=ZM_mul(gel(gel(qorb,ind),2),ZM_inv(gel(fred,2),NULL));//transmat circ f=[n,b,c]
         bqf_reps_updatesolutions(sols, nsols, &gcoeff(transmat,1,1), &gcoeff(transmat,2,1));//Update!

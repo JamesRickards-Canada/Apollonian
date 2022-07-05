@@ -2,7 +2,7 @@
 PARI_LIB = /usr/local/lib
 PARI_INCLUDE = /usr/local/include
 
-SRCS = apol.o base.o bqf.o geo.o farey.o visual.o
+SRCS = apol.o apolscripts.o base.o bqf.o geo.o farey.o visual.o
 OBJS = $(SRCS)
 
 TARGET = apol

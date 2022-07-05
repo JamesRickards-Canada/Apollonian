@@ -91,6 +91,19 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\GENERAL HELP
 		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)\nSpecialized methods (?ap_special)");
 
+\\apolscripts.c
+		install("abelianfields","GD0,L,",,"./libapol.so");
+		addhelp(abelianfields,"Input G, {deg=0}.\n Returns the polynomials in G which generate abelian extensions of Q. G can either be a list of polynomials, or the output of a galoisinit, in which case we loop over the subfields. If deg>0, we only keep the fields of that degree. We return [[polynomials],[corresponding Galois groups]]");
+		install("galoisfields","GD0,L,",,"./libapol.so");
+		addhelp(galoisfields,"Input G, {deg=0}.\n Returns the polynomials in G which generate Galois extensions of Q. G can either be a list of polynomials, or the output of a galoisinit, in which case we loop over the subfields. If deg>0, we only keep the fields of that degree.");
+		install("hilbertpoly","GD1,L,p",,"./libapol.so");
+		addhelp(hilbertpoly,"Input D, {red=1}: D<0 a fundamental discriminant, red=0,1.\n Returns the polynomial generating the Hilbert class field of Q(sqrt(D)) over Q (hence it is dihedral over Q). If red=1, we apply polredbest on it.");
+		install("quadsubfields","Gp",,"./libapol.so");
+		addhelp(quadsubfields,"Input pol, a Galois polynomial/Q.\n Returns the discriminants of quadratic subfields of pol.");
+		install("ringpoly","GD0,L,D1,L,p",,"./libapol.so");
+		addhelp(ringpoly,"Inputs D, {precinc=0}, {check=1}: D a negative discriminant, precinc>=0, check=0,1.\n Returns the polynomial generating the ring class field associated to the order of discriminant D. If precinc>0, we start by increasing the precision by that amount. If check=1, we check that the ramification of the polynomial is as expected. This check has yet to be implemented!!!");
+
+
 \\base.c
 
 	\\INFINITY

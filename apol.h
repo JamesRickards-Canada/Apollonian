@@ -65,6 +65,13 @@ GEN apol_makeall_small(GEN n, int red, long prec);
 GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 
 
+//apolscripts.c
+GEN abelianfields(GEN G, long deg);
+GEN galoisfields(GEN G, long deg);
+GEN hilbertpoly(GEN D, int redbest, long prec);
+GEN quadsubfields(GEN pol, long prec);
+GEN ringpoly(GEN D, long precinc, int check, long prec);
+
 //base.c
 
 
