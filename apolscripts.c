@@ -56,6 +56,44 @@ GEN galoisfields(GEN G, long deg){
   return gerepilecopy(top, pols);
 }
 
+//Given a galoisinit, this checks if G is dihedral. If not, returns 0. If so, 1 if it's (Z/2Z)^n, and [sgp, disc] otherwise, where sgp is the maximal abelian subgroup and disc is the discriminant of the fixed field of sgp.
+GEN galoisisdihedral(GEN G){
+  pari_sp top=avma;
+  GEN isab=galoisisabelian(G, 0);
+  if(!gequal0(isab)){//Abelian
+	GEN twogrpmat=gmul(matid(lg(isab)-1), gen_2);
+	if(gequal(isab, twogrpmat)) return gc_const(top, gen_1);//Abelian and a 2-group
+    return gc_const(top, gen_0);//Abelian, not a 2-group
+  }
+  GEN elts=gal_get_group(G);//There must be an element of order >2, else we have an abelian 2-group
+  long le=lg(elts), ind;
+  for(long i=1;i<le;i++){
+	if(perm_orderu(gel(elts, i))<=2) continue;
+	ind=i;//Found element of order >2, must be in the abelian part.
+	break;
+  }
+  GEN abpart=vectrunc_init(le);
+  GEN inv=NULL;
+  for(long i=1;i<le;i++){//Finding the abelian part.
+	if(perm_commute(gel(elts, i), gel(elts, ind))) vectrunc_append(abpart, gel(elts, i));
+	else if(!inv && perm_orderu(gel(elts, i))==2) inv=gel(elts, i);
+  }
+  long lab=lg(abpart);
+  if(2*lab-1!=le) return gc_const(top, gen_0);//Half of the elements aren't abelian
+  GEN iperm=identity_perm(le-1);
+  for(long i=1;i<lab;i++){
+	if(!gequal(iperm, perm_mul(gel(abpart, i), perm_conj(inv, gel(abpart, i))))) return gc_const(top, gen_0);//Doesn't conjugate correctly
+  }
+  //Ok now it is dihedral.
+  GEN quad=galoisfixedfield(G, abpart, 1, -1);//Must be quadratic
+  GEN a=polcoef_i(quad, 2, 0);
+  GEN b=polcoef_i(quad, 1, 0);
+  GEN c=polcoef_i(quad, 0, 0);
+  GEN D=subii(sqri(b), shifti(mulii(a, c), 2));
+  D=coredisc(D);
+  return gerepilecopy(top, mkvec2(abpart, D));
+}
+
 //Returns the polynomial generating the Hilbert class field for Q(sqrt(D)).
 GEN hilbertpoly(GEN D, int redbest, long prec){
   pari_sp top=avma;
@@ -83,8 +121,8 @@ GEN quadsubfields(GEN pol, long prec){
   return gerepileupto(top, ZV_sort(v));
 }
 
-//Returns the ring class field associated to the order of discriminant D. If check=1, we check it has the required ramification. Otherwise, we don't, so the answer might not be correct if there was not enough precision!
-GEN ringpoly(GEN D, long precinc, int check, long prec){
+//Returns the ring class field associated to the order of discriminant D. If check=1, we check it has the required ramification. Otherwise, we don't, so the answer might not be correct if there was not enough precision! We can supply a flag, which has the same meaning as for algdep.
+GEN ringpoly(GEN D, long precinc, long flag, int check, long prec){
   pari_sp top=avma;
   long newprec=prec-1+precinc;
   long deg=itos(gel(quadclassunit0(D, 0, NULL, prec), 1));//Degree of the extension
@@ -95,7 +133,7 @@ GEN ringpoly(GEN D, long precinc, int check, long prec){
 	GEN j=jell(elt, newprec);//j(...)
 	if(gsigne(j)<0) j=gneg(j);//Want it positive for the cube root.
 	GEN gener=gsqrtn(j, stoi(3), NULL, newprec);//Generates the ring class field
-	pol=polredbest(algdep(gener, deg), 0);
+	pol=polredbest(algdep0(gener, deg, flag), 0);
 	if(check){//Now we check it. TO BE ADDED LATER
 	  pari_warn(warner,"Checking functionality not yet added! Result may be wrong!\n");
 	  check=0;

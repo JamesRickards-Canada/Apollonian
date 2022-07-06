@@ -96,12 +96,14 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(abelianfields,"Input G, {deg=0}.\n Returns the polynomials in G which generate abelian extensions of Q. G can either be a list of polynomials, or the output of a galoisinit, in which case we loop over the subfields. If deg>0, we only keep the fields of that degree. We return [[polynomials],[corresponding Galois groups]]");
 		install("galoisfields","GD0,L,",,"./libapol.so");
 		addhelp(galoisfields,"Input G, {deg=0}.\n Returns the polynomials in G which generate Galois extensions of Q. G can either be a list of polynomials, or the output of a galoisinit, in which case we loop over the subfields. If deg>0, we only keep the fields of that degree.");
+		install("galoisisdihedral","G",,"./libapol.so");
+		addhelp(galoisisdihedral,"Input G, an output of galoisinit.\n This checks if G is dihedral, returning 0 if it is not. If G is dihedral, we return 1 if G=(Z/2Z)^n, and [sgp, disc] otherwise, where sgp is the maximal abelian subgroup and disc is the discriminant of the fixed field of sgp.");
 		install("hilbertpoly","GD1,L,p",,"./libapol.so");
 		addhelp(hilbertpoly,"Input D, {red=1}: D<0 a fundamental discriminant, red=0,1.\n Returns the polynomial generating the Hilbert class field of Q(sqrt(D)) over Q (hence it is dihedral over Q). If red=1, we apply polredbest on it.");
 		install("quadsubfields","Gp",,"./libapol.so");
 		addhelp(quadsubfields,"Input pol, a Galois polynomial/Q.\n Returns the discriminants of quadratic subfields of pol.");
-		install("ringpoly","GD0,L,D1,L,p",,"./libapol.so");
-		addhelp(ringpoly,"Inputs D, {precinc=0}, {check=1}: D a negative discriminant, precinc>=0, check=0,1.\n Returns the polynomial generating the ring class field associated to the order of discriminant D. If precinc>0, we start by increasing the precision by that amount. If check=1, we check that the ramification of the polynomial is as expected. This check has yet to be implemented!!!");
+		install("ringpoly","GD0,L,D0,L,D1,L,p",,"./libapol.so");
+		addhelp(ringpoly,"Inputs D, {precinc=0}, {flag=0} {check=1}: D a negative discriminant, precinc>=0, check=0,1.\n Returns the polynomial generating the ring class field associated to the order of discriminant D. If precinc>0, we start by increasing the precision by that amount. If check=1, we check that the ramification of the polynomial is as expected. This check has yet to be implemented!!! We can also supply a flag, which is the same as the algdep flag.");
 
 
 \\base.c
