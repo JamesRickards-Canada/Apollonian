@@ -131,6 +131,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\PRIMES
 		install("primes_mod","GGL",,"./libapol.so");
 		addhelp(primes_mod,"Input range, residues, modulus.\n Returns the primes in the given range that have the given residues modulo the modulus. Range=[a, b] where a<b are integers, and residues can either be a single integer or a vector of integers.");
+		install("primefactors","G",,"./libapol.so");
+		addhelp(primefactors,"Input N, an integer.\n Returns the vector of prime factors of N.");
 	
 	\\GENERAL HELP
 		addhelp(base,"This package is a collection of miscellaneous methods that may be useful in a variety of settings, and not just for the programs they were originally created for \n Subtopics: \n Infinity (inf) \n Linear algebra (la) \n Mod n (modn) \n Primes (pr)");

@@ -103,6 +103,7 @@ GEN mod_breakdown(GEN res, GEN n);
 
 //PRIMES
 GEN primes_mod(GEN range, GEN residues, long modulus);
+GEN primefactors(GEN N);
 
 //RANDOM
 GEN rand_elt(GEN v);

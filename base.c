@@ -301,6 +301,13 @@ GEN primes_mod(GEN range, GEN residues, long modulus){
   return gerepilecopy(top, pmodlist);
 }
 
+//Returns the vector of prime factors of N.
+GEN primefactors(GEN N){
+  pari_sp top=avma;
+  if(gequal0(N)) return cgetg(1, t_VEC);
+  GEN ps=gel(absZ_factor(N), 1);
+  return gerepilecopy(top, shallowtrans(ps));
+}
 
 
 //RANDOM
