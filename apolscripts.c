@@ -94,16 +94,6 @@ GEN galoisisdihedral(GEN G){
   return gerepilecopy(top, mkvec2(abpart, D));
 }
 
-//Returns the polynomial generating the Hilbert class field for Q(sqrt(D)).
-GEN hilbertpoly(GEN D, int redbest, long prec){
-  pari_sp top=avma;
-  GEN pol1=quadhilbert(D, prec);
-  GEN pol2=mkpoln(3, gen_1, gen_0, negi(D));
-  GEN pol=polcompositum0(pol1, pol2, 2);
-  if(redbest) pol=polredbest(pol, 0);
-  return gerepileupto(top, pol);
-}
-
 //Assume pol generates a Galois extension of Q, this returns the discriminants of quadratic subfields.
 GEN quadsubfields(GEN pol, long prec){
   pari_sp top=avma;
@@ -121,29 +111,17 @@ GEN quadsubfields(GEN pol, long prec){
   return gerepileupto(top, ZV_sort(v));
 }
 
-//Returns the ring class field associated to the order of discriminant D. If check=1, we check it has the required ramification. Otherwise, we don't, so the answer might not be correct if there was not enough precision! We can supply a flag, which has the same meaning as for algdep.
-GEN ringpoly(GEN D, long precinc, long flag, int check, long prec){
+//Returns the ring class field associated to the order of discriminant D.
+GEN ringpoly(GEN D, long prec){
   pari_sp top=avma;
-  long newprec=prec-1+precinc;
-  long deg=itos(gel(quadclassunit0(D, 0, NULL, prec), 1));//Degree of the extension
-  GEN pol;
-  do{
-	newprec++;
-	GEN elt=gdivgs(gaddsg(smodis(D, 2), gsqrt(D, newprec)), 2);//(D%2+sqrt(D))/2
-	GEN j=jell(elt, newprec);//j(...)
-	if(gsigne(j)<0) j=gneg(j);//Want it positive for the cube root.
-	GEN gener=gsqrtn(j, stoi(3), NULL, newprec);//Generates the ring class field
-	pol=polredbest(algdep0(gener, deg, flag), 0);
-	if(check){//Now we check it. TO BE ADDED LATER
-	  pari_warn(warner,"Checking functionality not yet added! Result may be wrong!\n");
-	  check=0;
-	}
-	else{
-	  pari_warn(warner,"Result may not be correct if there is not enough precision\n");
-	}
-  }while(check);
-  return gerepilecopy(top, pol);
+  GEN pol1=polredbest(polclass(D, 0, -1), 0);//Can use quadhilbert when D is fundamental as well.
+  GEN pol2=mkpoln(3, gen_1, gen_0, negi(D));
+  GEN pol=polcompositum0(pol1, pol2, 2);
+  pol=polredbest(pol, 0);
+  return gerepileupto(top, pol);
 }
+
+
 
 
 

@@ -69,9 +69,8 @@ GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 GEN abelianfields(GEN G, long deg);
 GEN galoisfields(GEN G, long deg);
 GEN galoisisdihedral(GEN G);
-GEN hilbertpoly(GEN D, int redbest, long prec);
 GEN quadsubfields(GEN pol, long prec);
-GEN ringpoly(GEN D, long precinc, long flag, int check, long prec);
+GEN ringpoly(GEN D, long prec);
 
 //base.c
 
