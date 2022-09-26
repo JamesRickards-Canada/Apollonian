@@ -48,8 +48,16 @@ GEN divoo(GEN a, GEN b){//No garbage collection necessary
 
 
 
-//INTEGER VECTORS
+//VECTORS
 
+
+//Clean version of vecreverse
+GEN vecrev(GEN v){
+  long lv;
+  GEN w=cgetg_copy(v, &lv);
+  for(long i=1;i<lv;i++) gel(w, i)=gcopy(gel(v, lv-i));
+  return w;
+}
 
 //Copies an integer vector
 GEN ZV_copy(GEN v){

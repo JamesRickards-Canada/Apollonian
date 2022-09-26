@@ -79,7 +79,8 @@ GEN ringpoly(GEN D, long prec);
 GEN addoo(GEN a, GEN b);
 GEN divoo(GEN a, GEN b);
 
-//INTEGER VECTORS
+//VECTORS
+GEN vecrev(GEN v);
 GEN ZV_copy(GEN v);
 int ZV_equal(GEN v1, GEN v2);
 GEN ZV_Z_divexact(GEN v, GEN y);

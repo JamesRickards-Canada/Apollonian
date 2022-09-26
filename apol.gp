@@ -118,6 +118,10 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		install("mat3_complete_tc", "GGG", "mat3_complete", "./libapol.so");
 		addhelp(mat3_complete, "Inputs A,B,C integers with gcd 1.\n Outputs a 3x3 integer matrix with determinant 1 whose top row is [A, B, C].");
 	
+	\\VECTORS
+		install("vecrev","G",,"./libapol.so");
+		addhelp(vecrev,"Returns v but backwards.");
+	
 	\\MODS
 		install("modsquares","GD1,L,",,"./libapol.so");
 		addhelp(modsquares,"Inputs n, {cop=1}: n a positive integer, cop=0, 1.\n Returns the squares mod n, only keeping those coprime to n if cop=1.");
