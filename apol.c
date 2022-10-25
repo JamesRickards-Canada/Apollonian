@@ -457,7 +457,8 @@ static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int stat
       case 1:;
         GEN c1=gel(v, 1);//First curvature
 		if(gequal0(c1)) return mkvec2(gen_0, gen_0);//Line!
-        return mkvec3(gen_0, gdivsg(-1, c1), c1);//Outer circle. First circle has negative curvature necessarily, hence why r1=-1/c1
+		if(gsigne(c1)==-1) return mkvec3(gen_0, gdivsg(-1, c1), c1);//Outer circle. First circle has negative curvature necessarily, hence why r1=-1/c1
+		return mkvec3(gen_0, gdivsg(1, c1), c1);//First circle has positive curvature, may be a full plane packing!
       case 2:;
         GEN c2=gel(v, 2);
 		if(gequal0(c2)){//Line!
@@ -468,11 +469,15 @@ static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int stat
 		  return mkvec2(gen_0, gsub(imag_i(gmael(reps, 1, 1)), gmael(reps, 1, 2)));
 		}
 		//c2 is a circle.
-        GEN r2=Qdivii(gen_1, c2);
+        GEN r2=gdivsg(1, c2);
 		if(lg(gel(reps, 1))==3){//First circle was a line! It must be the x-axis
 		  return mkvec3(mkcomplex(gen_0, r2), r2, c2);
 		}
-        return mkvec3(mkcomplex(gen_0, gsub(gmael(reps, 1, 2), r2)), r2, c2);//first inner circle, placed vertically at the top. Note gmael(reps, 1, 2)=r1>0.
+		if(gsigne(gmael(reps, 1, 3))==-1){//First circle was outer one.
+          return mkvec3(mkcomplex(gen_0, gsub(gmael(reps, 1, 2), r2)), r2, c2);//first inner circle, placed vertically at the top. Note gmael(reps, 1, 2)=r1>0.
+		}
+		//First circle was not the outer one.
+		return mkvec3(mkcomplex(gen_0, gadd(gmael(reps, 1, 2), r2)), r2, c2);
       case 3:
         return apol_thirdtangent(gel(reps, 1), gel(reps, 2), gel(v, 3), gel(v, 4), 0);//Third circle goes left.
       case 4:
@@ -836,6 +841,7 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
     for(long i=2;i<lc;i++){
       gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(real_i(gmael(c, i, 1)), scalingfactor), gmul(imag_i(gmael(c, i, 1)), scalingfactor));//r, x, y
     }//Circles have been scaled!
+	pari_printf("Scale:%P.20f\nHorizontal shift: 0\n", scalingfactor);
   }
   else{//Strip packing, OR the largest curvature does not come first. The width should be at least as much as the height.
     GEN minx=mkoo(), maxx=mkmoo();
@@ -856,6 +862,7 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
       }
       gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gsub(real_i(gmael(c, i, 1)), horizshift), scalingfactor), gmul(imag_i(gmael(c, i, 1)), scalingfactor));//r, x, y
     }
+	pari_printf("Scale:%P.20f\nHorizontal shift: %P.20f\n", scalingfactor, -horizshift);
   }
   
   //Time to draw the circles
