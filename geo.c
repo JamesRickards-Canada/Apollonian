@@ -40,9 +40,7 @@ static GEN seg_int(GEN l1, GEN l2, GEN tol, long prec);
 static GEN anglediff(GEN ang, GEN bot, GEN tol, long prec);
 static int geom_check(GEN c);
 static GEN shiftangle(GEN ang, GEN bot, GEN tol, long prec);
-static int tolcmp(GEN x, GEN y, GEN tol, long prec);
-static int toleq(GEN x, GEN y, GEN tol, long prec);
-static int toleq0(GEN x, GEN tol, long prec);
+
 
 //Circle is stored as [centre, radius, curvature]. radius>0, but curvature can be <0 to mean the outside
 //Circle arc is [centre, radius, curvature, start pt, end pt, start angle, end angle, dir]. It is the arc counterclockwise from startpt to endpt, and dir=1 means oriented counterclockwise, and dir=-1 means oriented clockwise. This can also be left uninitialized if arc is not oriented. The final 0 represents that we have an arc and not a segment.
@@ -610,7 +608,7 @@ static GEN shiftangle(GEN ang, GEN bot, GEN tol, long prec){
 }
 
 //Returns -1 if x<y, 0 if x==y, 1 if x>y (x, y are t_REAL). Accounts for the tolerance, so will deem x==y if they are equal up to tol AND at least one is inexact
-static int tolcmp(GEN x, GEN y, GEN tol, long prec){
+int tolcmp(GEN x, GEN y, GEN tol, long prec){
   if(typ(x)==t_INFINITY || typ(y)==t_INFINITY) return gcmp(x, y);//No precision concerns
   pari_sp top=avma;
   GEN d=gsub(x, y);
@@ -620,7 +618,7 @@ static int tolcmp(GEN x, GEN y, GEN tol, long prec){
 }
 
 //Returns 1 if x==y, and 0 if x!=y. If x or y is not a precise objects (e.g. t_REAL), will return 1 if they are equal up to the tolerance tol.
-static int toleq(GEN x, GEN y, GEN tol, long prec){
+int toleq(GEN x, GEN y, GEN tol, long prec){
   if(typ(x)==t_INFINITY || typ(y)==t_INFINITY) return gequal(x, y);//Do oo case separately.
   pari_sp top=avma;
   GEN d=gsub(x, y);
@@ -628,7 +626,7 @@ static int toleq(GEN x, GEN y, GEN tol, long prec){
 }
 
 //Returns 1 if x==0, and 0 if x!=y. If x or y is not a precise objects (e.g. t_REAL or t_COMPLEX), will return 1 if they are equal up to the tolerance tol.
-static int toleq0(GEN x, GEN tol, long prec){
+int toleq0(GEN x, GEN tol, long prec){
   if(gequal0(x)) return 1;//Deemed equal already
   if(precision(x)==0) return 0;//Exact object, and already checked if it's 0
   pari_sp top=avma;

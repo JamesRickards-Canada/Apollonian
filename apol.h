@@ -28,7 +28,9 @@ GEN apol_getmatrices();
 GEN apol_getobstructions();
 GEN apol_mod24(GEN v);
 GEN apol_move_1(GEN v, int ind);
+GEN apol_move_1GEN(GEN v, int ind);
 GEN apol_move_batch(GEN v, GEN bat);
+GEN apol_move_batchGEN(GEN v, GEN bat);
 GEN apol_qf(GEN v, int ind);
 GEN apol_red(GEN v, int seq);
 GEN apol_red_partial(GEN v, long maxsteps);
@@ -285,6 +287,9 @@ GEN geom_int(GEN c1, GEN c2, long prec);
 //HELPER METHODS
 GEN deftol(long prec);
 INLINE GEN gc_0vec(pari_sp av){set_avma(av);return cgetg(1, t_VEC);}//Resets avma and returns the vector []
+int tolcmp(GEN x, GEN y, GEN tol, long prec);
+int toleq(GEN x, GEN y, GEN tol, long prec);
+int toleq0(GEN x, GEN tol, long prec);
 
 //visual.c
 

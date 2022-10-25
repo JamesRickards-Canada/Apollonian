@@ -18,6 +18,8 @@ static GEN apol_make_n(GEN q, GEN n, int red);
 static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN));
 static GEN apol_search_depth(GEN v, int depth, GEN bound, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN));
 static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int state);
+static int circequaltol(GEN c1, GEN c2, GEN tol, long prec);
+static GEN apol_thirdtangent_line1(GEN circ1, GEN circ2, GEN c3, GEN c4, int right);
 static GEN apol_circles_nextquad(GEN vdat, int ind, void* nul);
 static GEN apol_circles_retquad(GEN vdat);
 static GEN apol_generic_nextquad(GEN vdat, int ind, void* nul);
@@ -104,12 +106,12 @@ GEN apol_mod24(GEN v){
 GEN apol_move(GEN v, GEN command){
   long t=typ(command);
   switch(t){
-    case t_INT: return apol_move_1(v, itos(command));//itos does not clutter the stack.
-    case t_VECSMALL: return apol_move_batch(v, command);
+    case t_INT: return apol_move_1GEN(v, itos(command));//itos does not clutter the stack.
+    case t_VECSMALL: return apol_move_batchGEN(v, command);
   }
   pari_sp top=avma;
   command=gtovecsmall(command);
-  return gerepileupto(top, apol_move_batch(v, command));
+  return gerepileupto(top, apol_move_batchGEN(v, command));
 }
 
 //Returns the set of four curvatures when we replace circle ind.
@@ -126,6 +128,20 @@ GEN apol_move_1(GEN v, int ind){
   return gerepileupto(top, newv);
 }
 
+//apol_move_1, but v needs not be integral.
+GEN apol_move_1GEN(GEN v, int ind){
+  if(ind<=0 || ind>=5) return v;//Do nothing.
+  pari_sp top=avma;
+  GEN rep=vecsmall_ei(4, ind);
+  GEN S=gen_0;
+  for(int i=1;i<=4;i++) if(!rep[i]) S=gadd(S, gel(v, i));
+  S=gmulgs(S, 2);//2(b+c+d)
+  long lv;
+  GEN newv=cgetg_copy(v, &lv);//lv=5
+  for(int i=1;i<=4;i++) gel(newv, i)=rep[i]? gsub(S, gel(v, ind)):gcopy(gel(v, i));
+  return gerepileupto(top, newv);
+}
+
 //Does apol_move_1 for v and bat[1], bat[2], ... The input bat needs to be a Vecsmall.
 GEN apol_move_batch(GEN v, GEN bat){
   pari_sp top=avma;
@@ -136,6 +152,20 @@ GEN apol_move_batch(GEN v, GEN bat){
     for(int i=1;i<=4;i++) if(i!=ind) S=addii(S, gel(newv, i));
     S=shifti(S, 1);//2(b+c+d)
     gel(newv, ind)=subii(S, gel(newv, ind));
+  }
+  return gerepilecopy(top, newv);
+}
+
+//Does apol_move_1GEN for v and bat[1], bat[2], ... The input bat needs to be a Vecsmall.
+GEN apol_move_batchGEN(GEN v, GEN bat){
+  pari_sp top=avma;
+  GEN newv=gcopy(v);
+  for(long bind=1;bind<lg(bat);bind++){
+    int ind=bat[bind];
+    GEN S=gen_0;
+    for(int i=1;i<=4;i++) if(i!=ind) S=gadd(S, gel(newv, i));
+    S=gmulgs(S, 2);//2(b+c+d)
+    gel(newv, ind)=gsub(S, gel(newv, ind));
   }
   return gerepilecopy(top, newv);
 }
@@ -377,7 +407,7 @@ static GEN apol_search_depth(GEN v, int depth, GEN bound, void *info, GEN (*getd
   long Nreps=400;
   GEN reps=vectrunc_init(Nreps);//We may need to extend the length of reps later on.
   for(int i=1;i<=4;i++){
-    if(!usebound || cmpii(gel(v, i), bound)<=0){//First 4 reps
+    if(!usebound || gcmp(gel(v, i), bound)<=0){//First 4 reps
       GEN dat=getdata(vdat, i, reps, info, 2);
       if(dat) vectrunc_append(reps, dat);//We have data to store.
     }
@@ -406,7 +436,7 @@ static GEN apol_search_depth(GEN v, int depth, GEN bound, void *info, GEN (*getd
     GEN newvdat=nextquad(gel(W, ind), I[ind], info);//Make the move
     if(!newvdat){forward=0;continue;}//We must go backwards.
     GEN newcurv=gel(retquad(newvdat), I[ind]);//The new element
-    if(usebound && cmpii(newcurv, bound)>0){forward=0;continue;}//Must go back, new curvature too big
+    if(usebound && gcmp(newcurv, bound)>0){forward=0;continue;}//Must go back, new curvature too big
     GEN dat=getdata(newvdat, I[ind], reps, info, 1);//Retrieve the data
     if(dat) vectrunc_append(reps, dat);//Add the new piece of data if we are allowed.
     ind++;
@@ -426,11 +456,23 @@ static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int stat
     switch(ind){
       case 1:;
         GEN c1=gel(v, 1);//First curvature
-        return mkvec3(gen_0, Qdivii(gen_m1, c1), c1);//Outer circle. First circle has negative curvature necessarily, hence why r1=-1/c1
+		if(gequal0(c1)) return mkvec2(gen_0, gen_0);//Line!
+        return mkvec3(gen_0, gdivsg(-1, c1), c1);//Outer circle. First circle has negative curvature necessarily, hence why r1=-1/c1
       case 2:;
         GEN c2=gel(v, 2);
+		if(gequal0(c2)){//Line!
+		  if(lg(gel(reps, 1))==3){//First circle was also a line!
+			return mkvec2(gen_0, gdivsg(2, gel(v, 3)));
+		  }
+		  //First circle was a circle. Place line below.
+		  return mkvec2(gen_0, gsub(imag_i(gmael(reps, 1, 1)), gmael(reps, 1, 2)));
+		}
+		//c2 is a circle.
         GEN r2=Qdivii(gen_1, c2);
-        return mkvec3(mkcomplex(gen_0, gsub(gmael(reps, 1, 2), r2)), r2, c2);//first inner circle, placed vertically at the top. Note gmael(reps, 1, 2)=r1<0.
+		if(lg(gel(reps, 1))==3){//First circle was a line! It must be the x-axis
+		  return mkvec3(mkcomplex(gen_0, r2), r2, c2);
+		}
+        return mkvec3(mkcomplex(gen_0, gsub(gmael(reps, 1, 2), r2)), r2, c2);//first inner circle, placed vertically at the top. Note gmael(reps, 1, 2)=r1>0.
       case 3:
         return apol_thirdtangent(gel(reps, 1), gel(reps, 2), gel(v, 3), gel(v, 4), 0);//Third circle goes left.
       case 4:
@@ -452,21 +494,43 @@ static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int stat
   GEN newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 1);//The new circle, if it is to the right of oldcirc1 ->oldcirc2.
   
   GEN prevcirc=gel(reps, prevind[ind]);//The circle we are "replacing"
-  if(gequal(newcirc, prevcirc)) newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 0);//If the two curvatures were the same, this could trigger. If we lack oo precision, this could not work, and must be changed slightly.
-  else{//This block must also be updated if there is not oo precision.
+  GEN tol=deftol(3);//Default tolerance
+  if(circequaltol(newcirc, prevcirc, tol, 3)) newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 0);//If the two curvatures were the same, this could trigger.
+  else{
     GEN oldcirc3=gel(reps, prevind[is[2]]);//The unused old circle. Our newcirc must be tangent to it.
     GEN rsums=gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));//(r1+r2)^2
     GEN dcentres=gnorm(gsub(gel(oldcirc3, 1), gel(newcirc, 1)));//dist(centres)^2
-    if(!gequal(rsums, dcentres)) newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 0);//Must be the other side.
+    if(!toleq(rsums, dcentres, tol, 3)) newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 0);//Must be the other side.
   }
   prevind[ind]=lg(reps);//Updating the location of the circle.
   return newcirc;
 }
 
-//Store a circle as [centre, radius, curvature]. Given two tangent circles and a third curvature, this finds this third circle that is tangent to the first two. For internal tangency, we need a positive radius and negative curvature. There are always 2 places to put the circle: left or right of the line from circ1 to circ2. If right=1, we put it right, else we put it left. c4 is one of the curvatures to complete an Apollonian quadruple (supplying it allows us to always work with exact numbers in the case of integral ACPs).
+static int circequaltol(GEN c1, GEN c2, GEN tol, long prec){//Returns 1 if the circles are equal, 0 else.
+  if(lg(c1)==3){
+	if(lg(c2)!=3) return 0;//1 line 1 circle
+	if(toleq(gel(c1, 2), gel(c2, 2), tol, prec)) return 1;//Equal up to tolerance!
+	return 0;//Not equal up to tolerance
+  }
+  if(lg(c2)==3) return 0;//1 circle 1 line
+  if(!toleq(gel(c1, 1), gel(c2, 1), tol, prec)) return 0;
+  if(!toleq(gel(c1, 3), gel(c2, 3), tol, prec)) return 0;
+  return 1;//No need to check radii if curvatures are okay.
+}
+
+//Store a circle as [centre, radius, curvature]. Given two tangent circles and a third curvature, this finds this third circle that is tangent to the first two. For internal tangency, we need a positive radius and negative curvature. There are always 2 places to put the circle: left or right of the line from circ1 to circ2. If right=1, we put it right, else we put it left. c4 is one of the curvatures to complete an Apollonian quadruple (supplying it allows us to always work with exact numbers in the case of integral ACPs). In the case of a horizontal line, we ASSUME that it has slope 0.
 GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right){
-  pari_sp top=avma;
-  long prec=3;//Does not matter, things here are exact.
+  if(lg(circ1)==3) return apol_thirdtangent_line1(circ1, circ2, c3, c4, right);//circ1 is a line!
+  if(lg(circ2)==3) return apol_thirdtangent_line1(circ2, circ1, c3, c4, 1-right);//circ2 is a line!
+ pari_sp top=avma;//Now neither circ1 or circ2 is a line.
+  if(gequal0(c3)){//c3 is a line.
+	if(right==1){//Below
+	  return gerepilecopy(top, mkvec2(gen_0, gsub(imag_i(gel(circ1, 1)), gel(circ1, 2))));
+	}
+	return gerepilecopy(top, mkvec2(gen_0, gadd(imag_i(gel(circ1, 1)), gel(circ1, 2))));//Above
+  }
+  //Now circ1, circ2, and c3 are all circles.
+  long prec=3;//Does not matter, things here are normally exact, and when not prec=3 is fine.
   //The centres form a triangle with sides r1+r2, r1+r3, r2+r3, or -r1-r2, -r1-r3, r2+r3 (if internal tangency, where r1<0). Let theta be the angle at the centre of c1.
   GEN c1=gel(circ1, 3), c2=gel(circ2, 3);//Curvatures
   GEN c1pc2=gadd(c1, c2), c1pc3=gadd(c1, c3);
@@ -497,11 +561,52 @@ GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right){
   return gerepilecopy(top, mkvec3(mkcomplex(x, y), r3, c3));
 }
 
+//apol_thirdtangent when circ1 is actually a line. We assume that it is horizontal.
+static GEN apol_thirdtangent_line1(GEN circ1, GEN circ2, GEN c3, GEN c4, int right){
+  pari_sp top=avma;
+  if(lg(circ2)==3){//circ2 is also a line. We will place the third circle on the y-axis. This may cause issues if you input something funny, but if we start at [0, 0, 1, 1] then it should be OK I think.
+    GEN r=gdivgs(gsub(gel(circ1, 2), gel(circ2, 2)), 2);//The radius
+	if(gsigne(r)==-1){//circ2 above circ1
+	  r=gneg(r);
+	  return gerepilecopy(top, mkvec3(mkcomplex(gen_0, gadd(gel(circ1, 2), r)), r, gdivsg(1, r)));
+	}
+	return gerepilecopy(top, mkvec3(mkcomplex(gen_0, gadd(gel(circ2, 2), r)), r, gdivsg(1, r)));
+  }
+  //Now circ2 is a circle.
+  if(gequal0(c3)){//We are making the other tangent line.
+    GEN y=imag_i(gel(circ2, 1));//height
+	if(gcmp(gel(circ1, 2), y)>0) return gerepilecopy(top, mkvec2(gen_0, gsub(y, gel(circ2, 2))));//tangent line circ1 above
+	return gerepilecopy(top, mkvec2(gen_0, gadd(y, gel(circ2, 2))));//tangent line circ1 below
+  }
+  //Now circ3 is a circle too.
+  GEN r2=gel(circ2, 2);
+  GEN r3=gdivsg(1, c3), x;
+  if(typ(gel(circ2, 3))==t_INT && typ(c3)==t_INT && typ(c4)==t_INT){//Must be the strip packing, so sqrt(r2r3) is rational
+    GEN c2c3=mulii(gel(circ2, 3), c3);
+	x=Qdivii(gen_2, sqrti(c2c3));//x=2sqrt(r2r3)=2/sqrt(c2c3)
+  }
+  else x=gmulsg(2, gsqrt(gmul(r2, r3), 3));//2sqrt(r2r3) is the x-distance we move. Uses lowest precision.
+  if(gcmp(gel(circ1, 2), imag_i(gel(circ2, 1)))>0){//Tangent line circ1 above
+	if(right==1){//-x
+	  return gerepilecopy(top, mkvec3(mkcomplex(gsub(real_i(gel(circ2, 1)), x), gsub(gel(circ1, 2), r3)), r3, c3));
+	}
+	else{//+x
+	  return gerepilecopy(top, mkvec3(mkcomplex(gadd(real_i(gel(circ2, 1)), x), gsub(gel(circ1, 2), r3)), r3, c3));
+	}
+  }
+  //Tangent line circ1 below
+  if(right==1){//+x
+	return gerepilecopy(top, mkvec3(mkcomplex(gadd(real_i(gel(circ2, 1)), x), gadd(gel(circ1, 2), r3)), r3, c3));
+  }
+  //-x
+  return gerepilecopy(top, mkvec3(mkcomplex(gsub(real_i(gel(circ2, 1)), x), gadd(gel(circ1, 2), r3)), r3, c3));
+}
+
 //vdat=[v, [indices in reps of previous circles]], unless ind=0, when vdat=v
 static GEN apol_circles_nextquad(GEN vdat, int ind, void *nul){
   if(ind==0) return mkvec2(vdat, mkvecsmall4(1, 2, 3, 4));//The initial vdat.
   GEN v=gel(vdat, 1);//The actual quadruple
-  GEN newv=apol_move_1(v, ind);//The new v
+  GEN newv=apol_move_1GEN(v, ind);//The new v
   return mkvec2(newv, zv_copy(gel(vdat, 2)));//We do NOT update the index in ind, which will update to lg(reps). This will be done in the getdata method, since we still need the old one for now.
 }
 
