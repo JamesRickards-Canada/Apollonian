@@ -23,8 +23,10 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_red,"Inputs v, {seq=0}: Descartes quadruple v.\n Reduces v and returns the reduction. If seq=1, also returns a vecsmall of the sequence of indices used to reach the reduced form.");
 		install("apol_red_partial","GL",,"./libapol.so");
 		addhelp(apol_red_partial,"Inputs: Descartes quadruple v and positive integer maxsteps.\n We reduce v, doing at most maxsteps. In particular, the returned quadruple may not be reduced!");
+		install("apol_thirdtangent","GGGGD1,L,",,"./libapol.so");
+		addhelp(apol_thirdtangent,"Inputs: circ1, circ2, c3, c4, {right=1}.\n Given two tangent circles circ1 and circ2 (given by [centre, radius, curvature] and curvatures c3 and c4 completing a Descartes quadruple, this computes the equation of the circle of curvature c3. We place it to the right of the ray from circ1 to circ2 if and only if right=1.");
 
-		addhelp(ap_basic,"Installed methods:\napol_check, apol_extdepth, apol_getmatrices, apol_getobstructions, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial.");
+		addhelp(ap_basic,"Installed methods:\napol_check, apol_extdepth, apol_getmatrices, apol_getobstructions, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial, apol_thirdtangent.");
 
 	\\CREATION OF ACPS
 		install("apol_make","GD1,L,D1,L,", ,"./libapol.so");
@@ -37,6 +39,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 	\\SEARCHING FOR CURVATURES
 		install("apol_circles","GG",,"./libapol.so");
 		addhelp(apol_circles, "Inputs v, maxcurv: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv in v. Returns the list, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them.");
+		install("apol_circles_depth","GLD0,G,",,"./libapol.so");
+		addhelp(apol_circles_depth,"Inputs v, depth, {maxcurv=0}: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv and depth<=depth in v. Returns the list, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them.");
 		install("apol_curvatures","GGD0,L,",,"./libapol.so");
 		addhelp(apol_curvatures,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
 		install("apol_curvatures_depth","GLD0,G,",,"./libapol.so");
@@ -102,7 +106,9 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(quadsubfields,"Input pol, a Galois polynomial/Q.\n Returns the discriminants of quadratic subfields of pol.");
 		install("ringpoly","Gp",,"./libapol.so");
 		addhelp(ringpoly,"Input D, a negative quadratic discriminant.\n Returns the polynomial generating the ring class field of the quadratic order of discriminant D (hence it is dihedral over Q).");
-
+		
+		install(ab_disc,"GD0,G,",,"./libapol.so");
+		addhelp(ab_disc,"Inputs a, b.\n Returns the discriminant of the quaternion algebra (a,b/Q). We can input a as [a,b], and can pass in the factorizations of a and/or b instead.");
 
 \\base.c
 

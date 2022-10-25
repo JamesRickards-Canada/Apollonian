@@ -18,7 +18,6 @@ static GEN apol_make_n(GEN q, GEN n, int red);
 static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN));
 static GEN apol_search_depth(GEN v, int depth, GEN bound, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN));
 static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int state);
-static GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right);
 static GEN apol_circles_nextquad(GEN vdat, int ind, void* nul);
 static GEN apol_circles_retquad(GEN vdat);
 static GEN apol_generic_nextquad(GEN vdat, int ind, void* nul);
@@ -465,7 +464,7 @@ static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int stat
 }
 
 //Store a circle as [centre, radius, curvature]. Given two tangent circles and a third curvature, this finds this third circle that is tangent to the first two. For internal tangency, we need a positive radius and negative curvature. There are always 2 places to put the circle: left or right of the line from circ1 to circ2. If right=1, we put it right, else we put it left. c4 is one of the curvatures to complete an Apollonian quadruple (supplying it allows us to always work with exact numbers in the case of integral ACPs).
-static GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right){
+GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right){
   pari_sp top=avma;
   long prec=3;//Does not matter, things here are exact.
   //The centres form a triangle with sides r1+r2, r1+r3, r2+r3, or -r1-r2, -r1-r3, r2+r3 (if internal tangency, where r1<0). Let theta be the angle at the centre of c1.
@@ -512,6 +511,11 @@ static GEN apol_circles_retquad(GEN vdat){return gel(vdat, 1);}
 //Given a bounded integral Descartes quadruple, this returns equations for the circles with curvatures <=maxcurv at depth<=depth. An equation takes the form [curvature, radius, x, y]. The outer circle has centre (0, 0).
 GEN apol_circles(GEN v, GEN maxcurv){
   return apol_search_bound(v, maxcurv, 1, NULL, &apol_circles_getdata, &apol_circles_nextquad, &apol_circles_retquad);
+}
+
+//apol_circles, but goes by depth instead.
+GEN apol_circles_depth(GEN v, int depth, GEN maxcurv){
+  return apol_search_depth(v, depth, maxcurv, NULL, &apol_circles_getdata, &apol_circles_nextquad, &apol_circles_retquad);
 }
 
 //vdat=v=Descartes quadruple. This returns the next one

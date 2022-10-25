@@ -123,5 +123,27 @@ GEN ringpoly(GEN D, long prec){
 
 
 
+//QUATERNION STUFF
 
+//Given (a, b), returns the discriminant of (a,b/Q). a and b can be factored, and we can also pass in [a, b] for a instead.
+GEN ab_disc(GEN a, GEN b){
+  pari_sp top=avma;
+  if(typ(a)==t_VEC){b=gel(a, 2);a=gel(a, 1);}
+  GEN afact, bfact;
+  if(typ(a)==t_INT) afact=Z_factor(a);
+  else{afact=a;a=factorback(afact);}
+  if(typ(b)==t_INT) bfact=Z_factor(b);
+  else{bfact=b;b=factorback(bfact);}
+  GEN plist=ZV_sort_uniq(shallowconcat(gel(afact, 1), gel(bfact, 1)));//May be missing 2, and may include -1
+  GEN disc=gen_1;
+  if(hilbert(a, b, gen_2)==-1) disc=gen_2;
+  long ind=1;
+  while(lg(plist)>ind && cmpis(gel(plist, ind), 2)<=0) ind++;//Skipping -1 and 2
+  while(ind<lg(plist)){
+    GEN p=gel(plist, ind);
+    if(hilbert(a, b, p)==-1) disc=mulii(disc, p);
+    ind++;  
+  }
+  return gerepilecopy(top, disc);
+}
 

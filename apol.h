@@ -39,12 +39,14 @@ GEN apol_makeall(GEN n, int red, long prec);
 
 //SEARCHING FOR CURVATURES
 GEN apol_circles(GEN v, GEN maxcurv);
+GEN apol_circles_depth(GEN v, int depth, GEN maxcurv);
 GEN apol_curvatures(GEN v, GEN bound, int countsymm);
 GEN apol_curvatures_depth(GEN v, int depth, GEN bound);
 GEN apol_curvatures_layer(GEN v, int maxlayers, GEN bound, int countsymm);
 GEN apol_find(GEN v, GEN N, int countsymm);
 GEN apol_primes(GEN v, GEN bound, int countsymm);
 GEN apol_primes_layer(GEN v, int maxlayers, GEN bound, int countsymm);
+GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right);
 
 //STRIP PACKING METHODS
 GEN apol_depthelt_circle(GEN L);
@@ -71,6 +73,8 @@ GEN galoisfields(GEN G, long deg);
 GEN galoisisdihedral(GEN G);
 GEN quadsubfields(GEN pol, long prec);
 GEN ringpoly(GEN D, long prec);
+
+GEN ab_disc(GEN a, GEN b);
 
 //base.c
 
