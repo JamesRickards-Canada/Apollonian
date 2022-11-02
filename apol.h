@@ -54,6 +54,7 @@ GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right);
 GEN apol_depthelt_circle(GEN L);
 GEN apol_farey_allqf(GEN q);
 GEN apol_farey_qf(GEN p, GEN q);
+GEN apol_stair(GEN L, int format, long prec);
 GEN apol_strip_qf(GEN L, int red);
 
 //VISUALIZATION

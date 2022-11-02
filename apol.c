@@ -779,6 +779,58 @@ GEN apol_farey_qf(GEN p, GEN q){
   return gerepilecopy(top, mkvec3(qsqr, shifti(mulii(p, q), 1), subis(addii(sqri(p), qsqr), 1)));//[q^2, 2pq, p^2+q^2-1]
 }
 
+//Returns the data associated to the stair corresponding to the depth element L. If format=1, returns [t, a_W], where t is a positive integer and a_W\in{2, 6, 12} is as in my paper. Returns 0 if the depth element does not intersect the fundamental domain, or if t=2. If format=2, we return [cutoff, height], which has the formula [t-sqrt{t^2-1}, a_W/sqrt(t^2-1)], and works for all depth elements (if we don't intersect the fundamental domain, returns [0, 0]).
+GEN apol_stair(GEN L, int format, long prec){
+  pari_sp top=avma;
+  int ty=typ(L);
+  switch(ty){
+    case t_INT:;//Required to stop error with int sL
+      int sL=itos(L);
+      switch(sL){
+        case 2:
+          return format? gen_0:gerepilecopy(top, mkvec2(gen_1, gdivsg(3, mppi(prec))));
+        default://i.e. case 1/3/4
+		  return format? gen_0:mkvec2(gen_0, gen_0);
+      }
+    case t_VEC:
+      L=gtovecsmall(L);//Make it a vecsmall
+    case t_VECSMALL:
+      break;
+    default:
+      pari_err_TYPE("L needs to be an integer from 1 to 4, or a vecsmall/vector of such integers", L);
+  }
+  //Now we have a non-identity element.
+  long lenL=lg(L)-1;
+  int curval=1, isbot=1;
+  if(L[lenL]!=1) return format? gc_const(top, gen_0):gerepileupto(top, mkvec2(gen_0, gen_0));//length>=1 means we end with S_1
+  lenL--;
+  if(lenL>0 && L[lenL]!=4) return format? gc_const(top, gen_0):gerepileupto(top, mkvec2(gen_0, gen_0));//length>=2 means we end with S_4S_1
+  lenL--;
+  for(long i=lenL;i>0;i--){//Go backwards, we must have the backwards word start with S_1S_4S_1... S_1 or S_4 then S_3 then anything
+    if(L[i]==curval){curval=5-curval;continue;}//We are marching along the bottom.
+	if(L[i]==3){isbot=0;break;}//We have entered the area, and are not along the bottom. No need to go further here.
+	return format? gc_const(top, gen_0):gerepileupto(top, mkvec2(gen_0, gen_0));//We must have L[i]=2, and have left the fundamental domain.
+  }
+  //At this point we are guaranteed an intersection with the fundamental domain.
+  if(lg(L)==2){//S_1
+	if(format) return gerepilecopy(top, mkvec2(stoi(7), gen_2));//We do this case explicitly.
+	GEN rt12=gsqrt(stoi(12), prec);
+	return gerepilecopy(top, mkvec2(gsubsg(7, gmulgs(rt12, 2)), gdivsg(1, rt12)));//S_1
+  }
+  //Now we must find t. Code copied from apol_depthelt_circle
+  GEN M=apol_getmatrices();
+  GEN W=matid(4);
+  for(long i=1;i<lg(L);i++) W=ZM_mul(W, gel(M, L[i]));
+  W=ZM_mul(W, gel(M, 5));//Times k at the end
+  GEN t=negi(gel(row(W, L[1]), 1));//t
+  long aw;
+  if(isbot==1) aw=6;//(S_4S_1)^k or S_1(S_4S_1)^k
+  else aw=12;
+  if(format) return gerepilecopy(top, mkvec2(t, stoi(aw)));
+  GEN rt=gsqrt(gsubgs(gsqr(t), 1), prec);
+  return gerepilecopy(top, mkvec2(gsub(t, rt), gdivsg(aw, rt)));
+}
+
 //Returns the quadratic form corresponding to the circle in the stip packing designated by L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n]. We can't have L=1 or 2, this doesn't give a circle.
 GEN apol_strip_qf(GEN L, int red){
   pari_sp top=avma;
@@ -862,7 +914,7 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
       }
       gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gsub(real_i(gmael(c, i, 1)), horizshift), scalingfactor), gmul(imag_i(gmael(c, i, 1)), scalingfactor));//r, x, y
     }
-	pari_printf("Scale:%P.20f\nHorizontal shift: %P.20f\n", scalingfactor, -horizshift);
+	pari_printf("Scale:%P.20f\nHorizontal shift: %P.20f\n", scalingfactor, gneg(horizshift));
   }
   
   //Time to draw the circles
