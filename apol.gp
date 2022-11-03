@@ -65,6 +65,8 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apol_farey_qf,"Inputs p and q, positive integers.\n Returns the quadratic forms (Kate's construction) corresponding to the upside down Farey circle at x=p/q.");
 		install("apol_stair","GD1,L,p",,"./libapol.so");
 		addhelp(apol_stair, "Input L, {format=1}: L is an integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, and format=0,1.\n Returns the data for the stair corresponding to the depth element L. If format=1, we return [t, a_W] as in my paper. If we don't intersect the fundamental domain or L=2, then we return 0. If format=0, we return [cutoff, height], and return [0, 0] if we don't intersect the fundamental domain.");
+		install("apol_stairs","G",,"./libapol.so");
+		addhelp(apol_stairs,"Input tmax, a positive integer.\n Returns the stairs in the packing to tmax. We use the format of apol_stair with format=1, i.e. [t, a_W], hence we skip the identity element. We also don't combine stairs of the same height.");
 		install("apol_strip_qf","GD0,L,",,"./libapol.so");
 		addhelp(apol_strip_qf,"Inputs L, {red=0}: L an integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, red=0 or 1.\n Returns the quadratic form corresponding to this circle in the strip packing, i.e. generating the curvatures of PSL(2, Z) times this circle.");
 

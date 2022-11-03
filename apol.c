@@ -15,7 +15,7 @@
 //STATIC DECLARATIONS
 static GEN apol_make_n(GEN q, GEN n, int red);
 
-static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN));
+static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN), int overridestrip);
 static GEN apol_search_depth(GEN v, int depth, GEN bound, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN));
 static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int state);
 static int circequaltol(GEN c1, GEN c2, GEN tol, long prec);
@@ -30,6 +30,9 @@ static GEN apol_layer_getdata(GEN vdat, int ind, GEN reps, void *nul, int state)
 static GEN apol_layer_nextquad(GEN vdat, int ind, void *maxlayers);
 static GEN apol_primes_getdata(GEN vdat, int ind, GEN reps, void *nul, int state);
 static GEN apol_primes_layer_getdata(GEN vdat, int ind, GEN reps, void *nul, int state);
+
+static GEN apol_stairs_nextquad(GEN vdat, int ind, void *info);
+static GEN apol_stairs_getdata(GEN vdat, int ind, GEN reps, void *info, int state);
 
 //BASIC METHODS
 
@@ -310,8 +313,8 @@ The outline of the searching methods is:
 */
 
 
-//Starting at the integral Descartes quadruple v, we search through the circle packing, finding all circles with curvature <=bound. For each such circle we compute some data (from getdata), and return the final set. If countsymm=0, we do not double count when there is symmetry, otherwise we do. For the strip packing, we force countsymm=0, since otherwise it would be infinite. It can be shown that all symmetries are realized for the reduced form (i.e. [a, b, c, d] -> [a, b, c, d] or [a, b, c, c], if this happens in a packing, it happens for the reduced form, so we can just check it there).
-static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN)){
+//Starting at the integral Descartes quadruple v, we search through the circle packing, finding all circles with curvature <=bound. For each such circle we compute some data (from getdata), and return the final set. If countsymm=0, we do not double count when there is symmetry, otherwise we do. For the strip packing, we force countsymm=0, since otherwise it would be infinite. It can be shown that all symmetries are realized for the reduced form (i.e. [a, b, c, d] -> [a, b, c, d] or [a, b, c, c], if this happens in a packing, it happens for the reduced form, so we can just check it there). There are situtations where we want to override the strip packing not counting symmetries (when we sort this out in nextquad), and we can pass this in as an argument.
+static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN), int overridestrip){
   pari_sp top=avma, mid;
   v=apol_red(v, 0);//Start by reducing v, since we want curvatures up to a given bound.
   ZV_sort_inplace(v);//May as well make the minimal curvature first.
@@ -319,13 +322,17 @@ static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*
   int depth=10;//Initially we go up to depth 10, but this may change if we need to go deeper.
   GEN W=zerovec(depth);//Tracks the sequence of Descartes quadruples; W[ind] is at ind-1 depth
   GEN vdat=nextquad(v, 0, info);//The first one. Stores the quadruple + data
+  if(!vdat) return gerepilecopy(top, cgetg(1, t_VEC));//Our initialization failed.
   gel(W, 1)=vdat;
   GEN I=vecsmall_ei(depth, 1);//Tracks the sequence of indices of the replacements
   int forward=1;//Tracks if we are going forward or not.
   long Nreps=400;//Initial size of the return.
   GEN reps=vectrunc_init(Nreps);//We may need to extend the length of reps later on.
   int isstrip=gequal0(gel(v, 1));//If we have the strip packing or not, which causes some subtle issues.
-  if(isstrip) countsymm=0;//Strip packing, must not count symmetry
+  if(isstrip){
+	if(overridestrip) isstrip=0;//Override
+	else countsymm=0;//Strip packing, must not count symmetry
+  }
   if(countsymm){
     for(int i=1;i<=4;i++){
       if(cmpii(gel(v, i), bound)<=0){//First 4 reps
@@ -620,7 +627,7 @@ static GEN apol_circles_retquad(GEN vdat){return gel(vdat, 1);}
 
 //Given a bounded integral Descartes quadruple, this returns equations for the circles with curvatures <=maxcurv at depth<=depth. An equation takes the form [curvature, radius, x, y]. The outer circle has centre (0, 0).
 GEN apol_circles(GEN v, GEN maxcurv){
-  return apol_search_bound(v, maxcurv, 1, NULL, &apol_circles_getdata, &apol_circles_nextquad, &apol_circles_retquad);
+  return apol_search_bound(v, maxcurv, 1, NULL, &apol_circles_getdata, &apol_circles_nextquad, &apol_circles_retquad, 0);
 }
 
 //apol_circles, but goes by depth instead.
@@ -642,7 +649,7 @@ static GEN apol_curvatures_getdata(GEN vdat, int ind, GEN reps, void *nul, int s
 
 //Returns the curvatures in the packing v up to bound.
 GEN apol_curvatures(GEN v, GEN bound, int countsymm){
-  return apol_search_bound(v, bound, countsymm, NULL, &apol_curvatures_getdata, &apol_generic_nextquad, &apol_generic_retquad);
+  return apol_search_bound(v, bound, countsymm, NULL, &apol_curvatures_getdata, &apol_generic_nextquad, &apol_generic_retquad, 0);
 }
 
 //Returns the curvatures up to depth depth from v. If bound>0, we only count those at most bound.
@@ -653,7 +660,7 @@ GEN apol_curvatures_depth(GEN v, int depth, GEN bound){
 
 //Finds all curvatures in layer at most maxlayers with curvature at most bound. The layer of a circle is how many tangencies it is away from the outer circle.
 GEN apol_curvatures_layer(GEN v, int maxlayers, GEN bound, int countsymm){
-  return apol_search_bound(v, bound, countsymm, &maxlayers, &apol_layer_getdata, &apol_layer_nextquad, &apol_circles_retquad);
+  return apol_search_bound(v, bound, countsymm, &maxlayers, &apol_layer_getdata, &apol_layer_nextquad, &apol_circles_retquad, 0);
 }
 
 //Helper method for apol_find, to feed into apol_search_bound.
@@ -665,7 +672,7 @@ static GEN apol_find_getdata(GEN vdat, int ind, GEN reps, void *N, int state){
 
 //Searches for all circles with curvature N, and returns the corresponding quadruples. If countsymm=1, we may have repeats coming from the symmetry.
 GEN apol_find(GEN v, GEN N, int countsymm){
-  return apol_search_bound(v, N, countsymm, &N, &apol_find_getdata, &apol_generic_nextquad, &apol_generic_retquad);
+  return apol_search_bound(v, N, countsymm, &N, &apol_find_getdata, &apol_generic_nextquad, &apol_generic_retquad, 0);
 }
 
 //Sort the final list or return the new curvature.
@@ -693,7 +700,7 @@ static GEN apol_layer_nextquad(GEN vdat, int ind, void *maxlayers){
 
 //apol_curvatures, but only returns primes
 GEN apol_primes(GEN v, GEN bound, int countsymm){
-  return apol_search_bound(v, bound, countsymm, NULL, &apol_primes_getdata, &apol_generic_nextquad, &apol_generic_retquad);
+  return apol_search_bound(v, bound, countsymm, NULL, &apol_primes_getdata, &apol_generic_nextquad, &apol_generic_retquad, 0);
 }
 
 //Checks if the new curvature is prime.
@@ -706,7 +713,7 @@ static GEN apol_primes_getdata(GEN vdat, int ind, GEN reps, void *nul, int state
 
 //Does apol_primes, but searches up to a maximum number of layers in.
 GEN apol_primes_layer(GEN v, int maxlayers, GEN bound, int countsymm){
-  return apol_search_bound(v, bound, countsymm, &maxlayers, &apol_primes_layer_getdata, &apol_layer_nextquad, &apol_circles_retquad);
+  return apol_search_bound(v, bound, countsymm, &maxlayers, &apol_primes_layer_getdata, &apol_layer_nextquad, &apol_circles_retquad, 0);
 }
 
 //Checks if the new curvature is prime.
@@ -779,7 +786,7 @@ GEN apol_farey_qf(GEN p, GEN q){
   return gerepilecopy(top, mkvec3(qsqr, shifti(mulii(p, q), 1), subis(addii(sqri(p), qsqr), 1)));//[q^2, 2pq, p^2+q^2-1]
 }
 
-//Returns the data associated to the stair corresponding to the depth element L. If format=1, returns [t, a_W], where t is a positive integer and a_W\in{2, 6, 12} is as in my paper. Returns 0 if the depth element does not intersect the fundamental domain, or if t=2. If format=2, we return [cutoff, height], which has the formula [t-sqrt{t^2-1}, a_W/sqrt(t^2-1)], and works for all depth elements (if we don't intersect the fundamental domain, returns [0, 0]).
+//Returns the data associated to the stair corresponding to the depth element L. If format=1, returns [t, a_W], where t is a positive integer and a_W\in{2, 6, 12} is as in my paper. Returns 0 if the depth element does not intersect the fundamental domain, or if t=2. If format=0, we return [cutoff, height], which has the formula [t-sqrt{t^2-1}, a_W/sqrt(t^2-1)], and works for all depth elements (if we don't intersect the fundamental domain, returns [0, 0]).
 GEN apol_stair(GEN L, int format, long prec){
   pari_sp top=avma;
   int ty=typ(L);
@@ -822,13 +829,55 @@ GEN apol_stair(GEN L, int format, long prec){
   GEN W=matid(4);
   for(long i=1;i<lg(L);i++) W=ZM_mul(W, gel(M, L[i]));
   W=ZM_mul(W, gel(M, 5));//Times k at the end
-  GEN t=negi(gel(row(W, L[1]), 1));//t
+  GEN t=negi(gcoeff(W, L[1], 1));//t
   long aw;
   if(isbot==1) aw=6;//(S_4S_1)^k or S_1(S_4S_1)^k
   else aw=12;
   if(format) return gerepilecopy(top, mkvec2(t, stoi(aw)));
   GEN rt=gsqrt(gsubgs(gsqr(t), 1), prec);
   return gerepilecopy(top, mkvec2(gsub(t, rt), gdivsg(aw, rt)));
+}
+
+//vdat=[v, matrix, onbot], info=[apol_getmatrices(), -tmax];
+static GEN apol_stairs_nextquad(GEN vdat, int ind, void *info){
+  pari_sp top=avma;
+  if(ind==0) return mkvec3(vdat, gmael((GEN)info, 1, 5), gen_1);//vdat=[0, 0, 1, 1]. We must initialize vdat=[v, mtx, onbot].
+  GEN onbot=gel(vdat, 3);
+  if(equali1(onbot)){//Are we still on the bottom? If we aren't, we have nothing to worry about.
+    if(ind==2) return gc_NULL(top);//We must swap between S_1 and S_4 until we eventually get to S_3.
+	else if(gequal0(gmael(vdat, 1, 1))){//[0, 0, 1, 1]. Must force S_1
+	  if(ind!=1) return gc_NULL(top);//Didn't start with S_1.
+	}
+	else if(equalis(gmael(vdat, 1, 4), 1)){//[4, 0, 1, 1]. Must force S_4
+	  if(ind!=4) return gc_NULL(top);//Didn't start with S_4S_1
+	}//At this point we are OK, we have an S_4S_1 at the end, and are either continuing or are doing S_3.
+	else if(ind==3) onbot=gen_0;//Now we are no longer on the bottom.
+  }
+  GEN mnew=ZM_mul(gmael((GEN)info, 1, ind), gel(vdat, 2));//Multiply on the left by the correct matrix.
+  GEN vnew=apol_move_1(gel(vdat, 1), ind);//Make the move
+  if(cmpii(gcoeff(mnew, ind, 1), gel((GEN)info, 2))<0) return gc_NULL(top);//t is too large! (we store -tmax and get -t, so we test if -t<-tmax)
+  return mkvec3(vnew, mnew, onbot);//Return the new set of data.
+}
+
+//Returns the new pair [t, aW]
+static GEN apol_stairs_getdata(GEN vdat, int ind, GEN reps, void *nul, int state){
+  if(state==0) return lexsort(reps);//Sort it and return.
+  if(state==2) return NULL;//Nothing to add at the start.
+  GEN t=negi(gcoeff(gel(vdat, 2), ind, 1));//Retrieve t.
+  if(gequal0(gel(vdat, 3))) return mkvec2(t, stoi(12));//in the middle, so get [t, 12]
+  if(equalis(t, 7)) return mkvec2(t, stoi(2));//S_1, the starting one.
+  return mkvec2(t, stoi(6));//On the boundary and not S_1.
+}
+
+//Returns the stairs in the packing up to tmax. We use the format of apol_stair with format=1, i.e. [t, a_W], hence we skip the identity element. We also don't combine stairs of the same height.
+GEN apol_stairs(GEN tmax){
+  pari_sp top=avma;
+  GEN M=apol_getmatrices();
+  GEN info=mkvec2(M, negi(tmax));//The info we want to pass to the methods.
+  GEN v=mkvec4s(0, 0, 1, 1);//Starting quadruple.
+  long rm;
+  GEN maxcurv=divis_rem(mulis(tmax, 13), 24, &rm);//13/24*tmax is the maximal curvature, since t=2*curvature*y-coordinate (the 2 since we are using [0, 0, 1, 1], not [0, 0, 2, 2] which is what is actually going on), and y-coord>=12/13
+  return gerepileupto(top, apol_search_bound(v, maxcurv, 0, info, &apol_stairs_getdata, &apol_stairs_nextquad, &apol_circles_retquad, 1));
 }
 
 //Returns the quadratic form corresponding to the circle in the stip packing designated by L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n]. We can't have L=1 or 2, this doesn't give a circle.
