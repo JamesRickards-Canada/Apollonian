@@ -7,6 +7,9 @@ SRCS = apol.o apolscripts.o base.o bqf.o geo.o farey.o visual.o
 #Name of the output library
 TARGET = apol
 
+
+#Nothing after here should need to be changed.
+
 #More locations
 PARI_LIB = $(PARI_LOC)/lib
 PARI_INCLUDE = $(PARI_LOC)/include
@@ -15,7 +18,7 @@ PARI_CFG = $(PARI_LIB)/pari/pari.cfg
 #Object names
 OBJS = $(SRCS)
 ALL = $(DYN)
-VER = $(shell grep "pari_release=" "/usr/local/lib/pari/pari.cfg" | cut -d"'" -f2 | tr . -)
+VER = $(shell grep "pari_release=" "$(PARI_CFG)" | cut -d"'" -f2 | tr . - | cut -d"-" -f1,2)
 DYN = lib$(TARGET)-$(VER).so
 
 #Compiling options

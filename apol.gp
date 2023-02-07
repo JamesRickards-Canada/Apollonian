@@ -1,7 +1,7 @@
 print("\n\nType '?apol' for help.\n\n");
 addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apollonian \n base \n bqf \n geo\n visual");
 parigp_version=version();
-apol_library=strprintf("./libapol-%d-%d-%d.so", parigp_version[1], parigp_version[2], parigp_version[3]);
+apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 \\apol.c
 
