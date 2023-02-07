@@ -1,97 +1,99 @@
 print("\n\nType '?apol' for help.\n\n");
 addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apollonian \n base \n bqf \n geo\n visual");
+parigp_version=version();
+apol_library=strprintf("./libapol-%d-%d-%d.so", parigp_version[1], parigp_version[2], parigp_version[3]);
 
 \\apol.c
 
 \\ACP=Apollonian circle packaing
 	\\BASIC METHODS
-		install("apol_check","iG",,"./libapol.so");
+		install("apol_check","iG",,apol_library);
 		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
-		install("apol_extdepth","lG",,"./libapol.so");
+		install("apol_extdepth","lG",,apol_library);
 		addhelp(apol_extdepth,"Input v, a Descartes quadruple.\n Returns the external depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
-		install("apol_getmatrices","",,"./libapol.so");
+		install("apol_getmatrices","",,apol_library);
 		addhelp(apol_getmatrices, "Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]).");
-		install("apol_getobstructions","",,"./libapol.so");
+		install("apol_getobstructions","",,apol_library);
 		addhelp(apol_getobstructions,"Returns the possible classes modulo 24 of an Apollonian circle packing.");
-		install("apol_mod24","G",,"./libapol.so");
+		install("apol_mod24","G",,apol_library);
 		addhelp(apol_mod24,"Input v, a Descartes quadruple.\n Returns the set of curvatures modulo 24 possible in the correponding ACP. There are 6 possible primitive sets.");
-		install("apol_move","GG",,"./libapol.so");
+		install("apol_move","GG",,apol_library);
 		addhelp(apol_move, "Inputs v, ind: Descartes quadruple v, 1<=ind<=4 or a vector/vecsmall of integers between 1 and 4.\n Returns the Descartes quadruple where we replace circle ind with the other possible circle (applying this left to right if ind is a vector/vecsmall).");
-		install("apol_qf","GD1,L,",,"./libapol.so");
+		install("apol_qf","GD1,L,",,apol_library);
 		addhelp(apol_qf, "Inputs v, {ind=1}: Descartes quadruple v, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
-		install("apol_red","GD0,L,",,"./libapol.so");
+		install("apol_red","GD0,L,",,apol_library);
 		addhelp(apol_red,"Inputs v, {seq=0}: Descartes quadruple v.\n Reduces v and returns the reduction. If seq=1, also returns a vecsmall of the sequence of indices used to reach the reduced form.");
-		install("apol_red_partial","GL",,"./libapol.so");
+		install("apol_red_partial","GL",,apol_library);
 		addhelp(apol_red_partial,"Inputs: Descartes quadruple v and positive integer maxsteps.\n We reduce v, doing at most maxsteps. In particular, the returned quadruple may not be reduced!");
-		install("apol_thirdtangent","GGGGD1,L,",,"./libapol.so");
+		install("apol_thirdtangent","GGGGD1,L,",,apol_library);
 		addhelp(apol_thirdtangent,"Inputs: circ1, circ2, c3, c4, {right=1}.\n Given two tangent circles circ1 and circ2 (given by [centre, radius, curvature] and curvatures c3 and c4 completing a Descartes quadruple, this computes the equation of the circle of curvature c3. We place it to the right of the ray from circ1 to circ2 if and only if right=1.");
 
 		addhelp(ap_basic,"Installed methods:\napol_check, apol_extdepth, apol_getmatrices, apol_getobstructions, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial, apol_thirdtangent.");
 
 	\\CREATION OF ACPS
-		install("apol_make","GD1,L,D1,L,", ,"./libapol.so");
+		install("apol_make","GD1,L,D1,L,", ,apol_library);
 		addhelp(apol_make,"Input q, {pos=1}, {red=1}; q a quadratic form of discriminant -4n^2.\n Returns the Descartes quadruple it corresponds to. If pos=0, the root quadruple starts with -n<0. Else, the form has a +n circle. If red=1 we reduce the form, otherwise we don't.");
-		install("apol_makeall","GD1,L,p",,"./libapol.so");
+		install("apol_makeall","GD1,L,p",,apol_library);
 		addhelp(apol_makeall,"Inputs n, {red=1}.\n Returns all Descartes quadruples containing n. We reduce the quadruples iff red=1. The output has length h^{+/-}(-4n^2), and may contain Descartes quadruples in the same packing (if n appears multiple times in ''unique ways''.");
 
 		addhelp(ap_make,"Installed methods:\napol_make, apol_makeall.");
 
 	\\SEARCHING FOR CURVATURES
-		install("apol_circles","GG",,"./libapol.so");
+		install("apol_circles","GG",,apol_library);
 		addhelp(apol_circles, "Inputs v, maxcurv: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv in v. Returns the list, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them.");
-		install("apol_circles_depth","GLD0,G,",,"./libapol.so");
+		install("apol_circles_depth","GLD0,G,",,apol_library);
 		addhelp(apol_circles_depth,"Inputs v, depth, {maxcurv=0}: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv and depth<=depth in v. Returns the list, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them.");
-		install("apol_curvatures","GGD0,L,",,"./libapol.so");
+		install("apol_curvatures","GGD0,L,",,apol_library);
 		addhelp(apol_curvatures,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
-		install("apol_curvatures_depth","GLD0,G,",,"./libapol.so");
+		install("apol_curvatures_depth","GLD0,G,",,apol_library);
 		addhelp(apol_curvatures_depth,"Inputs v, depth, {bound=0}: Descartes quadruple v, depth>=1, bound>=0.\n Returns a sorted list of curvatures of circles at most depth circle replacements away from v. If bound>0, we also only save the ones of size at most bound.");
-		install("apol_curvatures_layer","GLGD0,L,",,"./libapol.so");
+		install("apol_curvatures_layer","GLGD0,L,",,apol_library);
 		addhelp(apol_curvatures_layer,"Inputs v, maxlayers, bound, {countsymm=0}: Descartes quadruple v, maxlayers>=1 bound>=0, countsymm=0, 1. Returns the curvatures at most bound in the first maxlayers outer layers of the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicity. If v=[0,0,1,1], this does not work correctly.");
-		install("apol_find","GGD0,L,",,"./libapol.so");
+		install("apol_find","GGD0,L,",,apol_library);
 		addhelp(apol_find,"Inputs v, N, {countsymm=0}: Descartes quadruple v, positive integer N, countsymm=0, 1.\n Returns the Descartes quadruples in the ACP of v containing N. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
-		install("apol_primes","GGD0,L,",,"./libapol.so");
+		install("apol_primes","GGD0,L,",,apol_library);
 		addhelp(apol_primes,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns the prime curvatures at most bound in the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicities.");
-		install("apol_primes_layer","GLGD0,L,",,"./libapol.so");
+		install("apol_primes_layer","GLGD0,L,",,apol_library);
 		addhelp(apol_primes_layer,"Inptus v, maxlayer, bound, {countsymm=0}: Descartes quadruple v, maxlayer>=1, bound>=0, countsymm=0, 1.\n Returns the prime curvatures in layer at most maxlayer with curvature at most bound. If countsymm=1, symmetries are counted with their multiplicities.");
 
 		addhelp(ap_search,"Installed methods:\napol_circles, apol_curvatures, apol_curvatures_depth, apol_curvatures_layer, apol_find, apol_primes, apol_primes_layer.");
 
 	\\STRIP PACKING METHODS
-		install("apol_depthelt_circle","G",,"./libapol.so");
+		install("apol_depthelt_circle","G",,apol_library);
 		addhelp(apol_depthelt_circle,"Input L, an integer between 1 and 4, or a vector/vecsmall of integers between 1 and 4.\n Returns the circle/line corresponding to the depth element L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n].");
-		install("apol_farey_allqf","G",,"./libapol.so");
+		install("apol_farey_allqf","G",,apol_library);
 		addhelp(apol_farey_allqf,"Input q, a positive integer.\n Returns the set of primitive quadratic forms (Kate's construction) corresponding to the upside down Farey circle at x=p/q, over all p. The forms are all non-equivalent.");
-		install("apol_farey_qf","GG",,"./libapol.so");
+		install("apol_farey_qf","GG",,apol_library);
 		addhelp(apol_farey_qf,"Inputs p and q, positive integers.\n Returns the quadratic forms (Kate's construction) corresponding to the upside down Farey circle at x=p/q.");
-		install("apol_stair","GD1,L,p",,"./libapol.so");
+		install("apol_stair","GD1,L,p",,apol_library);
 		addhelp(apol_stair, "Input L, {format=1}: L is an integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, and format=0,1.\n Returns the data for the stair corresponding to the depth element L. If format=1, we return [t, a_W] as in my paper. If we don't intersect the fundamental domain or L=2, then we return 0. If format=0, we return [cutoff, height], and return [0, 0] if we don't intersect the fundamental domain.");
-		install("apol_stairs","G",,"./libapol.so");
+		install("apol_stairs","G",,apol_library);
 		addhelp(apol_stairs,"Input tmax, a positive integer.\n Returns the stairs in the packing to tmax. We use the format of apol_stair with format=1, i.e. [t, a_W], hence we skip the identity element. We also don't combine stairs of the same height.");
-		install("apol_strip_qf","GD0,L,",,"./libapol.so");
+		install("apol_strip_qf","GD0,L,",,apol_library);
 		addhelp(apol_strip_qf,"Inputs L, {red=0}: L an integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, red=0 or 1.\n Returns the quadratic form corresponding to this circle in the strip packing, i.e. generating the curvatures of PSL(2, Z) times this circle.");
 
 		addhelp(ap_strip,"Installed methods:\napol_depthelt_circle, apol_farey_allqf, apol_farey_qf, apol_stair, apol_strip_qf.");
 
 	\\VISUALIZATION
-		install("printcircles_desmos","vG",,"./libapol.so");
+		install("printcircles_desmos","vG",,apol_library);
 		addhelp(printcircles_desmos,"Input c, a list of circles.\n Prints to the screen the list of equations of the circles, suitable for copying and pasting into Desmos.");
-		install("printcircles_tex","GrD1,L,D0,L,D1,L,D1,L,p",,"./libapol.so");
+		install("printcircles_tex","GrD1,L,D0,L,D1,L,D1,L,p",,apol_library);
 		addhelp(printcircles_tex,"Input c, imagename, {addnumbers=1}, {modcolours=0}, {compile=1}, {open=1}: list of circles c, string imagename, addnumbers/compile/open =0, 1, modcolours>=0.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If modcolours>=1, we colour the circles based on their remainders mod modcolours. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
 
 		addhelp(ap_visual,"Installed methods:\nprintcircles_desmos, printcircles_tex.");
 
 	\\SUPPORTING METHODS
-		install("apol_words","L",,"./libapol.so");
+		install("apol_words","L",,apol_library);
 		addhelp(apol_words,"Input d>0, the depth.\n Returns all reduced words of length d in the Apollonian group, as a Vecsmall of 1-4's (no consecutive repeats).");
 
 		addhelp(ap_support,"Installed methods:\napol_words.");
 
 	\\SPECIALIZED METHODS
-		install("apol_makeall_extdepths","Gp",,"./libapol.so");
+		install("apol_makeall_extdepths","Gp",,apol_library);
 		addhelp(apol_makeall_extdepths,"Input n.\n Computes apol_makeall(n), and returns [d0,d1,...,dk], where the number of forms at depth i is given by di.");
-		install("apol_makeall_small","GD1,L,p",,"./libapol.so");
+		install("apol_makeall_small","GD1,L,p",,apol_library);
 		addhelp(apol_makeall_small,"Input n, {red=1}: n a positive integer.\n Computes apol_makeall(n, red), takes the corresponding smallest curvatures and returns the sorted list. If red=1, we reduce the quadruples, and negate the curvature (since it is <=0 always). If red=0, we do not do so, since it could be positive or negative.");
-		install("apol_makeall_small_maxsteps","GLp",,"./libapol.so");
+		install("apol_makeall_small_maxsteps","GLp",,apol_library);
 		addhelp(apol_makeall_small_maxsteps,"Input n, maxsteps.\n Does apol_makeall_small, but does NOT reduce the forms; instead, we reduce them by at most maxsteps only. We then return the raw data of the smallest element (without negating the curvature).");
 		
 		addhelp(ap_special,"Installed methods:\napol_makeall_extdepths, apol_makeall_small, apol_makeall_small_maxsteps.");
@@ -100,48 +102,48 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)\nSpecialized methods (?ap_special)");
 
 \\apolscripts.c
-		install("abelianfields","GD0,L,",,"./libapol.so");
+		install("abelianfields","GD0,L,",,apol_library);
 		addhelp(abelianfields,"Input G, {deg=0}.\n Returns the polynomials in G which generate abelian extensions of Q. G can either be a list of polynomials, or the output of a galoisinit, in which case we loop over the subfields. If deg>0, we only keep the fields of that degree. We return [[polynomials],[corresponding Galois groups]]");
-		install("galoisfields","GD0,L,",,"./libapol.so");
+		install("galoisfields","GD0,L,",,apol_library);
 		addhelp(galoisfields,"Input G, {deg=0}.\n Returns the polynomials in G which generate Galois extensions of Q. G can either be a list of polynomials, or the output of a galoisinit, in which case we loop over the subfields. If deg>0, we only keep the fields of that degree.");
-		install("galoisisdihedral","G",,"./libapol.so");
+		install("galoisisdihedral","G",,apol_library);
 		addhelp(galoisisdihedral,"Input G, an output of galoisinit.\n This checks if G is dihedral, returning 0 if it is not. If G is dihedral, we return 1 if G=(Z/2Z)^n, and [sgp, disc] otherwise, where sgp is the maximal abelian subgroup and disc is the discriminant of the fixed field of sgp.");
-		install("quadsubfields","Gp",,"./libapol.so");
+		install("quadsubfields","Gp",,apol_library);
 		addhelp(quadsubfields,"Input pol, a Galois polynomial/Q.\n Returns the discriminants of quadratic subfields of pol.");
-		install("ringpoly","Gp",,"./libapol.so");
+		install("ringpoly","Gp",,apol_library);
 		addhelp(ringpoly,"Input D, a negative quadratic discriminant.\n Returns the polynomial generating the ring class field of the quadratic order of discriminant D (hence it is dihedral over Q).");
 		
-		install(ab_disc,"GD0,G,",,"./libapol.so");
+		install(ab_disc,"GD0,G,",,apol_library);
 		addhelp(ab_disc,"Inputs a, b.\n Returns the discriminant of the quaternion algebra (a,b/Q). We can input a as [a,b], and can pass in the factorizations of a and/or b instead.");
 
 \\base.c
 
 	\\INFINITY
-		install("addoo","GG","addoo","./libapol.so");
+		install("addoo","GG","addoo",apol_library);
 		addhelp(addoo, "Inputs a,b real numbers or oo.\n Outputs a+b, where if a or b is +/- oo, returns that back. Note that this will make oo+-oo=oo and -oo+oo=-oo");
-		install("divoo","GG","divoo","./libapol.so");
+		install("divoo","GG","divoo",apol_library);
 		addhelp(divoo, "Inputs a,b, real numbers or oo.\n Outputs a/b, where oo is output if a=oo and b>=0 or a=-oo and b<0 or b=0 and a>=0 (outputs -oo under analogous assumptions).");
 
 	\\LINEAR ALGEBRA
-		install("lin_intsolve_tc","GGG","lin_intsolve","./libapol.so");
+		install("lin_intsolve_tc","GGG","lin_intsolve",apol_library);
 		addhelp(lin_intsolve, "Inputs A,B,n integers.\n Outputs the general integral solutions to Ax+By=n. The format is [[s1,s2],[x0,y0]], where the general solution is x=s1*t+x0, y=s2*t+y0 for t an integer. The output is also reduced, i.e. gcd(s1,s2)=1. If A=B=0 or there are no integer solutions, returns 0.");
-		install("mat3_complete_tc", "GGG", "mat3_complete", "./libapol.so");
+		install("mat3_complete_tc", "GGG", "mat3_complete", apol_library);
 		addhelp(mat3_complete, "Inputs A,B,C integers with gcd 1.\n Outputs a 3x3 integer matrix with determinant 1 whose top row is [A, B, C].");
 	
 	\\VECTORS
-		install("vecrev","G",,"./libapol.so");
+		install("vecrev","G",,apol_library);
 		addhelp(vecrev,"Returns v but backwards.");
 	
 	\\MODS
-		install("modsquares","GD1,L,",,"./libapol.so");
+		install("modsquares","GD1,L,",,apol_library);
 		addhelp(modsquares,"Inputs n, {cop=1}: n a positive integer, cop=0, 1.\n Returns the squares mod n, only keeping those coprime to n if cop=1.");
-		install("mod_breakdown","GG",,"./libapol.so");
+		install("mod_breakdown","GG",,apol_library);
 		addhelp(mod_breakdown,"Inputs res, n: list of residues modulo n>1.\n Returns the residues modulo q^e for all q^e||n. Each component of the return vector is [residues, [q, e, q^e]], and the vector is ordered by q.");
 	
 	\\PRIMES
-		install("primes_mod","GGL",,"./libapol.so");
+		install("primes_mod","GGL",,apol_library);
 		addhelp(primes_mod,"Input range, residues, modulus.\n Returns the primes in the given range that have the given residues modulo the modulus. Range=[a, b] where a<b are integers, and residues can either be a single integer or a vector of integers.");
-		install("primefactors","G",,"./libapol.so");
+		install("primefactors","G",,apol_library);
 		addhelp(primefactors,"Input N, an integer.\n Returns the vector of prime factors of N.");
 	
 	\\GENERAL HELP
@@ -155,99 +157,99 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 \\bqf.c
 
 	\\DISCRIMINANT METHODS
-		install("disclist","GGD0,L,D0,G,",,"./libapol.so");
+		install("disclist","GGD0,L,D0,G,",,apol_library);
 		addhelp(disclist, "Inputs d1, d2, {fund=0}, {cop=0}: d1 and d2 integers with d1<=d2, fund=0,1, cop integer.\n Returns the set of proper discriminants between d1 and d2, inclusive. If fund=1, only returns fundamental discriminants. If cop!=0, only returns discriminants coprime to cop.");
-		install("discprimeindex","G",,"./libapol.so");
+		install("discprimeindex","G",,apol_library);
 		addhelp(discprimeindex, "Inputs: D, a proper discriminant.\n Returns all prime divisors p of D for which D/p^2 is a proper discriminant.");
-		install("discsuperorders","G",,"./libapol.so");
+		install("discsuperorders","G",,apol_library);
 		addhelp(discsuperorders,"Input D, a proper discriminant. Returns the vector of divisors D' of D such that D' is a discriminant and D/D' is a square.\n ");
-		install("isdisc","iG",,"./libapol.so");
+		install("isdisc","iG",,apol_library);
 		addhelp(isdisc, "Inputs: D a real number.\n Returns 1 if D is a proper discriminant, and 0 otherwise.");
-		install("pell","G",,"./libapol.so");
+		install("pell","G",,apol_library);
 		addhelp(pell, "Inputs: D a positive discriminant.\n Returns [T, U], which is the smallest positive integer solution to T^2-DU^2=4 (and so (T+Usqrt(D))/2 is the fundamental unit in O_D).");
-		install("posreg","Gp",,"./libapol.so");
+		install("posreg","Gp",,apol_library);
 		addhelp(posreg, "Inputs: D a positive discriminant.\n Returns the positive regulator of O_D, i.e. the logarithm of the fundamental totally positive unit.");
-		install("quadroot","G",,"./libapol.so");
+		install("quadroot","G",,apol_library);
 		addhelp(quadroot, "Input D, a non-square integer.\n Returns sqrt(D) of type t_QUAD.");
 
 		addhelp(disc,"Installed methods:\ndisclist, discprimeindex, discsuperorders, isdisc, pell, posreg, quadroot.");
 
 	\\BASIC OPERATIONS ON BINARY QUADRATIC FORMS
-		install("bqf_automorph","G",,"./libapol.so");
+		install("bqf_automorph","G",,apol_library);
 		addhelp(bqf_automorph, "Input q, a BQF.\n Returns a generator of the automorph group of q in PSL(2,Z).");
-		install("bqf_disc","G",,"./libapol.so");
+		install("bqf_disc","G",,apol_library);
 		addhelp(bqf_disc, "Input q, an integral quadratic form.\n Returns the discriminant of q.");
-		install("bqf_isequiv_tc","GGD0,L,p","bqf_isequiv","./libapol.so");
+		install("bqf_isequiv_tc","GGD0,L,p","bqf_isequiv",apol_library);
 		addhelp(bqf_isequiv, "Inputs: q, S, {tmat=0}: q a BQF, S either a BQF or a set of BQFs, tmat=0,1.\n This method tests if q is PSL(2,Z) equivalent to S or any form in S. If S is a form, this returns 1 if equivalent and 0 if not (if tmat!=0, returns a possible transition matrix).\n If S is a set of forms, this returns 0 if not equivalent and an index i such that q is equivalent to S[i] otherwise. If tmat!=0, this returns [index, transition matrix].");
-		install("bqf_isreduced","iGDG",,"./libapol.so");
+		install("bqf_isreduced","iGDG",,apol_library);
 		addhelp(bqf_isreduced,"Inputs q, {D=NULL}: q an integral quadratic form of non-zero discriminant D.\n Returns 1 if q is reduced, and 0 if not. D is optional, and you only need to pass the sign of D.");
-		install("bqf_random","GD0,L,D1,L,",,"./libapol.so");
+		install("bqf_random","GD0,L,D1,L,",,apol_library);
 		addhelp(bqf_random,"Inputs maxc, {type=0}, {primitive=1}; maxc a positive integer, type=-1,0,1, and primitive=0,1.\n Returns a random BQF with coefficients bounded by maxc. If type=-1 it is positive definite, =1 is indefinite, and =0 means either. If primitive=1 the form is primitive, else it doesn't have to be.");
-		install("bqf_random_D","GG",,"./libapol.so");
+		install("bqf_random_D","GG",,apol_library);
 		addhelp(bqf_random_D,"Inputs maxc, D: maxc a positive integer, and D a discriminant.\n Returns a random primitive form (positive definite if D<0) of discriminant D whose B coefficient is bounded by maxc.");
-		install("bqf_red_tc","GD0,L,p","bqf_red","./libapol.so");
+		install("bqf_red_tc","GD0,L,p","bqf_red",apol_library);
 		addhelp(bqf_red, "Inputs: q, {tmat=0}: BQF q, (tmat=0,1).\n Returns a reduced form equivalent to q, and if tmat!=0, we return [q_red, transition matrix].");
-		install("bqf_roots_tc","G","bqf_roots","./libapol.so");
+		install("bqf_roots_tc","G","bqf_roots",apol_library);
 		addhelp(bqf_roots, "Inputs q: quadratic form q.\n Returns the roots of q with the first root first.");
-		install("bqf_trans_tc","GG","bqf_trans","./libapol.so");
+		install("bqf_trans_tc","GG","bqf_trans",apol_library);
 		addhelp(bqf_trans, "Inputs q, mtx: integral quadratic form q, 2x2 integral matrix mtx.\n Returns the form acquired by replacing (x,y)^T with m(x,y)^T.");
-		install("bqf_trans_coprime_tc", "GG", "bqf_trans_coprime", "./libapol.so");
+		install("bqf_trans_coprime_tc", "GG", "bqf_trans_coprime", apol_library);
 		addhelp(bqf_trans_coprime,"Inputs q, n: q a primitive integral BQF, and n an integer.\n Returns a form similar to q whose first coefficient is coprime to n.");
-		install("ideal_tobqf","GG","ideal_tobqf","./libapol.so");
+		install("ideal_tobqf","GG","ideal_tobqf",apol_library);
 		addhelp(ideal_tobqf,"Inputs nf, ideal: a quadratic number field nf with ideal ideal.\n Returns the corresponding binary quadratic form.");
 
 	\\BASIC OPERATIONS SPECIFIC TO INDEFINITE FORMS
-		install("ibqf_isrecip_tc","iGp","ibqf_isrecip","./libapol.so");
+		install("ibqf_isrecip_tc","iGp","ibqf_isrecip",apol_library);
 		addhelp(ibqf_isrecip,"Inputs: q, a PIBQF.\n Returns 1 if q is q is reciprocal, and 0 otherwise.");
-		install("ibqf_leftnbr_tc","GD0,L,p","ibqf_leftnbr","./libapol.so");
+		install("ibqf_leftnbr_tc","GD0,L,p","ibqf_leftnbr",apol_library);
 		addhelp(ibqf_leftnbr, "Inputs q, {tmat=0}: an indefinite binary quadratic form on the river and tmat=0,1. \n Returns q' or [q',mat] (if tmat=0,1 respectively), where q' is the left neighbour of q and mat is the bqf_transition matrix from q to q'. The left neighbour is the previous form along the flow of the river that is reduced (AC<0 and B>|A+C|, and occurs when the branches swap from being below to above or vice versa).");
-		install("ibqf_redorbit_tc","GD0,L,D0,L,p","ibqf_redorbit","./libapol.so");
+		install("ibqf_redorbit_tc","GD0,L,D0,L,p","ibqf_redorbit",apol_library);
 		addhelp(ibqf_redorbit, "Inputs q, (tmat), (posonly): q a PIBQF, tmat and posonly=0,1.\n Returns the reduced orbit of q. If tmat=1, also returns the corresponding transition matrices, and if posonly=1 only returns the reduced forms with A>0.");
-		install("ibqf_rightnbr_tc","GD0,L,p","ibqf_rightnbr","./libapol.so");
+		install("ibqf_rightnbr_tc","GD0,L,p","ibqf_rightnbr",apol_library);
 		addhelp(ibqf_rightnbr, "Inputs q, (tmat): an indefinite binary quadratic form on the river and tmat=0,1. \n Returns q' or [q',mat] (if tmat=0,1 respectively), where q' is the right neighbour of q and mat is the bqf_transition matrix from q to q'. The right neighbour is the next form along the flow of the river that is reduced (AC<0 and B>|A+C|, and occurs when the branches swap from being below to above or vice versa).");
-		install("ibqf_river_tc","Gp","ibqf_river","./libapol.so");
+		install("ibqf_river_tc","Gp","ibqf_river",apol_library);
 		addhelp(ibqf_river, "Input: q an indefinite quadratic form.\n Returns the river sequence corresponding to q, where a 1 corresponds to going right and 0 corresponds to going left.");
-		install("ibqf_riverforms_tc","Gp","ibqf_riverforms","./libapol.so");
+		install("ibqf_riverforms_tc","Gp","ibqf_riverforms",apol_library);
 		addhelp(ibqf_riverforms, "Input q a PIBQF.\n This calculates all forms on the river of q, and returns those with A>0, in the order that they appear on the river.");
-		install("ibqf_symmetricarc_tc","Gp","ibqf_symmetricarc","./libapol.so");
+		install("ibqf_symmetricarc_tc","Gp","ibqf_symmetricarc",apol_library);
 		addhelp(ibqf_symmetricarc,"Input q, a PIBQF.\n Returns [z,gamma_q(z)] on the root geodesic corresponding to q so that q,gamma_q are symmetric about the arc.");
-		install("mat_toibqf_tc","G","mat_toibqf","./libapol.so");
+		install("mat_toibqf_tc","G","mat_toibqf",apol_library);
 		addhelp(mat_toibqf, "Inputs: mtx, a hyperbolic matrix in SL(2,Z).\n This returns the PIBQF for which it is the ibqf_automorph, namely [c,d-a,-b]/gcd(c,d-a,b) if mtx=[a,b;c,d].");
 
 	\\CLASS GROUPS AND COMPOSITION OF FORMS
-		install("bqf_allforms","GD0,L,D0,L,p","bqf_allforms","./libapol.so");
+		install("bqf_allforms","GD0,L,D0,L,p","bqf_allforms",apol_library);
 		addhelp(bqf_allforms,"Input D, {prim=0}, {GL=0}: D a proper discriminant.\n Returns the set of equivalence classes of quadratic forms of discriminant D. The returned forms are reduced. If prim=0, we include the non-primitive forms. If GL=1, we take the GL-equivalence classes, else we take SL-equivalence classes.");
-		install("bqf_comp_tc","GGD1,L,p","bqf_comp","./libapol.so");
+		install("bqf_comp_tc","GGD1,L,p","bqf_comp",apol_library);
 		addhelp(bqf_comp,"Inputs q1, q2, {tored=1}: BQFs q1, q2 of the same discriminant, tored=0, 1.\n Returns the composition of q1 and q2, reduced if tored=1.");
-		install("bqf_identify_tc","GGp","bqf_identify","./libapol.so");
+		install("bqf_identify_tc","GGp","bqf_identify",apol_library);
 		addhelp(bqf_identify,"Inputs ncgp_lexic, q: the output of bqf_ncgp_lexic(D), and a form q of discriminant D.\n Returns [e1,...,er], where in the narrow class group we have q=g1^e1*...*gr^er.");
-		install("bqf_lexicind_tobasis","GL","bqf_lexicind_tobasis","./libapol.so");
+		install("bqf_lexicind_tobasis","GL","bqf_lexicind_tobasis",apol_library);
 		addhelp(bqf_lexicind_tobasis,"Inputs orders (vecsmall), index ind.\n Returns [e1,...,er], where the ind element in the lexicographic ordering of the narrow class group is of the form g1^e1*...*gr^er.");
-		install("bqf_ncgp","Gp","bqf_ncgp","./libapol.so");
+		install("bqf_ncgp","Gp","bqf_ncgp",apol_library);
 		addhelp(bqf_ncgp, "Input D, a proper discriminant.\n Returns the narrow class group, in the format [n,[n_1,...,n_r],[g_1,...,g_r]], where it has size n, is isomorphic to c_{n_1} x ... x c_{n_r} with n_1 | n_2 | ... | n_r, and g_i is a generator of the corresponding cyclic group of order n_i.");
-		install("bqf_ncgp_lexic","Gp","bqf_ncgp_lexic","./libapol.so");
+		install("bqf_ncgp_lexic","Gp","bqf_ncgp_lexic",apol_library);
 		addhelp(bqf_ncgp_lexic, "Input D, a proper discriminant D.\n This returns [n,[n_1,...,n_r],[f1,f2,...,fl]], where n is the narrow class number of D, the narrow class group is c_{n_1} x ... x c_{n_r} with n_1 | n_2 | ... | n_r, and representative BQFs are the f1,f2,... written in lexicographic order: starting with the identity element, and the component with the highest order moves first.");
-		install("bqf_pow_tc","GGD1,L,p","bqf_pow","./libapol.so");
+		install("bqf_pow_tc","GGD1,L,p","bqf_pow",apol_library);
 		addhelp(bqf_pow,"Inputs q, n, {tored=1}: BQF q, integer n, tored=0, 1.\n Returns q^n, reduced if tored=1.");
-		install("bqf_square_tc","GD1,L,p","bqf_square","./libapol.so");
+		install("bqf_square_tc","GD1,L,p","bqf_square",apol_library);
 		addhelp(bqf_square,"Inputs q, {tored=1}: BQF q, tored=0, 1.\n Returns q^2, reduced if tored=1.");
 
 	\\REPRESENTATIONS OF NUMBERS BY BQFs
-		install("bqf_reps_tc","GGD0,L,D1,L,p","bqf_reps","./libapol.so");
+		install("bqf_reps_tc","GGD0,L,D1,L,p","bqf_reps",apol_library);
 		addhelp(bqf_reps,"Inputs q, n, {proper=0}, {half=1}: BQF q, integer n, (proper=0,1), (half=0,1).\n This solves the equation q(x,y)=n over the integers. We will get a finite set of (families) of solutions, and if half=0 we only return one of the families corresponding to (x,y) and (-x,-y). If we want only coprime solutions when disc!=square, pass in proper=1. If Q has discriminant D, the return is:\n\n --------If no solutions, returns 0;\n -D>0 nonsquare and n!=0, [[1,M],[x1,y1],[x2,y2],...,[xk,yk]] where the +/-(xi,yi) are representatives of the distinct classes of solutions and M is the invariant automorph;\n ----D>0 square and n!=0, [[0],[x1,y1],[x2,y2],...,[xk,yk]] where the +/-(xi,yi) are the solutions;\n --------------------D<0, [[0],[x1,y1],[x2,y2],...,[xk,yk]] where the +/-(xi,yi) are the solutions;\n -----------D=0 and n!=0, [[2],[[s1,s2],[x1,y1]]] where the solutions are (up to +/-) x=x1+Us1, y=y1+Us2;\n ---------n=0, D!=square, [[0],[0,0]];\n -------n=0, D=square!=0, [[2],[[s1,s2],[0,0]],[[s3,s4],[0,0]]], solutions are (x,y)=(s1k,s2k),(s3k,s4k) for integer k;\n ------------n=0 and D=0, if Q!=0 as above, if Q=0 then [[-1]] (everything is a solution).\n\n In general, -1=all, 0=finite, 1=positive, 2=linear");
 
 	\\MORE REPRESENTATION OF NUMBERS
-		install("bqf_bigreps_tc","GGp","bqf_bigreps","./libapol.so");
+		install("bqf_bigreps_tc","GGp","bqf_bigreps",apol_library);
 		addhelp(bqf_bigreps,"Inputs: Q, n, Q=[A,B,C,D,E]=Ax^2+Bxy+Cy^2+Dx+Ey and an integer n.\n Returns the solutions to Q(x,y)=n over the integers. If D=bqf_disc(Q)=B^2-4AC, then the output is: \n\n ----------If no solutions, returns 0; \n ------------D>0 nonsquare, [[1,M,[s1,s2]],[x1,y1],[x2,y2],...,[xk,yk]] where the general solution is [x;y]=M^k*[xi;yi]+[s1;s2];\n --------D>0 square EITHER, [[0],[x1,y1],[x2,y2],...,[xk,yk]] where the (xi,yi) are the solutions;\n -----------------------OR, [[2],[[s1,t1],[x1,y1]],...,[[sk,tk],[xk,yk]]] where the solutions are x=xi+Usi and y=yi+Uti for U integer;\n ----------------------D<0, [[0],[x1,y1],[x2,y2],...,[xk,yk]] where the (xi,yi) are the solutions;\n ----------------------Q=0, [[-1]] if n=0 and 0 else;\n -D=0 and A=B=C=0 or D=E=0, [[2],[[s1,t1],[x1,y1]],...,[[sk,tk],[xk,yk]]] where the solutions are x=xi+Usi and y=yi+Uti for U integer (si=sj and ti=tj for all i,j in fact);\n ------------D=0 otherwise, [[-2],[[a1,b1,c1],[e1,f1,g1]],...,[[ak,bk,ck],[ek,fk,gk]]] where the solutions are x=ai*U^2+bi*U+ci, y=ei*U^2+fi*U+gi for U integer.\n\n In general, -2=quadratic, -1=all, 0=finite, 1=positive, 2=linear");
-		install("bqf_linearsolve_tc","GGGGp","bqf_linearsolve","./libapol.so");
+		install("bqf_linearsolve_tc","GGGGp","bqf_linearsolve",apol_library);
 		addhelp(bqf_linearsolve,"Inputs qf, n1, lin, n2: qf a six term integer vector representing the form Ax^2+By^2+Cz^2+Dxy+Exz+Fyz, n1 an integer, lin a three term integer vector representing Ax+By+Cz, and n2 an integer.\n Solves qf(x, y, z)=n1 and lin(x, y, z)=n2 simultaneously. If there are no solutions, this returns 0. Otherwise it returns a vector v. Let v[1][1]=t, and then the format of v is:\n\n -t=-2, v=[[-2], [[a1, a2, a3], [b1, b2, b3], [c1, c2, c3]], ...], where each general solution is x=a1U^2+a2U+a3, y=b1U^2+b2U+b3, z=c1U^2+c2U+c3 for any U integral;\n -t=-1, v=[[-1], [[a1, a2, a3], [b1, b2, b3], [c1, c2, c3]]], where the solution is x=a1U+b1V+c1, y=a2U+b2V+c2, z=a3U+v3V+c3 for any U, V integral;\n --t=0, v=[[0], [a1, b1, c1], ...], where the finite set of solutions are (x,y,z)=(ai, bi, ci);\n --t=1, v=[[1, M, [s1, s2, s3]], [a1, b1, c1], ...], where the general solution is [x;y;z]=M^k[ai;bi;ci]+[s1;s2;s3] for k integral. Note that ai and si need not be integral, though M is.\n --t=2, v=[[2], [[a1, a2, a3], [b1, b2, b3]], ...], where each general solution is x=a1U+b1, y=a2U+b2, z=a3U+b3 for any U integral;\n\n In general, -2=quadratic, -1=plane, 0=finite, 1=positive, 2=linear.");
 
 	\\TUPLE REPS OF PRIMES
-		install("bqf_primesmod","G",,"./libapol.so");
+		install("bqf_primesmod","G",,apol_library);
 		addhelp(bqf_primesmod,"Input q, an integral BQF.\n Returns the residue classes modulo D=disc(q) coprime to D that are represented by q.");
-		install("bqf_primetuplereps","GGD0,G,",,"./libapol.so");
+		install("bqf_primetuplereps","GGD0,G,",,apol_library);
 		addhelp(bqf_primetuplereps, "Inputs v, pmin, {pmax=0}. Returns the smallest prime between pmin and pmax represented by all BQFs in v. If pmax=0, we go from 2 to pmin.");
-		install("bqf_tuplevalid","iG",,"./libapol.so");
+		install("bqf_tuplevalid","iG",,apol_library);
 		addhelp(bqf_tuplevalid,"Input v, a vector of integral BQFs.\n Returns 1 if there is a residue class containing primes that is represented by all forms, and 0 if not.");
 	
 	\\GENERAL HELP
@@ -259,32 +261,32 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 		addhelp(bqfprime,"bqf_primesmod, bqf_primetuplereps, bqf_tuplevalid.");
 
 \\farey.c
-		install("fareydenom_depths","L", ,"./libapol.so");
+		install("fareydenom_depths","L", ,apol_library);
 		addhelp(fareydenom_depths,"Input n>1 an integer.\n Returns the set of fareydepth(i/n) for all 1<=i<n with gcd(n, i)=1.");
-		install("fareydenom_dmode","lL", ,"./libapol.so");
+		install("fareydenom_dmode","lL", ,apol_library);
 		addhelp(fareydenom_dmode,"Input n>1 an integer.\n Returns the most common depth in fareydenom_depths(n).");
-		install("fareydepth","lG", ,"./libapol.so");
+		install("fareydepth","lG", ,apol_library);
 		addhelp(fareydepth,"Input r, a rational number in (0, 1) or a Farey pair.\n Returns the depth of r in the Farey tree.");
-		install("fareyup","G", ,"./libapol.so");
+		install("fareyup","G", ,apol_library);
 		addhelp(fareyup,"Input r, a rational number in (0, 1) or a Farey pair.\n Returns either the Farey pair with r as its mediant, or the (unique) Farey pair with one of the numbers as it's endpoint and the other as its mediant.");
 
 \\geo.c
 	\\BASIC LINE, CIRCLE, AND POINT OPERATIONS
-		install("circle_fromcp","GGp",,"./libapol.so");
+		install("circle_fromcp","GGp",,apol_library);
 		addhelp(circle_fromcp,"Inputs c, p: centre c, and point p.\n Returns the circle with centre c and passing through point p.");
-		install("circle_fromppp","GGGp",,"./libapol.so");
+		install("circle_fromppp","GGGp",,apol_library);
 		addhelp(circle_fromppp,"Inputs p1, p2, p3: distinct complex points (oo is allowed).\n Returns the circle that passes through p1, p2, p3. If they are collinear (including if one is oo), this will return the line going through them instead.");
-		install("line_fromsp","GG",,"./libapol.so");
+		install("line_fromsp","GG",,apol_library);
 		addhelp(line_fromsp,"Inputs s, p: slope and point p.\n Returns the line through p with slope s.");
-		install("line_frompp","GG",,"./libapol.so");
+		install("line_frompp","GG",,apol_library);
 		addhelp(line_frompp,"Inputs p1, p2: distinct complex points.\n Returns the line formed by p1 and p2.");
-		install("mat_eval","GG","mat_eval","./libapol.so");
+		install("mat_eval","GG","mat_eval",apol_library);
 		addhelp(mat_eval, "Inputs M, x; M a matrix, and x number.\n Returns Mx with M acting via Mobius transformation. x=+/-oo is allowed.");
-		install("mobius_gp","GGp","mobius","./libapol.so");
+		install("mobius_gp","GGp","mobius",apol_library);
 		addhelp(mobius,"Inputs M, c: a 2x2 matrix M, and a circle/line/arc/segment c.\n This returns M(c), where M acts as a Mobius map.");
 
 	\\INTERSECTION OF LINES/CIRCLES
-		install("geom_int","GGp",,"./libapol.so");
+		install("geom_int","GGp",,apol_library);
 		addhelp(geom_int,"Inputs s1, s2: circles/arcs/lines/segments.\n Returns the intersection points of s1 and s2.");
 		
 	\\GENERAL HELP
@@ -292,39 +294,39 @@ addhelp(apol, "For each package P, call ?P to access a basic description and lis
 
 \\visual.c
 	\\DATA
-		install("integerbin","GGD0,G,",,"./libapol.so");
+		install("integerbin","GGD0,G,",,apol_library);
 		addhelp(integerbin,"Inputs v, binlen, {binstart=0}.\n Assumes v is a sorted list of integers, and puts them into bins of length binlen, starting with binstart (assumed to be 0). Returns [binends, counts], with binends being the last number in the bin.");
-		install("integerbin_cumu","GGD0,G,",,"./libapol.so");
+		install("integerbin_cumu","GGD0,G,",,apol_library);
 		addhelp(integerbin_cumu,"Inputs v, binlen, {binstart=0}.\n Assumes v is a sorted list of integers, and puts them into bins of length binlen, starting with binstart (assumed to be 0). Returns [binends, counts], with binends being the last number in the bin. This is cumulative, so counts is increasing.");
-		install("veccount","G",,"./libapol.so");
+		install("veccount","G",,apol_library);
 		addhelp(veccount,"Input v, a vector.\n Returns [uniq, count], where uniq is the sorted vector v with repeats removed, and count is the corresponding number of times they appear in v.");
-		install("vecsmallcount","G",,"./libapol.so");
+		install("vecsmallcount","G",,apol_library);
 		addhelp(vecsmallcount,"Input v, a vecsmall.\n Returns [uniq, count], where uniq is the sorted vecsmall v with repeats removed, and count is the corresponding number of times they appear in v.");
-		install("ZV_countnonpos","lG",,"./libapol.so");
+		install("ZV_countnonpos","lG",,apol_library);
 		addhelp(ZV_countnonpos,"Input v, a sorted vector of integers.\n Returns the number of entries that are nonpositive.");
 		
 	\\HISTOGRAMS
-		install("hist_make","GrD0,L,D0,L,Drp",,"./libapol.so");
+		install("hist_make","GrD0,L,D0,L,Drp",,apol_library);
 		addhelp(hist_make,"Inputs data, imagename, {compilenew=0}, {open=0}, {plotoptions=NULL}: sorted list of real numbers data, name of the tikz picture, {compilenew=0, 1}, {open=0, 1}, {plotoptions=NULL, string}.\n Automatically bins the data, and creates a pdf of the histogram using tikz and externalize. The output is in the folder /images, with the build file (named imagename_build.tex) being in the folder /images/build. If compilenew=0 assumes the LaTeX document to compile the plot is pre-made, and otherwise this method automatically writes it. If additionally, plotoptions!=NULL, this string is inserted in between \\begin{axis} and \\end{axis} in the LaTeX document (allowing one to customize how the histogram looks). If open=1, the pdf is automatically opened (only works with Linux subsystem for Windows). The returned value is used to modify the histogram, e.g. changing the bins, scaling it, and changing the range.");
-		install("hist_rebin","GGGp",,"./libapol.so");
+		install("hist_rebin","GGGp",,apol_library);
 		addhelp(hist_rebin,"Inputs data, histdata, nbins: the sorted data, the length 7 vector output of a hist_ method, the number of bins.\n Rebins the data according to the new number of bins, and updates histdata.");
-		install("hist_rerange","GGGGp",,"./libapol.so");
+		install("hist_rerange","GGGGp",,apol_library);
 		addhelp(hist_rerange,"Inputs data, histdata, minx, maxx: the sorted data, the length 7 vector output of a hist_ method, minimum x-value, maximum x-value.\n Rebins the data according to the new minimum and maximum value. This is useful when there are outliers that skew the look of the graph. Returns the updated histdata.");
-		install("hist_rescale","GGLp",,"./libapol.so");
+		install("hist_rescale","GGLp",,apol_library);
 		addhelp(hist_rescale,"Inputs data, histdata, scale: the sorted data, the length 7 vector output of a hist_ method, and scale=0, 1.\n If scale=1 scales the data so the total area is 1, and if scale=0 uses the absolute count for the y-axis. Returns the updated histdata.");
 
 	\\REGRESSIONS & PLOTS
-		install("OLS","GGD1,L,",,"./libapol.so");
+		install("OLS","GGD1,L,",,apol_library);
 		addhelp(OLS,"Inputs X, y, {retrsqr=1}:  m*n matrix X with top row being all 1's, length n column vector y, retrsqr=0, 1.\n Performs ordinary least squares regression on the data, where the n inputs are the columns of X, and the outputs are the entries of y. We must include a constant term, hence why the first row of X must be all 1's. If retrsqr=1, returns [pararms, R^2], and otherwise returns params, where params is the length m column vector of best fit parameters.");
-		install("OLS_nointercept","GGD1,L,",,"./libapol.so");
+		install("OLS_nointercept","GGD1,L,",,apol_library);
 		addhelp(OLS_nointercept,"Inputs X, y, {retrsqr=1}: vector X, column vector y (of same length), retrsqr=0, 1.\n Performs ordinary least squares regression on the data assuming that y[i]=c*X[i], i.e. the y-intercept is 0. Returns c if retrsqr=0, or [c, R^2] otherwise.");
-		install("OLS_single","GGD1,L,",,"./libapol.so");
+		install("OLS_single","GGD1,L,",,apol_library);
 		addhelp(OLS_single,"Inputs x, y, {retrsqr=1}: vector x, column vector y, retrsqr=0, 1. Performs linear regression for a single variable (essentially a macro for OLS with y=mx+b.");
-		install("rsquared","GGG",,"./libapol.so");
+		install("rsquared","GGG",,apol_library);
 		addhelp(rsquared,"Inputs X, y, fit: X and y data supplied to OLS, and fit the proposed fit (a column vector of parameters). This returns the R^2 value for this proposal.");
 
 	\\TEX
-		install("tex_recompile","vG",,"./libapol.so");
+		install("tex_recompile","vG",,apol_library);
 		addhelp(tex_recompile,"Input data, the output of a tex image creation call.\n Recompiles the image, returning nothing. This is used when you edit the LaTeX document by hand.");
 
 	\\GENERAL HELP
