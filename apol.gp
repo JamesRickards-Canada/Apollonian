@@ -101,34 +101,15 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 	\\GENERAL HELP
 		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)\nSpecialized methods (?ap_special)");
 
-\\apolscripts.c
-		install("abelianfields","GD0,L,",,apol_library);
-		addhelp(abelianfields,"Input G, {deg=0}.\n Returns the polynomials in G which generate abelian extensions of Q. G can either be a list of polynomials, or the output of a galoisinit, in which case we loop over the subfields. If deg>0, we only keep the fields of that degree. We return [[polynomials],[corresponding Galois groups]]");
-		install("galoisfields","GD0,L,",,apol_library);
-		addhelp(galoisfields,"Input G, {deg=0}.\n Returns the polynomials in G which generate Galois extensions of Q. G can either be a list of polynomials, or the output of a galoisinit, in which case we loop over the subfields. If deg>0, we only keep the fields of that degree.");
-		install("galoisisdihedral","G",,apol_library);
-		addhelp(galoisisdihedral,"Input G, an output of galoisinit.\n This checks if G is dihedral, returning 0 if it is not. If G is dihedral, we return 1 if G=(Z/2Z)^n, and [sgp, disc] otherwise, where sgp is the maximal abelian subgroup and disc is the discriminant of the fixed field of sgp.");
-		install("quadsubfields","Gp",,apol_library);
-		addhelp(quadsubfields,"Input pol, a Galois polynomial/Q.\n Returns the discriminants of quadratic subfields of pol.");
-		install("ringpoly","Gp",,apol_library);
-		addhelp(ringpoly,"Input D, a negative quadratic discriminant.\n Returns the polynomial generating the ring class field of the quadratic order of discriminant D (hence it is dihedral over Q).");
-		
-		install(ab_disc,"GD0,G,",,apol_library);
-		addhelp(ab_disc,"Inputs a, b.\n Returns the discriminant of the quaternion algebra (a,b/Q). We can input a as [a,b], and can pass in the factorizations of a and/or b instead.");
-
 \\base.c
 
 	\\INFINITY
-		install("addoo","GG","addoo",apol_library);
-		addhelp(addoo, "Inputs a,b real numbers or oo.\n Outputs a+b, where if a or b is +/- oo, returns that back. Note that this will make oo+-oo=oo and -oo+oo=-oo");
 		install("divoo","GG","divoo",apol_library);
 		addhelp(divoo, "Inputs a,b, real numbers or oo.\n Outputs a/b, where oo is output if a=oo and b>=0 or a=-oo and b<0 or b=0 and a>=0 (outputs -oo under analogous assumptions).");
 
 	\\LINEAR ALGEBRA
 		install("lin_intsolve_tc","GGG","lin_intsolve",apol_library);
 		addhelp(lin_intsolve, "Inputs A,B,n integers.\n Outputs the general integral solutions to Ax+By=n. The format is [[s1,s2],[x0,y0]], where the general solution is x=s1*t+x0, y=s2*t+y0 for t an integer. The output is also reduced, i.e. gcd(s1,s2)=1. If A=B=0 or there are no integer solutions, returns 0.");
-		install("mat3_complete_tc", "GGG", "mat3_complete", apol_library);
-		addhelp(mat3_complete, "Inputs A,B,C integers with gcd 1.\n Outputs a 3x3 integer matrix with determinant 1 whose top row is [A, B, C].");
 	
 	\\VECTORS
 		install("vecrev","G",,apol_library);
@@ -165,12 +146,6 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(discsuperorders,"Input D, a proper discriminant. Returns the vector of divisors D' of D such that D' is a discriminant and D/D' is a square.\n ");
 		install("isdisc","iG",,apol_library);
 		addhelp(isdisc, "Inputs: D a real number.\n Returns 1 if D is a proper discriminant, and 0 otherwise.");
-		install("pell","G",,apol_library);
-		addhelp(pell, "Inputs: D a positive discriminant.\n Returns [T, U], which is the smallest positive integer solution to T^2-DU^2=4 (and so (T+Usqrt(D))/2 is the fundamental unit in O_D).");
-		install("posreg","Gp",,apol_library);
-		addhelp(posreg, "Inputs: D a positive discriminant.\n Returns the positive regulator of O_D, i.e. the logarithm of the fundamental totally positive unit.");
-		install("quadroot","G",,apol_library);
-		addhelp(quadroot, "Input D, a non-square integer.\n Returns sqrt(D) of type t_QUAD.");
 
 		addhelp(disc,"Installed methods:\ndisclist, discprimeindex, discsuperorders, isdisc, pell, posreg, quadroot.");
 
@@ -234,16 +209,6 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install("bqf_square_tc","GD1,L,p","bqf_square",apol_library);
 		addhelp(bqf_square,"Inputs q, {tored=1}: BQF q, tored=0, 1.\n Returns q^2, reduced if tored=1.");
 
-	\\REPRESENTATIONS OF NUMBERS BY BQFs
-		install("bqf_reps_tc","GGD0,L,D1,L,p","bqf_reps",apol_library);
-		addhelp(bqf_reps,"Inputs q, n, {proper=0}, {half=1}: BQF q, integer n, (proper=0,1), (half=0,1).\n This solves the equation q(x,y)=n over the integers. We will get a finite set of (families) of solutions, and if half=0 we only return one of the families corresponding to (x,y) and (-x,-y). If we want only coprime solutions when disc!=square, pass in proper=1. If Q has discriminant D, the return is:\n\n --------If no solutions, returns 0;\n -D>0 nonsquare and n!=0, [[1,M],[x1,y1],[x2,y2],...,[xk,yk]] where the +/-(xi,yi) are representatives of the distinct classes of solutions and M is the invariant automorph;\n ----D>0 square and n!=0, [[0],[x1,y1],[x2,y2],...,[xk,yk]] where the +/-(xi,yi) are the solutions;\n --------------------D<0, [[0],[x1,y1],[x2,y2],...,[xk,yk]] where the +/-(xi,yi) are the solutions;\n -----------D=0 and n!=0, [[2],[[s1,s2],[x1,y1]]] where the solutions are (up to +/-) x=x1+Us1, y=y1+Us2;\n ---------n=0, D!=square, [[0],[0,0]];\n -------n=0, D=square!=0, [[2],[[s1,s2],[0,0]],[[s3,s4],[0,0]]], solutions are (x,y)=(s1k,s2k),(s3k,s4k) for integer k;\n ------------n=0 and D=0, if Q!=0 as above, if Q=0 then [[-1]] (everything is a solution).\n\n In general, -1=all, 0=finite, 1=positive, 2=linear");
-
-	\\MORE REPRESENTATION OF NUMBERS
-		install("bqf_bigreps_tc","GGp","bqf_bigreps",apol_library);
-		addhelp(bqf_bigreps,"Inputs: Q, n, Q=[A,B,C,D,E]=Ax^2+Bxy+Cy^2+Dx+Ey and an integer n.\n Returns the solutions to Q(x,y)=n over the integers. If D=bqf_disc(Q)=B^2-4AC, then the output is: \n\n ----------If no solutions, returns 0; \n ------------D>0 nonsquare, [[1,M,[s1,s2]],[x1,y1],[x2,y2],...,[xk,yk]] where the general solution is [x;y]=M^k*[xi;yi]+[s1;s2];\n --------D>0 square EITHER, [[0],[x1,y1],[x2,y2],...,[xk,yk]] where the (xi,yi) are the solutions;\n -----------------------OR, [[2],[[s1,t1],[x1,y1]],...,[[sk,tk],[xk,yk]]] where the solutions are x=xi+Usi and y=yi+Uti for U integer;\n ----------------------D<0, [[0],[x1,y1],[x2,y2],...,[xk,yk]] where the (xi,yi) are the solutions;\n ----------------------Q=0, [[-1]] if n=0 and 0 else;\n -D=0 and A=B=C=0 or D=E=0, [[2],[[s1,t1],[x1,y1]],...,[[sk,tk],[xk,yk]]] where the solutions are x=xi+Usi and y=yi+Uti for U integer (si=sj and ti=tj for all i,j in fact);\n ------------D=0 otherwise, [[-2],[[a1,b1,c1],[e1,f1,g1]],...,[[ak,bk,ck],[ek,fk,gk]]] where the solutions are x=ai*U^2+bi*U+ci, y=ei*U^2+fi*U+gi for U integer.\n\n In general, -2=quadratic, -1=all, 0=finite, 1=positive, 2=linear");
-		install("bqf_linearsolve_tc","GGGGp","bqf_linearsolve",apol_library);
-		addhelp(bqf_linearsolve,"Inputs qf, n1, lin, n2: qf a six term integer vector representing the form Ax^2+By^2+Cz^2+Dxy+Exz+Fyz, n1 an integer, lin a three term integer vector representing Ax+By+Cz, and n2 an integer.\n Solves qf(x, y, z)=n1 and lin(x, y, z)=n2 simultaneously. If there are no solutions, this returns 0. Otherwise it returns a vector v. Let v[1][1]=t, and then the format of v is:\n\n -t=-2, v=[[-2], [[a1, a2, a3], [b1, b2, b3], [c1, c2, c3]], ...], where each general solution is x=a1U^2+a2U+a3, y=b1U^2+b2U+b3, z=c1U^2+c2U+c3 for any U integral;\n -t=-1, v=[[-1], [[a1, a2, a3], [b1, b2, b3], [c1, c2, c3]]], where the solution is x=a1U+b1V+c1, y=a2U+b2V+c2, z=a3U+v3V+c3 for any U, V integral;\n --t=0, v=[[0], [a1, b1, c1], ...], where the finite set of solutions are (x,y,z)=(ai, bi, ci);\n --t=1, v=[[1, M, [s1, s2, s3]], [a1, b1, c1], ...], where the general solution is [x;y;z]=M^k[ai;bi;ci]+[s1;s2;s3] for k integral. Note that ai and si need not be integral, though M is.\n --t=2, v=[[2], [[a1, a2, a3], [b1, b2, b3]], ...], where each general solution is x=a1U+b1, y=a2U+b2, z=a3U+b3 for any U integral;\n\n In general, -2=quadratic, -1=plane, 0=finite, 1=positive, 2=linear.");
-
 	\\TUPLE REPS OF PRIMES
 		install("bqf_primesmod","G",,apol_library);
 		addhelp(bqf_primesmod,"Input q, an integral BQF.\n Returns the residue classes modulo D=disc(q) coprime to D that are represented by q.");
@@ -259,16 +224,6 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(bqfclass,"bqf_allforms, bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");
 		addhelp(bqfsolve,"bqf_bigreps, bqf_linearsolve, bqf_reps.");
 		addhelp(bqfprime,"bqf_primesmod, bqf_primetuplereps, bqf_tuplevalid.");
-
-\\farey.c
-		install("fareydenom_depths","L", ,apol_library);
-		addhelp(fareydenom_depths,"Input n>1 an integer.\n Returns the set of fareydepth(i/n) for all 1<=i<n with gcd(n, i)=1.");
-		install("fareydenom_dmode","lL", ,apol_library);
-		addhelp(fareydenom_dmode,"Input n>1 an integer.\n Returns the most common depth in fareydenom_depths(n).");
-		install("fareydepth","lG", ,apol_library);
-		addhelp(fareydepth,"Input r, a rational number in (0, 1) or a Farey pair.\n Returns the depth of r in the Farey tree.");
-		install("fareyup","G", ,apol_library);
-		addhelp(fareyup,"Input r, a rational number in (0, 1) or a Farey pair.\n Returns either the Farey pair with r as its mediant, or the (unique) Farey pair with one of the numbers as it's endpoint and the other as its mediant.");
 
 \\geo.c
 	\\BASIC LINE, CIRCLE, AND POINT OPERATIONS

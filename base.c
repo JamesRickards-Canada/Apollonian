@@ -18,20 +18,6 @@
 
 //INFINITY 
 
-
-//Adds a,b, and allows for oo
-GEN addoo(GEN a, GEN b){//No need to do garbage collection
-  if(typ(a)==t_INFINITY){
-    if(inf_get_sign(a)==1) return mkoo();
-    else return mkmoo();
-  }
-  if(typ(b)==t_INFINITY){
-    if(inf_get_sign(b)==1) return mkoo();
-    else return mkmoo();
-  }
-  return gadd(a,b);
-}
-
 //Divides a and b, and allows for oo and division by 0. Returns oo for 0/0.
 GEN divoo(GEN a, GEN b){//No garbage collection necessary
   if(gequal0(b)){//b=0
@@ -152,51 +138,6 @@ GEN lin_intsolve_tc(GEN A, GEN B, GEN n){
   if (typ(B)!=t_INT) pari_err_TYPE("lin_intsolve. B should be an integer",B);
   if (typ(n)!=t_INT) pari_err_TYPE("lin_intsolve. n should be an integer",n);
   return lin_intsolve(A,B,n);
-}
-
-//Returns a 3x3 ZM with top row A, B, C. Assumes gcd(A,B,C)=1
-GEN mat3_complete(GEN A, GEN B, GEN C){
-  pari_sp top=avma;
-  GEN u, v, w, x;
-  GEN g=bezout(A, B, &u, &v);
-  bezout(g,C, &x, &w);
-  u=mulii(u,x);
-  v=mulii(v,x);
-  togglesign_safe(&v);//Now uA-vB+wC=g2=1 since gcd(A,B,C)=1. Write the bottom two rows as [d,f,g;g,h,i]
-  GEN m;//We want to now solve ei-fh=u; di-fg=v; dh-eg=w.
-  if(gequal0(u) && gequal0(v)){
-    m=zeromatcopy(3,3);
-    gcoeff(m,2,1)=gen_1;gcoeff(m,2,2)=gen_0;gcoeff(m,2,3)=gen_0;
-    gcoeff(m,3,1)=gen_0;gcoeff(m,3,3)=gen_0;
-    if(equali1(w)) gcoeff(m,3,2)=gen_1;
-    else gcoeff(m,3,2)=gen_m1;//Making det 1
-  }
-  else{
-    GEN p, q;
-    g=bezout(u, v, &q, &p);
-    GEN H=diviiexact(u, g);togglesign_safe(&H);//We use captials to represent the matrix elements now
-    GEN G=diviiexact(v, g);togglesign_safe(&G);
-    GEN E=mulii(p, w);
-    GEN D=mulii(q, w);togglesign_safe(&D);//DH-EG=w, F=g and I=0
-    m=zeromatcopy(3,3);
-    gcoeff(m,2,1)=icopy(D);gcoeff(m,2,2)=icopy(E);gcoeff(m,2,3)=icopy(g);
-    gcoeff(m,3,1)=icopy(G);gcoeff(m,3,2)=icopy(H);gcoeff(m,3,3)=gen_0;
-  }
-  gcoeff(m,1,1)=icopy(A);gcoeff(m,1,2)=icopy(B);gcoeff(m,1,3)=icopy(C);
-  return gerepileupto(top, m);
-}
-
-//Returns a 3x3 ZM with top row A, B, C. Assumes gcd(A,B,C)=1
-GEN mat3_complete_tc(GEN A, GEN B, GEN C){
-  pari_sp top=avma;
-  if(typ(A)!=t_INT) pari_err_TYPE("Please enter three integers with gcd 1", A);
-  if(typ(B)!=t_INT) pari_err_TYPE("Please enter three integers with gcd 1", B);
-  if(typ(C)!=t_INT) pari_err_TYPE("Please enter three integers with gcd 1", C);
-  GEN g=gcdii(A, B);
-  GEN g1=gcdii(g,C);
-  if(!equali1(g1)) pari_err_TYPE("GCD is not equal to 1", mkvec3(A, B, C));
-  avma=top;
-  return mat3_complete(A, B, C);
 }
 
 

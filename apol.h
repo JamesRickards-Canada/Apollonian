@@ -70,21 +70,10 @@ GEN apol_makeall_extdepths(GEN n, long prec);
 GEN apol_makeall_small(GEN n, int red, long prec);
 GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 
-
-//apolscripts.c
-GEN abelianfields(GEN G, long deg);
-GEN galoisfields(GEN G, long deg);
-GEN galoisisdihedral(GEN G);
-GEN quadsubfields(GEN pol, long prec);
-GEN ringpoly(GEN D, long prec);
-
-GEN ab_disc(GEN a, GEN b);
-
 //base.c
 
 
 //INFINITY 
-GEN addoo(GEN a, GEN b);
 GEN divoo(GEN a, GEN b);
 
 //VECTORS
@@ -98,8 +87,6 @@ GEN ZV_Z_mul(GEN v, GEN x);
 GEN FpM_eigenvecs(GEN M, GEN p);
 GEN lin_intsolve(GEN A, GEN B, GEN n);
 GEN lin_intsolve_tc(GEN A, GEN B, GEN n);
-GEN mat3_complete(GEN A, GEN B, GEN C);
-GEN mat3_complete_tc(GEN A, GEN B, GEN C);
 
 //LISTS OF VARIABLE LENGTH
 GEN veclist_append(GEN v, long *vind, long *vlen, GEN x);
@@ -242,20 +229,6 @@ GEN bqf_square_red(GEN q, GEN rootD, int Dsign);
 GEN bqf_square_tc(GEN q, int tored, long prec);
 GEN ideal_tobqf(GEN numf, GEN ideal);
 
-//REPRESENTATION OF NUMBERS BY BQFs
-GEN bqf_reps(GEN q, GEN n, int proper, int half, long prec);
-GEN bqf_reps_tc(GEN q, GEN n, int proper, int half, long prec);
-GEN dbqf_reps(GEN qred, GEN D, GEN n, int proper, int half);
-GEN ibqf_reps(GEN qorb, GEN qautom, GEN D, GEN rootD, GEN n, int proper, int half);
-GEN sbqf_reps(GEN q, GEN D, GEN rootD, GEN n, int half);
-GEN zbqf_reps(GEN A, GEN B, GEN n, int half);
-
-//MORE REPRESENTATION OF NUMBERS
-GEN bqf_bigreps(GEN q, GEN n, long prec);
-GEN bqf_bigreps_tc(GEN q, GEN n, long prec);
-GEN bqf_linearsolve(GEN q, GEN n1, GEN lin, GEN n2, long prec);
-GEN bqf_linearsolve_tc(GEN q, GEN n1, GEN lin, GEN n2, long prec);
-
 //GENERAL CHECKING METHODS
 void bqf_check(GEN q);
 GEN bqf_checkdisc(GEN q);
@@ -265,13 +238,6 @@ void intmatrix_check(GEN mtx);
 GEN bqf_primesmod(GEN q);
 GEN bqf_primetuplereps(GEN v, GEN pmin, GEN pmax);
 int bqf_tuplevalid(GEN v);
-
-//farey.c
-GEN fareydenom_depths(long n);
-long fareydenom_dmode(long n);
-long fareydepth(GEN r);
-GEN fareyup(GEN r);
-
 
 //geo.c
 
