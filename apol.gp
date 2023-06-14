@@ -1,5 +1,5 @@
 print("\n\nType '?apol' for help.\n\n");
-addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages: \n apollonian \n base \n bqf \n geo\n visual");
+addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages:\n apollonian\n base\n geo\n quadratic\n visual");
 parigp_version=version();
 apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
@@ -134,66 +134,56 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(modn,"modsquares, mod_breakdown.");
 		addhelp(pr,"primes_mod");
 
+\\geo.c
+	\\BASIC LINE, CIRCLE, AND POINT OPERATIONS
+		install("circle_fromcp","GGp",,apol_library);
+		addhelp(circle_fromcp,"Inputs c, p: centre c, and point p.\n Returns the circle with centre c and passing through point p.");
+		install("circle_fromppp","GGGp",,apol_library);
+		addhelp(circle_fromppp,"Inputs p1, p2, p3: distinct complex points (oo is allowed).\n Returns the circle that passes through p1, p2, p3. If they are collinear (including if one is oo), this will return the line going through them instead.");
+		install("line_fromsp","GG",,apol_library);
+		addhelp(line_fromsp,"Inputs s, p: slope and point p.\n Returns the line through p with slope s.");
+		install("line_frompp","GG",,apol_library);
+		addhelp(line_frompp,"Inputs p1, p2: distinct complex points.\n Returns the line formed by p1 and p2.");
+		install("mat_eval","GG","mat_eval",apol_library);
+		addhelp(mat_eval, "Inputs M, x; M a matrix, and x number.\n Returns Mx with M acting via Mobius transformation. x=+/-oo is allowed.");
+		install("mobius_gp","GGp","mobius",apol_library);
+		addhelp(mobius,"Inputs M, c: a 2x2 matrix M, and a circle/line/arc/segment c.\n This returns M(c), where M acts as a Mobius map.");
 
-\\bqf.c
+	\\INTERSECTION OF LINES/CIRCLES
+		install("geom_int","GGp",,apol_library);
+		addhelp(geom_int,"Inputs s1, s2: circles/arcs/lines/segments.\n Returns the intersection points of s1 and s2.");
+		
+	\\GENERAL HELP
+		addhelp(geo, "These methods deal with geometry. There are 5 types of objects:\n     Points: stored as a complex number or oo.\n     Circles: [centre, radius, curvature]. The curvature may be set to negative to denote the exterior.\n     Lines: [slope, intercept]. If slope<oo, we give the y-intercept, else we give the x-intercept.\n     Arcs: [centre, radius, curvature, start pt, end pt, start angle, end angle, dir]. We take the arc counterclockwise between startpt and endpt. If dir=-1 we orient it in the opposite direction.\n     Segments: [slope, intercept, start pt, end pt, ooendptdir, dir]. Same as lines, where we also have a start and end point. dir=1 means we go on the line in the upper half plane, dir=-1 means through oo. If one endpoint is oo, ooendptdir=1 means the segment travels vertically upward or right, and -1 means vertically down or left.\n\nInstalled methods: circle_fromcp, circle_fromppp, line_fromsp, line_frompp, mat_eval, mobius.");
 
-	\\DISCRIMINANT METHODS
+/*quadratic.c*/
+	addhelp(quadratic,"Discriminant methods:\n    disclist, isdisc.\n\nBasic quadratic form methods:    qfbapply, qfbapplyL, qfbapplyR, qfbapplyS.\n");
+
+	/*SECTION 1: DISCRIMINANT METHODS*/
 		install(disclist,"GGD0,L,D0,G,",,apol_library);
 		addhelp(disclist, "disclist(D1, D2, {fund=0}, {cop=0}): returns the set of discriminants between D1 and D2, inclusive. If fund=1, only returns fundamental discriminants. If cop!=0, only returns discriminants coprime to cop.");
-		install("discprimeindex","G",,apol_library);
-		addhelp(discprimeindex, "Inputs: D, a proper discriminant.\n Returns all prime divisors p of D for which D/p^2 is a proper discriminant.");
-		install("discsuperorders","G",,apol_library);
-		addhelp(discsuperorders,"Input D, a proper discriminant. Returns the vector of divisors D' of D such that D' is a discriminant and D/D' is a square.\n ");
-		install("isdisc","iG",,apol_library);
-		addhelp(isdisc, "Inputs: D a real number.\n Returns 1 if D is a proper discriminant, and 0 otherwise.");
+		install(isdisc,"iG",,apol_library);
+		addhelp(isdisc,"isdisc(D): returns 1 if D is a discriminant, 0 else.");
 
-		addhelp(disc,"Installed methods:\ndisclist, discprimeindex, discsuperorders, isdisc, pell, posreg, quadroot.");
-
-	\\BASIC OPERATIONS ON BINARY QUADRATIC FORMS
-		install("bqf_automorph","G",,apol_library);
-		addhelp(bqf_automorph, "Input q, a BQF.\n Returns a generator of the automorph group of q in PSL(2,Z).");
-		install("bqf_disc","G",,apol_library);
-		addhelp(bqf_disc, "Input q, an integral quadratic form.\n Returns the discriminant of q.");
-		install("bqf_isequiv_tc","GGD0,L,p","bqf_isequiv",apol_library);
-		addhelp(bqf_isequiv, "Inputs: q, S, {tmat=0}: q a BQF, S either a BQF or a set of BQFs, tmat=0,1.\n This method tests if q is PSL(2,Z) equivalent to S or any form in S. If S is a form, this returns 1 if equivalent and 0 if not (if tmat!=0, returns a possible transition matrix).\n If S is a set of forms, this returns 0 if not equivalent and an index i such that q is equivalent to S[i] otherwise. If tmat!=0, this returns [index, transition matrix].");
-		install("bqf_isreduced","iGDG",,apol_library);
-		addhelp(bqf_isreduced,"Inputs q, {D=NULL}: q an integral quadratic form of non-zero discriminant D.\n Returns 1 if q is reduced, and 0 if not. D is optional, and you only need to pass the sign of D.");
-		install("bqf_random","GD0,L,D1,L,",,apol_library);
-		addhelp(bqf_random,"Inputs maxc, {type=0}, {primitive=1}; maxc a positive integer, type=-1,0,1, and primitive=0,1.\n Returns a random BQF with coefficients bounded by maxc. If type=-1 it is positive definite, =1 is indefinite, and =0 means either. If primitive=1 the form is primitive, else it doesn't have to be.");
-		install("bqf_random_D","GG",,apol_library);
-		addhelp(bqf_random_D,"Inputs maxc, D: maxc a positive integer, and D a discriminant.\n Returns a random primitive form (positive definite if D<0) of discriminant D whose B coefficient is bounded by maxc.");
-		install("bqf_red_tc","GD0,L,p","bqf_red",apol_library);
-		addhelp(bqf_red, "Inputs: q, {tmat=0}: BQF q, (tmat=0,1).\n Returns a reduced form equivalent to q, and if tmat!=0, we return [q_red, transition matrix].");
-		install("bqf_roots_tc","G","bqf_roots",apol_library);
-		addhelp(bqf_roots, "Inputs q: quadratic form q.\n Returns the roots of q with the first root first.");
-		install("bqf_trans_tc","GG","bqf_trans",apol_library);
-		addhelp(bqf_trans, "Inputs q, mtx: integral quadratic form q, 2x2 integral matrix mtx.\n Returns the form acquired by replacing (x,y)^T with m(x,y)^T.");
-		install("bqf_trans_coprime_tc", "GG", "bqf_trans_coprime", apol_library);
-		addhelp(bqf_trans_coprime,"Inputs q, n: q a primitive integral BQF, and n an integer.\n Returns a form similar to q whose first coefficient is coprime to n.");
+	/*SECTION 2: BASIC QUADRATIC FORM METHODS*/
+		install(qfb_apply_ZM,"GG",qfbapply);/*In PARI but not installed.*/
+		addhelp(qfbapply,"qfbapply(q, g): returns the quadratic form formed by g acting on q, where g is a matrix with integral coefficients.");
+		install(qfbapplyL,"GD1,G,",,apol_library);
+		addhelp(qfbapplyL,"qfbapplyL(q, {n=1}): returns L^n acting on q, where L=[1, 1;0, 1].");
+		install(qfbapplyR,"GD1,G,",,apol_library);
+		addhelp(qfbapplyR,"qfbapplyR(q, {n=1}): returns R^n acting on q, where R=[1, 0;1, 1].");
+		install(qfbapplyS,"G",,apol_library);
+		addhelp(qfbapplyS,"qfbapplyS(q): returns S acting on q, where S=[0, 1;-1, 0].");
+		
+		
+		
+		
+		
+		
 		install("ideal_tobqf","GG","ideal_tobqf",apol_library);
 		addhelp(ideal_tobqf,"Inputs nf, ideal: a quadratic number field nf with ideal ideal.\n Returns the corresponding binary quadratic form.");
 
-	\\BASIC OPERATIONS SPECIFIC TO INDEFINITE FORMS
-		install("ibqf_isrecip_tc","iGp","ibqf_isrecip",apol_library);
-		addhelp(ibqf_isrecip,"Inputs: q, a PIBQF.\n Returns 1 if q is q is reciprocal, and 0 otherwise.");
-		install("ibqf_leftnbr_tc","GD0,L,p","ibqf_leftnbr",apol_library);
-		addhelp(ibqf_leftnbr, "Inputs q, {tmat=0}: an indefinite binary quadratic form on the river and tmat=0,1. \n Returns q' or [q',mat] (if tmat=0,1 respectively), where q' is the left neighbour of q and mat is the bqf_transition matrix from q to q'. The left neighbour is the previous form along the flow of the river that is reduced (AC<0 and B>|A+C|, and occurs when the branches swap from being below to above or vice versa).");
-		install("ibqf_redorbit_tc","GD0,L,D0,L,p","ibqf_redorbit",apol_library);
-		addhelp(ibqf_redorbit, "Inputs q, (tmat), (posonly): q a PIBQF, tmat and posonly=0,1.\n Returns the reduced orbit of q. If tmat=1, also returns the corresponding transition matrices, and if posonly=1 only returns the reduced forms with A>0.");
-		install("ibqf_rightnbr_tc","GD0,L,p","ibqf_rightnbr",apol_library);
-		addhelp(ibqf_rightnbr, "Inputs q, (tmat): an indefinite binary quadratic form on the river and tmat=0,1. \n Returns q' or [q',mat] (if tmat=0,1 respectively), where q' is the right neighbour of q and mat is the bqf_transition matrix from q to q'. The right neighbour is the next form along the flow of the river that is reduced (AC<0 and B>|A+C|, and occurs when the branches swap from being below to above or vice versa).");
-		install("ibqf_river_tc","Gp","ibqf_river",apol_library);
-		addhelp(ibqf_river, "Input: q an indefinite quadratic form.\n Returns the river sequence corresponding to q, where a 1 corresponds to going right and 0 corresponds to going left.");
-		install("ibqf_riverforms_tc","Gp","ibqf_riverforms",apol_library);
-		addhelp(ibqf_riverforms, "Input q a PIBQF.\n This calculates all forms on the river of q, and returns those with A>0, in the order that they appear on the river.");
-		install("ibqf_symmetricarc_tc","Gp","ibqf_symmetricarc",apol_library);
-		addhelp(ibqf_symmetricarc,"Input q, a PIBQF.\n Returns [z,gamma_q(z)] on the root geodesic corresponding to q so that q,gamma_q are symmetric about the arc.");
-		install("mat_toibqf_tc","G","mat_toibqf",apol_library);
-		addhelp(mat_toibqf, "Inputs: mtx, a hyperbolic matrix in SL(2,Z).\n This returns the PIBQF for which it is the ibqf_automorph, namely [c,d-a,-b]/gcd(c,d-a,b) if mtx=[a,b;c,d].");
-
 	\\CLASS GROUPS AND COMPOSITION OF FORMS
-		install("bqf_allforms","GD0,L,D0,L,p","bqf_allforms",apol_library);
-		addhelp(bqf_allforms,"Input D, {prim=0}, {GL=0}: D a proper discriminant.\n Returns the set of equivalence classes of quadratic forms of discriminant D. The returned forms are reduced. If prim=0, we include the non-primitive forms. If GL=1, we take the GL-equivalence classes, else we take SL-equivalence classes.");
 		install("bqf_comp_tc","GGD1,L,p","bqf_comp",apol_library);
 		addhelp(bqf_comp,"Inputs q1, q2, {tored=1}: BQFs q1, q2 of the same discriminant, tored=0, 1.\n Returns the composition of q1 and q2, reduced if tored=1.");
 		install("bqf_identify_tc","GGp","bqf_identify",apol_library);
@@ -216,36 +206,6 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(bqf_primetuplereps, "Inputs v, pmin, {pmax=0}. Returns the smallest prime between pmin and pmax represented by all BQFs in v. If pmax=0, we go from 2 to pmin.");
 		install("bqf_tuplevalid","iG",,apol_library);
 		addhelp(bqf_tuplevalid,"Input v, a vector of integral BQFs.\n Returns 1 if there is a residue class containing primes that is represented by all forms, and 0 if not.");
-	
-	\\GENERAL HELP
-		addhelp(bqf, "This package deals with binary quadratic forms with integer coefficients. A homogeneous binary quadratic form Ax^2+Bxy+Cy^2 is stored as [A,B,C]. A proper discriminant is an integer that is equivalent to 0 or 1 modulo 4 and is not a square. \n Subtopics:\n Discriminants (disc)\n Basic operations (bqfbasic)\n Indefinite forms (ibqf)\n Class group and composition (bqfclass)\n Representation of numbers (bqfsolve)\n Representation of primes (bqfprime)");
-		addhelp(bqfbasic,"bqf_automorph, bqf_disc, bqf_isequiv, bqf_isreduced, bqf_random, bqf_random_D, bqf_red, bqf_roots, bqf_trans, bqf_trans_coprime, ideal_tobqf.");
-		addhelp(ibqf,"ibqf_isrecip, ibqf_leftnbr, ibqf_redorbit, ibqf_rightnbr, ibqf_river, ibqf_riverforms, ibqf_symmetricarc, mat_toibqf.");
-		addhelp(bqfclass,"bqf_allforms, bqf_comp, bqf_identify, bqf_lexicind_tobasis, bqf_ncgp, bqf_ncgp_lexic, bqf_pow, bqf_square.");
-		addhelp(bqfsolve,"bqf_bigreps, bqf_linearsolve, bqf_reps.");
-		addhelp(bqfprime,"bqf_primesmod, bqf_primetuplereps, bqf_tuplevalid.");
-
-\\geo.c
-	\\BASIC LINE, CIRCLE, AND POINT OPERATIONS
-		install("circle_fromcp","GGp",,apol_library);
-		addhelp(circle_fromcp,"Inputs c, p: centre c, and point p.\n Returns the circle with centre c and passing through point p.");
-		install("circle_fromppp","GGGp",,apol_library);
-		addhelp(circle_fromppp,"Inputs p1, p2, p3: distinct complex points (oo is allowed).\n Returns the circle that passes through p1, p2, p3. If they are collinear (including if one is oo), this will return the line going through them instead.");
-		install("line_fromsp","GG",,apol_library);
-		addhelp(line_fromsp,"Inputs s, p: slope and point p.\n Returns the line through p with slope s.");
-		install("line_frompp","GG",,apol_library);
-		addhelp(line_frompp,"Inputs p1, p2: distinct complex points.\n Returns the line formed by p1 and p2.");
-		install("mat_eval","GG","mat_eval",apol_library);
-		addhelp(mat_eval, "Inputs M, x; M a matrix, and x number.\n Returns Mx with M acting via Mobius transformation. x=+/-oo is allowed.");
-		install("mobius_gp","GGp","mobius",apol_library);
-		addhelp(mobius,"Inputs M, c: a 2x2 matrix M, and a circle/line/arc/segment c.\n This returns M(c), where M acts as a Mobius map.");
-
-	\\INTERSECTION OF LINES/CIRCLES
-		install("geom_int","GGp",,apol_library);
-		addhelp(geom_int,"Inputs s1, s2: circles/arcs/lines/segments.\n Returns the intersection points of s1 and s2.");
-		
-	\\GENERAL HELP
-		addhelp(geo, "These methods deal with geometry. There are 5 types of objects:\n     Points: stored as a complex number or oo.\n     Circles: [centre, radius, curvature]. The curvature may be set to negative to denote the exterior.\n     Lines: [slope, intercept]. If slope<oo, we give the y-intercept, else we give the x-intercept.\n     Arcs: [centre, radius, curvature, start pt, end pt, start angle, end angle, dir]. We take the arc counterclockwise between startpt and endpt. If dir=-1 we orient it in the opposite direction.\n     Segments: [slope, intercept, start pt, end pt, ooendptdir, dir]. Same as lines, where we also have a start and end point. dir=1 means we go on the line in the upper half plane, dir=-1 means through oo. If one endpoint is oo, ooendptdir=1 means the segment travels vertically upward or right, and -1 means vertically down or left.\n\nInstalled methods: circle_fromcp, circle_fromppp, line_fromsp, line_frompp, mat_eval, mobius.");
 
 \\visual.c
 	\\DATA

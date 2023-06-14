@@ -124,12 +124,12 @@ GEN llist_tovecsmall(llist *l, long length, int dir);
 
 /*SECTION 1: DISCRIMINANT METHODS*/
 GEN disclist(GEN D1, GEN D2, int fund, GEN cop);
-GEN discprimeindex(GEN D, GEN facs);
-GEN discsuperorders(GEN D);
 int isdisc(GEN D);
-GEN pell(GEN D);
-GEN posreg(GEN D, long prec);
-GEN quadroot(GEN D);
+
+/*SECTION 2: BASIC QUADRATIC FORM METHODS*/
+GEN qfbapplyL(GEN q, GEN n);
+GEN qfbapplyR(GEN q, GEN n);
+GEN qfbapplyS(GEN q);
 
 //BASIC OPERATIONS ON BINARY QUADRATIC FORMS
 GEN bqf_automorph(GEN q);
@@ -148,46 +148,6 @@ GEN bqf_transR(GEN q, GEN n);
 GEN bqf_transS(GEN q);
 GEN bqf_trans_coprime(GEN q, GEN n);
 GEN bqf_trans_coprime_tc(GEN q, GEN n);
-
-//BASIC METHODS FOR NEGATIVE DISCRIMINANTS
-GEN dbqf_automorph(GEN q, GEN D);
-GEN dbqf_red(GEN q);
-GEN dbqf_red_tmat(GEN q);
-
-//BASIC OPERATIONS SPECIFIC TO INDEFINITE FORMS/POSITIVE DISCRIMINANTS
-GEN ibqf_automorph_D(GEN q, GEN D);
-GEN ibqf_automorph_pell(GEN q, GEN qpell);
-int ibqf_isrecip(GEN q, GEN rootD);
-int ibqf_isrecip_tc(GEN q, long prec);
-GEN ibqf_leftnbr(GEN q, GEN rootD);
-GEN ibqf_leftnbr_tmat(GEN q, GEN rootD);
-GEN ibqf_leftnbr_tc(GEN q, int tmat, long prec);
-GEN ibqf_leftnbr_update(GEN qvec, GEN rootD);
-GEN ibqf_red(GEN q, GEN rootD);
-GEN ibqf_red_tmat(GEN q, GEN rootD);
-GEN ibqf_red_pos(GEN q, GEN rootD);
-GEN ibqf_red_pos_tmat(GEN q, GEN rootD);
-GEN ibqf_redorbit(GEN q, GEN rootD);
-GEN ibqf_redorbit_tmat(GEN q, GEN rootD);
-GEN ibqf_redorbit_posonly(GEN q, GEN rootD);
-GEN ibqf_redorbit_posonly_tmat(GEN q, GEN rootD);
-GEN ibqf_redorbit_tc(GEN q, int tmat, int posonly, long prec);
-GEN ibqf_rightnbr(GEN q, GEN rootD);
-GEN ibqf_rightnbr_tmat(GEN q, GEN rootD);
-GEN ibqf_rightnbr_update(GEN qvec, GEN rootD);
-GEN ibqf_rightnbr_tc(GEN q, int tmat, long prec);
-GEN ibqf_river(GEN q, GEN rootD);
-GEN ibqf_river_positions(GEN q, GEN rootD);
-GEN ibqf_river_positions_forms(GEN q, GEN rootD);
-GEN ibqf_river_tc(GEN q, long prec);
-GEN ibqf_riverforms(GEN q, GEN rootD);
-GEN ibqf_riverforms_tc(GEN q, long prec);
-GEN ibqf_symmetricarc(GEN q, GEN D, GEN rootD, GEN qpell, long prec);
-GEN ibqf_symmetricarc_tc(GEN q, long prec);
-GEN ibqf_toriver(GEN q, GEN rootD);
-GEN ibqf_toriver_tmat(GEN q, GEN rootD);
-GEN mat_toibqf(GEN mtx);
-GEN mat_toibqf_tc(GEN mtx);
 
 //EQUIVALENCE OF BQFs
 GEN bqf_isequiv(GEN q1, GEN q2, GEN rootD, int Dsign, int tmat);
