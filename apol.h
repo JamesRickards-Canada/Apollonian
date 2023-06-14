@@ -133,7 +133,7 @@ GEN qfbapplyS(GEN q);
 
 /*SECTION 3: CLASS GROUP*/
 GEN qfbnarrow(GEN D, long prec);
-
+GEN qfbnarrowlex(GEN D, long prec);
 
 //BASIC OPERATIONS ON BINARY QUADRATIC FORMS
 GEN bqf_automorph(GEN q);

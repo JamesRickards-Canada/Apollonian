@@ -177,7 +177,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		
 	/*SECTION 3: CLASS GROUP*/	
 		install(qfbnarrow,"Gp");
-		addhelp(qfbnarrow,"qfbnarrow(D): returns the narrow class group C=Cl^+(D) in terms of quadratic forms. C[1] is the class number, C[2] are the orders of generators (largest to smallest, with each term dividing the previous one), C[3] are the corresponding generators, and C[4] is the regulator.");
+		addhelp(qfbnarrow,"qfbnarrow(D): returns the narrow class group C=Cl^+(D) in terms of quadratic forms. C[1] is the class number, C[2] are the orders of generators as a Vecsmall (largest to smallest, with each term dividing the previous one), C[3] are the corresponding generators, and C[4] is the regulator. Note that class number 1 will return [1, Vecsmall([1]), [idelt], reg], not [1, [], [], reg], and the second return element is always a Vecsmall, not a vector.");
 		
 		
 		install("ideal_tobqf","GG","ideal_tobqf",apol_library);
