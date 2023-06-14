@@ -4,6 +4,13 @@
 #include <pari/pari.h>
 #include "apol.h"
 
+/*STATIC DECLARATIONS*/
+
+/*SECTION 3: CLASS GROUP*/
+static int qfbequal1(GEN q);
+
+
+/*MAIN BODY*/
 
 
 /*SECTION 1: DISCRIMINANT METHODS*/
@@ -52,7 +59,7 @@ int
 isdisc(GEN D)
 {
   if (typ(D) != t_INT) return 0;
-  if (smodis(D, 4)<2 && !Z_issquare(D)) return 1;
+  if (smodis(D, 4) < 2 && !Z_issquare(D)) return 1;
   return 0;
 }
 
@@ -97,6 +104,90 @@ qfbapplyS(GEN q)
   return Sq;
 }
 
+
+/*SECTION 3: CLASS GROUP*/
+
+/*This computes the narrow class group*/
+GEN
+qfbnarrow(GEN D, long prec)
+{
+  pari_sp av = avma;
+  if (!isdisc(D)) pari_err_TYPE("D must be a discriminant, i.e. a non-square integer equivalent to 0 or 1 modulo 4.", D);
+  GEN cgp = quadclassunit0(D, 0, NULL, prec);/*Class group*/
+  if (signe(D) < 0 || quadunitnorm(D) == -1) return cgp;/*0 or norm(fund. unit)=-1*/
+  GEN minus1;/*-id, the new form to add*/
+  if (mod2(D)) minus1 = mkqfb(gen_m1, gen_1, shifti(subis(D, 1), -2), D);/*[-1, 1, (D-1)/4]*/
+  else minus1 = mkqfb(gen_m1, gen_0, shifti(D, -2), D);/*[-1, 0, D/4]*/
+  if (equali1(gel(cgp, 1))) return gerepilecopy(av, mkvec4(gen_2, mkvec(gen_2), mkvec(minus1), gel(cgp, 4)));/*h^+(D)=2, done separately.*/
+  GEN newsize = shifti(gel(cgp, 1), 1);
+  GEN orders = gel(cgp, 2);
+  GEN gens = gel(cgp, 3);
+  long lgens = lg(gens), firstm1 = 0, i;/*Start by checking if any of our current generators power to -1.*/
+  for (i = 1; i < lgens; i++) {
+	GEN qpow = qfbpow(gel(gens, i), gel(orders, i));
+    if (!qfbequal1(qpow)) { firstm1 = i; break; }/*note: qfbpow is either -1 or 1*/
+  }
+  if (!firstm1) {/*Nothing powers to -1, just add in new Z/2Z copy*/
+    long lastodd = 0;/*Index of largest odd order*/
+    for (i = 1; i < lgens; i++) { if (mod2(gel(orders, i))) { lastodd = i; break; } }
+    if (!lastodd) {/*All even, add a new Z/2Z at the end.*/
+	  orders = vec_append(orders, gen_2);
+	  gens = vec_append(gens, minus1);
+    }
+	else {/*Now there is an odd order element. Composing this with minus1 gives the new generator, and is the only change required.*/
+	  gel(orders, lastodd) = shifti(gel(orders, lastodd), 1);/*Double order*/
+	  gel(gens, lastodd) = qfbcomp(gel(gens, lastodd), minus1);/*q*minus1*/
+	}
+	return gerepilecopy(av, mkvec4(newsize, orders, gens, gel(cgp, 4)));
+  }
+  /*Now we have an element powering to -1 and not 1. We must fix the previous and subsequent entries.*/
+  GEN g = gel(gens, firstm1);
+  GEN ai = gel(orders, firstm1);/*Initially this is half the order of g, since g^ai=-1*/
+  GEN gpow = g;/*gpow stores g^(.5order(g)/ai)*/
+  for (i = firstm1 + 1; i < lgens; i++) {/*Fix the later ones by composing with gpow^(.5order(g)/ai) if they power to -1 instead of 1*/
+    GEN qpow = qfbpow(gel(gens, i), gel(orders, i));
+    if (qfbequal1(qpow)) continue;/*OK already*/
+    gpow = qfbpow(gpow, diviiexact(ai, gel(orders, i)));
+    ai = gel(orders, i);/*Updating ai*/
+    gel(gens, i) = qfbcomp(gel(gens, i), gpow);/*Modifying the generator.*/
+  }
+  /*We are done fixing the generators past firstm1; they all have the correct order. We shift focus to those before it.*/
+  /*In order to keep the divisibility of orders, we must figure out which generator should double in order.*/
+  long optplace = 1;/*The place where we should be inserting the 2x in the class group*/
+  long v = vali(gel(orders, firstm1));/*2-adic valuation*/  
+  for (i = firstm1 - 1; i > 0; i--) {
+    if (vali(gel(orders, i)) > v) { optplace = i + 1; break; }
+  }/*If this for method never triggers, we are left with optplace=1=the start, as desired.*/
+  /*Now we must modify the elements between firstm1 and optplace to only double the order of optplace and retain the other orders. In fact, we only need to modify these two elements*/
+  if (firstm1 != optplace) {/*If equal, there is nothing left to do! If !=, we must shift the elements appropriately*/
+    if (!v) {/*The elements between firstm1 and optplace are all ODD powered, so we can adjust firstm1 and optplace by minus1*/
+      gel(gens, firstm1) = qfbcomp(gel(gens, firstm1), minus1);
+      gel(gens, optplace) = qfbcomp(gel(gens, optplace), minus1);
+    }
+    else {/*firstm1 is g1 and has order 2^((v+1)h1), optplace is g2 and has order 2^(vh2) with h1, h2 odd and h1|h2.*/
+      GEN h2 = shifti(gel(orders, optplace), -v);
+	  /*Replace g1 by g1^2*g2^h2, which has order 2^vh1, and replace g2 by g1*g2, which has order 2^(v+1)h2. These elements generate the same subgroup as well since 2-h2 is coprime to 2h2.*/
+      gel(gens, firstm1) = qfbcomp(qfbpow(g, gen_2), qfbpow(gel(gens, optplace), h2));/*g1^2*g2^h2*/
+	  gel(gens, optplace) = qfbcomp(g, gel(gens, optplace));/*g1*g2*/
+    }
+  }
+  gel(orders, optplace) = shifti(gel(orders, optplace), 1);//Doubling the correct place
+  return gerepilecopy(av, mkvec4(newsize, orders, gens, gel(cgp, 4)));
+}
+
+/*Returns 1 if q is similar to the form [1, D%2, (D%2-D)/4] where D=disc(q), and 0 else.*/
+static int
+qfbequal1(GEN q)
+{
+  pari_sp av = avma;
+  if (signe(gel(q, 4)) < 0) {/*D<0*/
+	GEN qred = qfbred(q);
+	return gc_int(av, equali1(gel(qred, 1)));
+  }
+  GEN sols = qfbsolve(q, gen_1, 0);
+  if (lg(sols) > 1) return gc_int(av, 1);
+  return gc_int(av, 0);
+}
 
 
 
@@ -566,35 +657,6 @@ GEN ideal_tobqf(GEN numf, GEN ideal){
 }
 
 
-
-
-//GENERAL CHECKING METHODS
-
-
-
-//Checks that an input is an integral bqf (does NOT check discriminant!=square), and produces a pari_error if not. Used for not getting segmentation faults from a GP interface user. 
-void bqf_check(GEN q){
-  if(typ(q)!=t_VEC) pari_err_TYPE("Please input a length 3 integral VECTOR", q);
-  if(lg(q)!=4) pari_err_TYPE("Please input a LENGTH 3 integral vector", q);
-  for(int i=1;i<=3;i++) if(typ(gel(q, i))!=t_INT) pari_err_TYPE("Please input a length 3 INTEGRAL vector", q);
-}
-
-//Checks that an input is an integral bqf with disc!=square and produces a pari_error if not. Returns the discriminant
-GEN bqf_checkdisc(GEN q){
-  bqf_check(q);
-  GEN D=bqf_disc(q);
-  if(isdisc(D)) return D;
-  pari_err(e_TYPE,"bqf: please input a bqf with non-square discriminant", q);
-  return gen_0;
-}
-
-//Checks that an input is an integral 2x2 matrix, and produces a pari_error if not. Used for not getting segmentation faults from a GP interface user. 
-void intmatrix_check(GEN mtx){
-  if(typ(mtx)!=t_MAT) pari_err(e_TYPE, "Please input a 2x2 intgral MATRIX", mtx);
-  if(lg(mtx)!=3) pari_err(e_TYPE, "Please input a 2x2 intgral matrix", mtx);
-  if(lg(gel(mtx, 1))!=3) pari_err(e_TYPE, "Please input a 2x2 intgral matrix", mtx);
-  for(int i=1;i<=2;i++) for(int j=1;j<=2;j++) if(typ(gcoeff(mtx, i, j))!=t_INT) pari_err(e_TYPE, "Please input a 2x2 INTEGRAL matrix", mtx);
-}
 
 
 

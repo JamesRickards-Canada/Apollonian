@@ -131,6 +131,10 @@ GEN qfbapplyL(GEN q, GEN n);
 GEN qfbapplyR(GEN q, GEN n);
 GEN qfbapplyS(GEN q);
 
+/*SECTION 3: CLASS GROUP*/
+GEN qfbnarrow(GEN D, long prec);
+
+
 //BASIC OPERATIONS ON BINARY QUADRATIC FORMS
 GEN bqf_automorph(GEN q);
 GEN bqf_disc(GEN q);

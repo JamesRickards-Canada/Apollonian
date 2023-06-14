@@ -175,9 +175,9 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(qfbapplyS,"G",,apol_library);
 		addhelp(qfbapplyS,"qfbapplyS(q): returns S acting on q, where S=[0, 1;-1, 0].");
 		
-		
-		
-		
+	/*SECTION 3: CLASS GROUP*/	
+		install(qfbnarrow,"Gp");
+		addhelp(qfbnarrow,"qfbnarrow(D): returns the narrow class group C=Cl^+(D) in terms of quadratic forms. C[1] is the class number, C[2] are the orders of generators (largest to smallest, with each term dividing the previous one), C[3] are the corresponding generators, and C[4] is the regulator.");
 		
 		
 		install("ideal_tobqf","GG","ideal_tobqf",apol_library);
