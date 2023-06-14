@@ -138,8 +138,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 \\bqf.c
 
 	\\DISCRIMINANT METHODS
-		install("disclist","GGD0,L,D0,G,",,apol_library);
-		addhelp(disclist, "Inputs d1, d2, {fund=0}, {cop=0}: d1 and d2 integers with d1<=d2, fund=0,1, cop integer.\n Returns the set of proper discriminants between d1 and d2, inclusive. If fund=1, only returns fundamental discriminants. If cop!=0, only returns discriminants coprime to cop.");
+		install(disclist,"GGD0,L,D0,G,",,apol_library);
+		addhelp(disclist, "disclist(D1, D2, {fund=0}, {cop=0}): returns the set of discriminants between D1 and D2, inclusive. If fund=1, only returns fundamental discriminants. If cop!=0, only returns discriminants coprime to cop.");
 		install("discprimeindex","G",,apol_library);
 		addhelp(discprimeindex, "Inputs: D, a proper discriminant.\n Returns all prime divisors p of D for which D/p^2 is a proper discriminant.");
 		install("discsuperorders","G",,apol_library);

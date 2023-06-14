@@ -120,10 +120,9 @@ GEN llist_togvec(llist *l, long length, int dir);
 GEN llist_tovecsmall(llist *l, long length, int dir);
 
 
-//bqf.c
+/*bqf.c*/
 
-
-//DISCRIMINANT METHODS
+/*SECTION 1: DISCRIMINANT METHODS*/
 GEN disclist(GEN D1, GEN D2, int fund, GEN cop);
 GEN discprimeindex(GEN D, GEN facs);
 GEN discsuperorders(GEN D);

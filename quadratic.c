@@ -1,92 +1,51 @@
 /*Methods to deal with quadratic forms.*/
 
-
-#ifndef PARILIB
-#define PARILIB
+/*INCLUSIONS*/
 #include <pari/pari.h>
-#endif
-
-#ifndef METHDECL
-#define METHDECL
 #include "apol.h"
-#endif
-
-//STATIC DECLARATIONS
-
-//BASIC OPERATIONS ON BINARY QUADRATIC FORMS
-static int bqf_compare(void *data, GEN q1, GEN q2);
-static int bqf_compare_tmat(void *data, GEN d1, GEN d2);
-
-//COMPOSITION/CLASS GROUP
-static GEN bqf_ncgp_nonfundnarrow(GEN cgp, GEN D, GEN rootD);
-
-//TUPLE REPS OF PRIMES
-static int mod_collapse(GEN L);
-static int bqf_tuplevalid_cmp(void *data, GEN x, GEN y);
 
 
 
 
+/*SECTION 1: DISCRIMINANT METHODS*/
 
-//TEMPORARY FOR NOW
-static long gen_search_temp(GEN T, GEN x, void *data, int (*cmp)(void*,GEN,GEN));
-
-//Simply copied from bibli2.c, used in case we switch between 2.13.4 and 2.14
-static long gen_search_temp(GEN T, GEN x, void *data, int (*cmp)(void*,GEN,GEN)){
-  long u = lg(T)-1, i, l, s;
-
-  if (!u) return -1;
-  l = 1;
-  do
-  {
-    i = (l+u) >> 1; s = cmp(data, x, gel(T,i));
-    if (!s) return i;
-    if (s < 0) u = i-1; else l = i+1;
-  } while (u >= l);
-  return -((s < 0)? i: i+1);
-}
-
-
-
-//DISCRIMINANT METHODS
-
-
-//Generates list of discriminants from D1 to D2, can specify if they are fundamental and coprime to a given input.
-GEN disclist(GEN D1, GEN D2, int fund, GEN cop){
-  pari_sp top = avma;
+/*Generates a list of discriminants from D1 to D2, can specify if they are fundamental and coprime to a given input.*/
+GEN
+disclist(GEN D1, GEN D2, int fund, GEN cop)
+{
+  pari_sp av = avma;
   if (typ(D1) != t_INT) pari_err_TYPE("D1 must be an integer", D1);
   if (typ(D2) != t_INT) pari_err_TYPE("D2 must be an integer", D2);
   if (typ(cop) != t_INT) pari_err_TYPE("cop must be an integer", cop);
-  long vind=0, vlen=itos(subii(D2, D1))/8;
-  GEN v=cgetg(vlen+1, t_VEC);
-  GEN D=D1;
-  if(fund==0){
-    if(gequal0(cop)){
-      for(;cmpii(D, D2)<=0;D=addis(D, 1)){
-        if(isdisc(D)) v=veclist_append(v, &vind, &vlen, D);
+  long maxlen = (itos(subii(D2, D1)) >> 1) + 5;/*Add 5 to cover edge cases, just to be safe.*/
+  GEN Dlist = vectrunc_init(maxlen);
+  GEN D = D1;
+  if (!fund) {/*Don't have to be fundamental.*/
+    if (gequal0(cop)) {/*No coprimality restrictions.*/
+      for (; cmpii(D, D2) <= 0; D = addis(D, 1)) {
+        if (isdisc(D)) vectrunc_append(Dlist, D);
       }
     }
-    else{
-      for(;cmpii(D, D2)<=0;D=addis(D, 1)){
-        if(equali1(gcdii(cop, D)) && isdisc(D)) v=veclist_append(v, &vind, &vlen, D);
+    else {
+      for (; cmpii(D, D2) <= 0; D = addis(D, 1)) {
+        if (equali1(gcdii(cop, D)) && isdisc(D)) vectrunc_append(Dlist, D);
       }
+    }
+	return gerepilecopy(av, Dlist);
+  }
+  /*Must be fundamental.*/
+  if (gequal0(cop)) {/*Don't have to be fundamental.*/
+    for (; cmpii(D, D2) <= 0; D = addis(D, 1)){/*coredisc(0)=0, coredisc(1)=1, but we don't want to count them.*/
+      if (equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) vectrunc_append(Dlist, D);
+    }
+	return gerepilecopy(av, Dlist);
+  }
+  for (; cmpii(D, D2) <= 0; D = addis(D, 1)) {
+    if (equali1(gcdii(cop, D))) {
+      if (equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) vectrunc_append(Dlist, D);
     }
   }
-  else{
-    if(gequal0(cop)){
-      for(;cmpii(D, D2)<=0;D=addis(D, 1)){//coredisc(0)=0, coredisc(1)=1, but we don't want to count them.
-        if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
-      }
-    }
-    else{
-      for(;cmpii(D, D2)<=0;D=addis(D, 1)){
-        if(equali1(gcdii(cop, D))){
-          if(equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) v=veclist_append(v, &vind, &vlen, D);
-        }
-      }
-    }
-  }
-  return gerepilecopy(top, vec_shorten(v, vind));
+  return gerepilecopy(av, Dlist);
 }
 
 //Generate the list of primes dividing D for which D/p^2 is a discriminant, can pass in facs=factorization of D
@@ -135,6 +94,69 @@ int isdisc(GEN D){
   return 0;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//STATIC DECLARATIONS
+
+//BASIC OPERATIONS ON BINARY QUADRATIC FORMS
+static int bqf_compare(void *data, GEN q1, GEN q2);
+static int bqf_compare_tmat(void *data, GEN d1, GEN d2);
+
+//COMPOSITION/CLASS GROUP
+static GEN bqf_ncgp_nonfundnarrow(GEN cgp, GEN D, GEN rootD);
+
+//TUPLE REPS OF PRIMES
+static int mod_collapse(GEN L);
+static int bqf_tuplevalid_cmp(void *data, GEN x, GEN y);
+
+
+
+
+
+//TEMPORARY FOR NOW
+static long gen_search_temp(GEN T, GEN x, void *data, int (*cmp)(void*,GEN,GEN));
+
+//Simply copied from bibli2.c, used in case we switch between 2.13.4 and 2.14
+static long gen_search_temp(GEN T, GEN x, void *data, int (*cmp)(void*,GEN,GEN)){
+  long u = lg(T)-1, i, l, s;
+
+  if (!u) return -1;
+  l = 1;
+  do
+  {
+    i = (l+u) >> 1; s = cmp(data, x, gel(T,i));
+    if (!s) return i;
+    if (s < 0) u = i-1; else l = i+1;
+  } while (u >= l);
+  return -((s < 0)? i: i+1);
+}
 
 
 //BASIC OPERATIONS ON BINARY QUADRATIC FORMS
