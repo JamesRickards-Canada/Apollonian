@@ -132,6 +132,7 @@ GEN qfbapplyR(GEN q, GEN n);
 GEN qfbapplyS(GEN q);
 
 /*SECTION 3: CLASS GROUP*/
+GEN lexind(GEN v, long ind);
 GEN qfbnarrow(GEN D, long prec);
 GEN qfbnarrowlex(GEN D, long prec);
 

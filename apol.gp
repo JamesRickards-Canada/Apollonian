@@ -157,7 +157,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(geo, "These methods deal with geometry. There are 5 types of objects:\n     Points: stored as a complex number or oo.\n     Circles: [centre, radius, curvature]. The curvature may be set to negative to denote the exterior.\n     Lines: [slope, intercept]. If slope<oo, we give the y-intercept, else we give the x-intercept.\n     Arcs: [centre, radius, curvature, start pt, end pt, start angle, end angle, dir]. We take the arc counterclockwise between startpt and endpt. If dir=-1 we orient it in the opposite direction.\n     Segments: [slope, intercept, start pt, end pt, ooendptdir, dir]. Same as lines, where we also have a start and end point. dir=1 means we go on the line in the upper half plane, dir=-1 means through oo. If one endpoint is oo, ooendptdir=1 means the segment travels vertically upward or right, and -1 means vertically down or left.\n\nInstalled methods: circle_fromcp, circle_fromppp, line_fromsp, line_frompp, mat_eval, mobius.");
 
 /*quadratic.c*/
-	addhelp(quadratic,"Discriminant methods:\n    disclist, isdisc.\n\nBasic quadratic form methods:    qfbapply, qfbapplyL, qfbapplyR, qfbapplyS.\n");
+	addhelp(quadratic,"Discriminant methods:\n    disclist, isdisc.\n\nBasic quadratic form methods:\n    qfbapply, qfbapplyL, qfbapplyR, qfbapplyS.\nClass groups:\n    lexind, qfbnarrow, qfbnarrowlex.");
 
 	/*SECTION 1: DISCRIMINANT METHODS*/
 		install(disclist,"GGD0,L,D0,G,",,apol_library);
@@ -175,7 +175,9 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(qfbapplyS,"G");
 		addhelp(qfbapplyS,"qfbapplyS(q): returns S acting on q, where S=[0, 1;-1, 0].");
 		
-	/*SECTION 3: CLASS GROUP*/	
+	/*SECTION 3: CLASS GROUP*/
+		install(lexind,"GL");
+		addhelp(lexind,"lexind(v, ind): returns the index ind output of forvec(a=vector(#v, i, [0, v[i]-1]), print(a)), i.e. finds the corresponding lexicographic ordering element.");
 		install(qfbnarrow,"Gp");
 		addhelp(qfbnarrow,"qfbnarrow(D): returns the narrow class group C=Cl^+(D) in terms of quadratic forms. C[1] is the class number, C[2] are the orders of generators as a Vecsmall (largest to smallest, with each term dividing the previous one), and C[3] are the corresponding generators. Note that class number 1 will return [1, Vecsmall([1]), [idelt]], not [1, [], []], and the second return element is always a Vecsmall, not a vector.");
 		install(qfbnarrowlex,"Gp");
@@ -185,23 +187,6 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		
 		install("ideal_tobqf","GG","ideal_tobqf",apol_library);
 		addhelp(ideal_tobqf,"Inputs nf, ideal: a quadratic number field nf with ideal ideal.\n Returns the corresponding binary quadratic form.");
-
-	\\CLASS GROUPS AND COMPOSITION OF FORMS
-		install("bqf_comp_tc","GGD1,L,p","bqf_comp",apol_library);
-		addhelp(bqf_comp,"Inputs q1, q2, {tored=1}: BQFs q1, q2 of the same discriminant, tored=0, 1.\n Returns the composition of q1 and q2, reduced if tored=1.");
-		install("bqf_identify_tc","GGp","bqf_identify",apol_library);
-		addhelp(bqf_identify,"Inputs ncgp_lexic, q: the output of bqf_ncgp_lexic(D), and a form q of discriminant D.\n Returns [e1,...,er], where in the narrow class group we have q=g1^e1*...*gr^er.");
-		install("bqf_lexicind_tobasis","GL","bqf_lexicind_tobasis",apol_library);
-		addhelp(bqf_lexicind_tobasis,"Inputs orders (vecsmall), index ind.\n Returns [e1,...,er], where the ind element in the lexicographic ordering of the narrow class group is of the form g1^e1*...*gr^er.");
-		install("bqf_ncgp","Gp","bqf_ncgp",apol_library);
-		addhelp(bqf_ncgp, "Input D, a proper discriminant.\n Returns the narrow class group, in the format [n,[n_1,...,n_r],[g_1,...,g_r]], where it has size n, is isomorphic to c_{n_1} x ... x c_{n_r} with n_1 | n_2 | ... | n_r, and g_i is a generator of the corresponding cyclic group of order n_i.");
-		install("bqf_ncgp_lexic","Gp","bqf_ncgp_lexic",apol_library);
-		addhelp(bqf_ncgp_lexic, "Input D, a proper discriminant D.\n This returns [n,[n_1,...,n_r],[f1,f2,...,fl]], where n is the narrow class number of D, the narrow class group is c_{n_1} x ... x c_{n_r} with n_1 | n_2 | ... | n_r, and representative BQFs are the f1,f2,... written in lexicographic order: starting with the identity element, and the component with the highest order moves first.");
-		install("bqf_pow_tc","GGD1,L,p","bqf_pow",apol_library);
-		addhelp(bqf_pow,"Inputs q, n, {tored=1}: BQF q, integer n, tored=0, 1.\n Returns q^n, reduced if tored=1.");
-		install("bqf_square_tc","GD1,L,p","bqf_square",apol_library);
-		addhelp(bqf_square,"Inputs q, {tored=1}: BQF q, tored=0, 1.\n Returns q^2, reduced if tored=1.");
-
 	\\TUPLE REPS OF PRIMES
 		install("bqf_primesmod","G",,apol_library);
 		addhelp(bqf_primesmod,"Input q, an integral BQF.\n Returns the residue classes modulo D=disc(q) coprime to D that are represented by q.");
