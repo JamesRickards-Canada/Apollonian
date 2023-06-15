@@ -186,15 +186,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(qfbnarrow,"qfbnarrow(D): returns the narrow class group C=Cl^+(D) in terms of quadratic forms. C[1] is the class number, C[2] are the orders of generators as a Vecsmall (largest to smallest, with each term dividing the previous one), and C[3] are the corresponding generators. Note that class number 1 will return [1, Vecsmall([1]), [idelt]], not [1, [], []], and the second return element is always a Vecsmall, not a vector.");
 		install(qfbnarrowlex,"Gp");
 		addhelp(qfbnarrowlex,"qfbnarrowlex(D): does qfbnarrow, except the third entry is the lexicographic ordering of representatives of the class group (with respect to the generators and their orders). Can pass in qfbnarrow(D) for D.");
-		
 
-	\\TUPLE REPS OF PRIMES
-		install("bqf_primesmod","G",,apol_library);
-		addhelp(bqf_primesmod,"Input q, an integral BQF.\n Returns the residue classes modulo D=disc(q) coprime to D that are represented by q.");
-		install("bqf_primetuplereps","GGD0,G,",,apol_library);
-		addhelp(bqf_primetuplereps, "Inputs v, pmin, {pmax=0}. Returns the smallest prime between pmin and pmax represented by all BQFs in v. If pmax=0, we go from 2 to pmin.");
-		install("bqf_tuplevalid","iG",,apol_library);
-		addhelp(bqf_tuplevalid,"Input v, a vector of integral BQFs.\n Returns 1 if there is a residue class containing primes that is represented by all forms, and 0 if not.");
 
 \\visual.c
 	\\DATA

@@ -173,19 +173,19 @@ GEN apol_move_batchGEN(GEN v, GEN bat){
   return gerepilecopy(top, newv);
 }
 
-//Returns the quadratic form whose primitive values are v[ind]+curvatures touching the ind^th circle. The formula is [a+b,a+b+c-d, a+c] if v=[a,b,c,d] and ind=1.
-GEN apol_qf(GEN v, int ind){
-  pari_sp top=avma;
-  GEN is=cgetg(5, t_VECSMALL);
-  is[1]=ind;
-  for(int i=2;i<=4;i++) is[i]=is[i-1]%4+1;
-  GEN apb=addii(gel(v, is[1]), gel(v, is[2]));//a+b
-  GEN apbpc=addii(apb, gel(v, is[3]));//a+b+c
-  GEN q=cgetg(4, t_VEC);
-  gel(q, 1)=icopy(apb);//a+b
-  gel(q, 2)=subii(apbpc, gel(v, is[4]));//a+b+c-d
-  gel(q, 3)=addii(gel(v, is[1]), gel(v, is[3]));//a+c
-  return gerepileupto(top, q);
+/*Returns the quadratic form whose primitive values are v[ind]+curvatures touching the ind^th circle. The formula is [a+b,a+b+c-d, a+c] if v=[a,b,c,d] and ind=1.*/
+GEN
+apol_qf(GEN v, int ind)
+{
+  pari_sp av = avma;
+  GEN is = cgetg(5, t_VECSMALL);/*Used to shift around things since ind might not be 1.*/
+  is[1] = ind;
+  int i;
+  for (i = 2; i <= 4; i++) is[i] = is[i - 1]%4 + 1;
+  GEN a = gel(v, is[1]), apb = addii(a, gel(v, is[2]));/*a+b*/
+  GEN c = gel(v, is[3]), apbpc = addii(apb, c);/*a+b+c*/
+  GEN D = shifti(negi(sqri(a)), 2);/*-4a^2*/
+  return gerepilecopy(av, mkqfb(apb, subii(apbpc, gel(v, is[4])), addii(a, c), D));
 }
 
 //Returns the reduction of v. If seq=1, also returns a VECSMALL of the sequence of indices swapped to reduce.
@@ -234,47 +234,51 @@ GEN apol_red_partial(GEN v, long maxsteps){
 
 
 
-//CREATION OF ACPS
+/*CREATION OF ACPS*/
 
-
-//Given a bqf q of discriminant -4n^2, this gives the corresponding Descartes quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.
-GEN apol_make(GEN q, int pos, int red){
-  pari_sp top=avma;
-  GEN D=bqf_disc(q);
-  if(signe(D)!=-1) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
+/*Given a qfb q of discriminant -4n^2, this gives the corresponding Descartes quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.*/
+GEN
+apol_make(GEN q, int pos, int red)
+{
+  pari_sp av = avma;
+  GEN D = gel(q, 4);
+  if (signe(D) != -1) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
   long rem;
-  GEN nsqr=divis_rem(D, -4, &rem);
-  if(rem!=0) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
+  GEN nsqr = divis_rem(D, -4, &rem);
+  if (rem) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
   GEN sqrtrem;
-  GEN n=sqrtremi(nsqr, &sqrtrem);
-  if(!gequal0(sqrtrem)) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
-  n= pos? n:negi(n);//+/-n
-  return gerepileupto(top, apol_make_n(q, n, red));
+  GEN n = sqrtremi(nsqr, &sqrtrem);
+  if (!gequal0(sqrtrem)) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
+  n = pos ? n : negi(n);/*+/-n*/
+  return gerepileupto(av, apol_make_n(q, n, red));
 }
 
-//apol_make, but we are given the value of n, where disc(q)=-4n^2.
-static GEN apol_make_n(GEN q, GEN n, int red){
-  pari_sp top=avma;//q=[A, B, C]->[n, A-n, C-n, A+C-n-B]
-  GEN Amn=subii(gel(q, 1), n);
-  GEN v=mkvec4(n, Amn, subii(gel(q, 3), n), addii(Amn, subii(gel(q, 3), gel(q, 2))));//The ACP
-  if(red) v=apol_red(v, 0);
-  return gerepileupto(top, ZV_sort(v));
+/*apol_make, but we are given the value of n, where disc(q)=-4n^2.*/
+static GEN
+apol_make_n(GEN q, GEN n, int red)
+{
+  pari_sp av = avma;/*q=[A, B, C]->[n, A-n, C-n, A+C-n-B]*/
+  GEN Amn = subii(gel(q, 1), n);
+  GEN v = mkvec4(n, Amn, subii(gel(q, 3), n), addii(Amn, subii(gel(q, 3), gel(q, 2))));/*The ACP*/
+  if (red) v = apol_red(v, 0);
+  return gerepileupto(av, ZV_sort(v));
 }
 
-//Computes ncgp(-4n^2), and output the ACP's created from these quadratic forms with apol_make. We only count ambiguous forms ONCE, and we take pos=sign(n).
-GEN apol_makeall(GEN n, int red, long prec){
-  pari_sp top=avma;
-  GEN D=mulis(sqri(n), -4);
-  GEN U=bqf_ncgp_lexic(D, prec);
-  GEN forms=gel(U, 3);
-  long lf=lg(forms);
-  GEN quads=vectrunc_init(lf);
-  for(long i=1;i<lf;i++){//If we have [A, B, C] with B<0 we do not count it.
-    GEN q=gel(forms, i);
-    if(signe(gel(q, 2))==-1) continue;
+/*Computes qfbnarrowlex(-4n^2), and output the ACP's created from these quadratic forms with apol_make. We only count ambiguous forms ONCE, and we take pos=sign(n).*/
+GEN
+apol_makeall(GEN n, int red, long prec)
+{
+  pari_sp av = avma;
+  GEN D = shifti(negi(sqri(n)), 2);
+  GEN forms = gel(qfbnarrowlex(D, prec), 3);
+  long lf = lg(forms), i;
+  GEN quads = vectrunc_init(lf);
+  for (i = 1; i < lf; i++) {/*If we have [A, B, C] with B<0 we do not count it.*/
+    GEN q = gel(forms, i);
+    if (signe(gel(q, 2)) < 0) continue;
     vectrunc_append(quads, apol_make_n(q, n, red));
   }
-  return gerepileupto(top, quads);
+  return gerepileupto(av, quads);
 }
 
 
@@ -880,17 +884,19 @@ GEN apol_stairs(GEN tmax){
   return gerepileupto(top, apol_search_bound(v, maxcurv, 0, info, &apol_stairs_getdata, &apol_stairs_nextquad, &apol_circles_retquad, 1));
 }
 
-//Returns the quadratic form corresponding to the circle in the stip packing designated by L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n]. We can't have L=1 or 2, this doesn't give a circle.
-GEN apol_strip_qf(GEN L, int red){
-  pari_sp top=avma;
-  GEN c=apol_depthelt_circle(L);//The corresponding circle=[centre, r, v].
-  if(lg(c)==3) pari_err_TYPE("Please give a circle instead, i.e. don't input L=1 or 2", L);
-  GEN C=shifti(gel(c, 3), -1);//v/2, the curvature of the corresponding circle in [0,0,1,1]
-  GEN B=gmul(gel(c, 3), real_i(gel(c, 1)));//B=curvature*Real(centre)
-  GEN A=shifti(gsub(gmul(gnorm(gel(c, 1)), gel(c, 3)), gel(c, 2)), -1);//A=cocurvature/2=(|centre|^2*curvature-radius)/2
-  GEN q=mkvec3(A, B, C);
-  if(red) return gerepileupto(top, dbqf_red(q));
-  return gerepilecopy(top, q);
+/*Returns the quadratic form corresponding to the circle in the stip packing designated by L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n]. We can't have L=1 or 2, this doesn't give a circle.*/
+GEN
+apol_strip_qf(GEN L, int red)
+{
+  pari_sp av = avma;
+  GEN c = apol_depthelt_circle(L);/*The corresponding circle=[centre, r, v].*/
+  if (lg(c) == 3) pari_err_TYPE("Please give a circle instead, i.e. don't input L=1 or 2", L);
+  GEN C = shifti(gel(c, 3), -1);/*v/2, the curvature of the corresponding circle in [0,0,1,1]*/
+  GEN B = gmul(gel(c, 3), real_i(gel(c, 1)));/*B=curvature*Real(centre)*/
+  GEN A = shifti(gsub(gmul(gnorm(gel(c, 1)), gel(c, 3)), gel(c, 2)), -1);/*A=cocurvature/2=(|centre|^2*curvature-radius)/2*/
+  GEN q = Qfb0(A, B, C);
+  if(red) return gerepileupto(av, qfbred(q));
+  return gerepilecopy(av, q);
 }
 
 
