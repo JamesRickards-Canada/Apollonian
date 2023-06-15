@@ -121,7 +121,7 @@ qfbnarrow(GEN D, long prec)
 	  gel(cgp, 3) = mkvec(qfbidentity(D));
 	}
 	else gel(cgp, 2) = ZV_to_zv(gel(cgp, 2));/*Convert to Vecsmall.*/
-	return gerepilecopy(av, cgp);
+	return gerepilecopy(av, vec_shorten(cgp, 3));
   }
   GEN minus1;/*-id, the new form to add*/
   if (mod2(D)) minus1 = mkqfb(gen_m1, gen_1, shifti(subis(D, 1), -2), D);/*[-1, 1, (D-1)/4]*/
@@ -180,7 +180,7 @@ qfbnarrow(GEN D, long prec)
     }
   }
   orders[optplace] <<= 1;/*Doubling the correct place*/
-  return gerepilecopy(av, mkvec4(newsize, orders, gens, gel(cgp, 4)));
+  return gerepilecopy(av, mkvec3(newsize, orders, gens));
 }
 
 /*Returns 1 if q is similar to the form [1, D%2, (D%2-D)/4] where D=disc(q), and 0 else.*/
@@ -205,7 +205,38 @@ qfbidentity(GEN D)
   return mkqfb(gen_1, gen_0, shifti(negi(D), -2), D);/*[1, 0, -D/4]*/
 }
 
-
+/*qfbnarrow, but the third entry is this list of forms in lexicographic ordering. Can input qfbnarrow(D) instead of D.*/
+GEN
+qfbnarrowlex(GEN D, long prec)
+{
+  pari_sp av = avma;
+  GEN nar;/*Narrow class group.*/
+  if (typ(D) == t_VEC) {/*Fix D/nar*/
+	nar = D;
+    D = gmael3(nar, 3, 1, 4);
+  }
+  else nar = qfbnarrow(D, prec);/*Get the narrow class group.*/
+  long narclno = itos(gel(nar, 1));/*Narrow class number*/
+  GEN ords = gel(nar, 2);
+  GEN gens = gel(nar, 3);
+  GEN allforms = cgetg(narclno + 1, t_VEC);
+  gel(allforms, 1) = qfbred(qfbidentity(D));/*Start with the identity.*/
+  long f1, f2 = 1, pow, i, j, k = 2;
+  for (i = lg(gel(nar, 2)) - 1; i >= 1; i--) {
+    f1 = 1;
+    f2 = k - 1;
+    for (pow = 1; pow <= ords[i] - 1; pow++) {
+      k = f2 + 1;
+      for (j = f1; j <= f2; j++) {
+        gel(allforms, k) = qfbcomp(gel(allforms, j), gel(gens, i));
+        k++;
+      }
+      f1 = f2+1;
+      f2 = k - 1;/*update f1, f2*/
+    }
+  }
+  return gerepilecopy(av, mkvec3(gel(nar, 1), ords, allforms));
+}
 
 
 //STATIC DECLARATIONS
