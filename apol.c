@@ -34,6 +34,9 @@ static GEN apol_primes_layer_getdata(GEN vdat, int ind, GEN reps, void *nul, int
 static GEN apol_stairs_nextquad(GEN vdat, int ind, void *info);
 static GEN apol_stairs_getdata(GEN vdat, int ind, GEN reps, void *info, int state);
 
+
+static GEN ZV_copy(GEN v);
+
 //BASIC METHODS
 
 
@@ -1055,7 +1058,14 @@ GEN apol_words(int d){
   return gerepilecopy(top, reps);
 }
 
-
+//Copies an integer vector
+static GEN
+ZV_copy(GEN v){
+  long len=lg(v);
+  GEN rvec=cgetg(len, t_VEC);
+  for(long i=1;i<len;i++) gel(rvec, i)=icopy(gel(v, i));
+  return rvec;
+}
 
 
 //LISTS OF VARIABLE LENGTH TEMPORARY TO REMOVE

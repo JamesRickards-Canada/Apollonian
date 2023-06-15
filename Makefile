@@ -8,7 +8,7 @@ else
 endif
 
 #The files we want to include
-SRCS = apol.o base.o geometry.o quadratic.o visual.o
+SRCS = apol.o geometry.o quadratic.o visual.o
 
 #Name of the output library
 TARGET = apol

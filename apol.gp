@@ -101,34 +101,6 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 	\\GENERAL HELP
 		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)\nSpecialized methods (?ap_special)");
 
-\\base.c
-	\\LINEAR ALGEBRA
-		install("lin_intsolve_tc","GGG","lin_intsolve",apol_library);
-		addhelp(lin_intsolve, "Inputs A,B,n integers.\n Outputs the general integral solutions to Ax+By=n. The format is [[s1,s2],[x0,y0]], where the general solution is x=s1*t+x0, y=s2*t+y0 for t an integer. The output is also reduced, i.e. gcd(s1,s2)=1. If A=B=0 or there are no integer solutions, returns 0.");
-	
-	\\VECTORS
-		install("vecrev","G",,apol_library);
-		addhelp(vecrev,"Returns v but backwards.");
-	
-	\\MODS
-		install("modsquares","GD1,L,",,apol_library);
-		addhelp(modsquares,"Inputs n, {cop=1}: n a positive integer, cop=0, 1.\n Returns the squares mod n, only keeping those coprime to n if cop=1.");
-		install("mod_breakdown","GG",,apol_library);
-		addhelp(mod_breakdown,"Inputs res, n: list of residues modulo n>1.\n Returns the residues modulo q^e for all q^e||n. Each component of the return vector is [residues, [q, e, q^e]], and the vector is ordered by q.");
-	
-	\\PRIMES
-		install("primes_mod","GGL",,apol_library);
-		addhelp(primes_mod,"Input range, residues, modulus.\n Returns the primes in the given range that have the given residues modulo the modulus. Range=[a, b] where a<b are integers, and residues can either be a single integer or a vector of integers.");
-		install("primefactors","G",,apol_library);
-		addhelp(primefactors,"Input N, an integer.\n Returns the vector of prime factors of N.");
-	
-	\\GENERAL HELP
-		addhelp(base,"This package is a collection of miscellaneous methods that may be useful in a variety of settings, and not just for the programs they were originally created for \n Subtopics: \n Infinity (inf) \n Linear algebra (la) \n Mod n (modn) \n Primes (pr)");
-		addhelp(inf,"addoo, divoo.");
-		addhelp(la,"lin_intsolve, mat3_complete.");
-		addhelp(modn,"modsquares, mod_breakdown.");
-		addhelp(pr,"primes_mod");
-
 /*mobius.c*/
 	addhelp(geometry,"Lines:\n\t[slope, intercept]\n\ty=slope*x+intercept unless slope=oo, where it is x=intercept instead.\n\nCircles:\n\t[centre, radius, curvature]\n\tRadius > 0, but curvature can be < 0 to mean the 'outside' is the inside. This does not get preserved under the mobius function.\n\nGeometry methods:\n\tmobius.");
 

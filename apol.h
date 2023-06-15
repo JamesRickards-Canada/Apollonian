@@ -52,30 +52,8 @@ GEN apol_makeall_extdepths(GEN n, long prec);
 GEN apol_makeall_small(GEN n, int red, long prec);
 GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 
-//base.c
 
-
-//VECTORS
-GEN vecrev(GEN v);
-GEN ZV_copy(GEN v);
-int ZV_equal(GEN v1, GEN v2);
-GEN ZV_Z_divexact(GEN v, GEN y);
-GEN ZV_Z_mul(GEN v, GEN x);
-
-//LINEAR ALGEBRA
-GEN FpM_eigenvecs(GEN M, GEN p);
-GEN lin_intsolve(GEN A, GEN B, GEN n);
-GEN lin_intsolve_tc(GEN A, GEN B, GEN n);
-
-//MODS
-GEN modsquares(GEN n, long cop);
-GEN mod_breakdown(GEN res, GEN n);
-
-//PRIMES
-GEN primes_mod(GEN range, GEN residues, long modulus);
-GEN primefactors(GEN N);
-
-/*mobius.c*/
+/*geometry.c*/
 
 /*SECTION 2: MOBIUS*/
 GEN mobius(GEN M, GEN x, long prec);
