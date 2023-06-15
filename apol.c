@@ -516,7 +516,7 @@ static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int stat
     GEN oldcirc3=gel(reps, prevind[is[2]]);//The unused old circle. Our newcirc must be tangent to it.
     GEN rsums=gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));//(r1+r2)^2
     GEN dcentres=gnorm(gsub(gel(oldcirc3, 1), gel(newcirc, 1)));//dist(centres)^2
-    if(!toleq(rsums, dcentres, tol, 3)) newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 0);//Must be the other side.
+    if(!toleq(rsums, dcentres, tol)) newcirc=apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(v, is[2]), 0);//Must be the other side.
   }
   prevind[ind]=lg(reps);//Updating the location of the circle.
   return newcirc;
@@ -525,12 +525,12 @@ static GEN apol_circles_getdata(GEN vdat, int ind, GEN reps, void *nul, int stat
 static int circequaltol(GEN c1, GEN c2, GEN tol, long prec){//Returns 1 if the circles are equal, 0 else.
   if(lg(c1)==3){
 	if(lg(c2)!=3) return 0;//1 line 1 circle
-	if(toleq(gel(c1, 2), gel(c2, 2), tol, prec)) return 1;//Equal up to tolerance!
+	if(toleq(gel(c1, 2), gel(c2, 2), tol)) return 1;//Equal up to tolerance!
 	return 0;//Not equal up to tolerance
   }
   if(lg(c2)==3) return 0;//1 circle 1 line
-  if(!toleq(gel(c1, 1), gel(c2, 1), tol, prec)) return 0;
-  if(!toleq(gel(c1, 3), gel(c2, 3), tol, prec)) return 0;
+  if(!toleq(gel(c1, 1), gel(c2, 1), tol)) return 0;
+  if(!toleq(gel(c1, 3), gel(c2, 3), tol)) return 0;
   return 1;//No need to check radii if curvatures are okay.
 }
 

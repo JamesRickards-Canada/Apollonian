@@ -75,7 +75,16 @@ GEN mod_breakdown(GEN res, GEN n);
 GEN primes_mod(GEN range, GEN residues, long modulus);
 GEN primefactors(GEN N);
 
-/*bqf.c*/
+/*mobius.c*/
+
+/*SECTION 2: MOBIUS*/
+GEN mobius(GEN M, GEN x, long prec);
+
+/*SECTION 3: TOLERANCE*/
+GEN deftol(long prec);
+int toleq(GEN x, GEN y, GEN tol);
+
+/*quadratic.c*/
 
 /*SECTION 1: DISCRIMINANT METHODS*/
 GEN disclist(GEN D1, GEN D2, int fund, GEN cop);
@@ -92,24 +101,6 @@ GEN qfbtoideal(GEN nf, GEN q);
 GEN lexind(GEN v, long ind);
 GEN qfbnarrow(GEN D, long prec);
 GEN qfbnarrowlex(GEN D, long prec);
-
-
-/*geo.c*/
-
-
-/*SECTION 4: TOLERANCE*/
-GEN deftol(long prec);
-
-//RENAME THE FILE TO MOBIUS.C
-
-
-
-
-
-GEN mat_eval(GEN M, GEN x);
-GEN mobius_gp(GEN M, GEN c, long prec);
-GEN geom_int(GEN c1, GEN c2, long prec);
-
 
 
 

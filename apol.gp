@@ -1,5 +1,5 @@
 print("\n\nType '?apol' for help.\n\n");
-addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages:\n apollonian\n base\n geo\n quadratic\n visual");
+addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages:\n apollonian\n base\n geometry\n quadratic\n visual");
 parigp_version=version();
 apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
@@ -102,11 +102,6 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)\nSpecialized methods (?ap_special)");
 
 \\base.c
-
-	\\INFINITY
-		install("divoo","GG","divoo",apol_library);
-		addhelp(divoo, "Inputs a,b, real numbers or oo.\n Outputs a/b, where oo is output if a=oo and b>=0 or a=-oo and b<0 or b=0 and a>=0 (outputs -oo under analogous assumptions).");
-
 	\\LINEAR ALGEBRA
 		install("lin_intsolve_tc","GGG","lin_intsolve",apol_library);
 		addhelp(lin_intsolve, "Inputs A,B,n integers.\n Outputs the general integral solutions to Ax+By=n. The format is [[s1,s2],[x0,y0]], where the general solution is x=s1*t+x0, y=s2*t+y0 for t an integer. The output is also reduced, i.e. gcd(s1,s2)=1. If A=B=0 or there are no integer solutions, returns 0.");
@@ -135,16 +130,11 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(pr,"primes_mod");
 
 /*mobius.c*/
-	\\BASIC LINE, CIRCLE, AND POINT OPERATIONS
-		install("mobius_gp","GGp","mobius",apol_library);
-		addhelp(mobius,"Inputs M, c: a 2x2 matrix M, and a circle/line/arc/segment c.\n This returns M(c), where M acts as a Mobius map.");
+	addhelp(geometry,"Lines:\n\t[slope, intercept]\n\ty=slope*x+intercept unless slope=oo, where it is x=intercept instead.\n\nCircles:\n\t[centre, radius, curvature]\n\tRadius > 0, but curvature can be < 0 to mean the 'outside' is the inside. This does not get preserved under the mobius function.\n\nGeometry methods:\n\tmobius.");
 
-	\\INTERSECTION OF LINES/CIRCLES
-		install("geom_int","GGp",,apol_library);
-		addhelp(geom_int,"Inputs s1, s2: circles/arcs/lines/segments.\n Returns the intersection points of s1 and s2.");
-		
-	\\GENERAL HELP
-		addhelp(geo, "These methods deal with geometry. There are 5 types of objects:\n     Points: stored as a complex number or oo.\n     Circles: [centre, radius, curvature]. The curvature may be set to negative to denote the exterior.\n     Lines: [slope, intercept]. If slope<oo, we give the y-intercept, else we give the x-intercept.\n     Arcs: [centre, radius, curvature, start pt, end pt, start angle, end angle, dir]. We take the arc counterclockwise between startpt and endpt. If dir=-1 we orient it in the opposite direction.\n     Segments: [slope, intercept, start pt, end pt, ooendptdir, dir]. Same as lines, where we also have a start and end point. dir=1 means we go on the line in the upper half plane, dir=-1 means through oo. If one endpoint is oo, ooendptdir=1 means the segment travels vertically upward or right, and -1 means vertically down or left.\n\nInstalled methods: circle_fromcp, circle_fromppp, line_fromsp, line_frompp, mat_eval, mobius.");
+	/*SECTION 2: MOBIUS*/
+		install("mobius","GGp");
+		addhelp(mobius,"mobius(M, x): returns the image of x under the Mobius map M, which is a 2x2 invertible matrix. Allows points (including oo), circles, and lines as input. If the return is a circle, the curvature will always be positive.");
 
 /*quadratic.c*/
 	addhelp(quadratic,"Discriminant methods:\n\tdisclist, isdisc.\n\nBasic quadratic form methods:\n\tqfbapply, qfbapplyL, qfbapplyR, qfbapplyS, idealtoqfb, qfbtoideal.\n\nClass groups:\n\tlexind, qfbnarrow, qfbnarrowlex.");
