@@ -96,23 +96,20 @@ GEN qfbnarrowlex(GEN D, long prec);
 
 /*geo.c*/
 
-//BASIC LINE, CIRCLE, AND POINT OPERATIONS
-GEN circle_fromcp(GEN cent, GEN p, long prec);
-GEN circle_fromppp(GEN p1, GEN p2, GEN p3, GEN tol, long prec);
-GEN line_fromsp(GEN s, GEN p);
-GEN line_frompp(GEN p1, GEN p2, GEN tol, long prec);
+
+/*SECTION 4: TOLERANCE*/
+GEN deftol(long prec);
+
+//RENAME THE FILE TO MOBIUS.C
+
+
+
+
+
 GEN mat_eval(GEN M, GEN x);
 GEN mobius_gp(GEN M, GEN c, long prec);
-
-//INTERSECTION OF LINES/CIRCLES
 GEN geom_int(GEN c1, GEN c2, long prec);
 
-//HELPER METHODS
-GEN deftol(long prec);
-INLINE GEN gc_0vec(pari_sp av){set_avma(av);return cgetg(1, t_VEC);}//Resets avma and returns the vector []
-int tolcmp(GEN x, GEN y, GEN tol, long prec);
-int toleq(GEN x, GEN y, GEN tol, long prec);
-int toleq0(GEN x, GEN tol, long prec);
 
 
 

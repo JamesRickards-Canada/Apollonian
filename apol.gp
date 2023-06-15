@@ -134,18 +134,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(modn,"modsquares, mod_breakdown.");
 		addhelp(pr,"primes_mod");
 
-\\geo.c
+/*mobius.c*/
 	\\BASIC LINE, CIRCLE, AND POINT OPERATIONS
-		install("circle_fromcp","GGp",,apol_library);
-		addhelp(circle_fromcp,"Inputs c, p: centre c, and point p.\n Returns the circle with centre c and passing through point p.");
-		install("circle_fromppp","GGGp",,apol_library);
-		addhelp(circle_fromppp,"Inputs p1, p2, p3: distinct complex points (oo is allowed).\n Returns the circle that passes through p1, p2, p3. If they are collinear (including if one is oo), this will return the line going through them instead.");
-		install("line_fromsp","GG",,apol_library);
-		addhelp(line_fromsp,"Inputs s, p: slope and point p.\n Returns the line through p with slope s.");
-		install("line_frompp","GG",,apol_library);
-		addhelp(line_frompp,"Inputs p1, p2: distinct complex points.\n Returns the line formed by p1 and p2.");
-		install("mat_eval","GG","mat_eval",apol_library);
-		addhelp(mat_eval, "Inputs M, x; M a matrix, and x number.\n Returns Mx with M acting via Mobius transformation. x=+/-oo is allowed.");
 		install("mobius_gp","GGp","mobius",apol_library);
 		addhelp(mobius,"Inputs M, c: a 2x2 matrix M, and a circle/line/arc/segment c.\n This returns M(c), where M acts as a Mobius map.");
 

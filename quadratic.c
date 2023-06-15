@@ -40,14 +40,14 @@ disclist(GEN D1, GEN D2, int fund, GEN cop)
         if (equali1(gcdii(cop, D)) && isdisc(D)) vectrunc_append(Dlist, D);
       }
     }
-	return gerepilecopy(av, Dlist);
+    return gerepilecopy(av, Dlist);
   }
   /*Must be fundamental.*/
   if (gequal0(cop)) {/*Don't have to be fundamental.*/
     for (; cmpii(D, D2) <= 0; D = addis(D, 1)){/*coredisc(0)=0, coredisc(1)=1, but we don't want to count them.*/
       if (equalii(coredisc(D), D) && !gequal0(D) && !equali1(D)) vectrunc_append(Dlist, D);
     }
-	return gerepilecopy(av, Dlist);
+    return gerepilecopy(av, Dlist);
   }
   for (; cmpii(D, D2) <= 0; D = addis(D, 1)) {
     if (equali1(gcdii(cop, D))) {
@@ -140,18 +140,18 @@ qfbtoideal(GEN nf, GEN q)
   GEN D = gel(q, 4), A = gel(q, 1);
   GEN y = nf_get_rootD(nf, D), b, delta;
   if (mod2(D)) {/*D odd*/
-	b = shifti(subis(gel(q, 2), 1), -1);/*(B-1)/2*/
-	delta = gdivgs(nfsub(nf, gen_1, y), 2);/*1-sqrt(D)/2*/
+    b = shifti(subis(gel(q, 2), 1), -1);/*(B-1)/2*/
+    delta = gdivgs(nfsub(nf, gen_1, y), 2);/*1-sqrt(D)/2*/
   }
   else {/*D even*/
-	b = shifti(gel(q, 2), -1);/*B/2*/
-	delta = gneg(y);/*-sqrt(D)*/
+    b = shifti(gel(q, 2), -1);/*B/2*/
+    delta = gneg(y);/*-sqrt(D)*/
   }
   GEN a1 = mkcol2(A, gen_0);/*The element A in the number field*/
   GEN a2 = nfadd(nf, b, delta);/*b+delta*/
   if (signe(A) < 0) {
-	a1 = nfmul(nf, a1, delta);/*A*delta*/
-	a2 = nfmul(nf, a2, delta);/*(b+delta)*delta*/
+    a1 = nfmul(nf, a1, delta);/*A*delta*/
+    a2 = nfmul(nf, a2, delta);/*(b+delta)*delta*/
   }
   GEN x = mkmat2(algtobasis(nf, a1), algtobasis(nf, a2));/*a1 and a2 are the generators of the ideal*/
   return gerepilecopy(av, idealhnf(nf, x));
@@ -202,13 +202,13 @@ qfbnarrow(GEN D, long prec)
   if (!isdisc(D)) pari_err_TYPE("D must be a discriminant, i.e. a non-square integer equivalent to 0 or 1 modulo 4.", D);
   GEN cgp = quadclassunit0(D, 0, NULL, prec);/*Class group*/
   if (signe(D) < 0 || quadunitnorm(D) == -1) {/*Negative disc or norm(fund. unit)=-1*/
-	if (equali1(gel(cgp, 1))) {
+    if (equali1(gel(cgp, 1))) {
       /*We modify the second and third entries, as we want [1, Vecsmall([1]), [identity], reg] instead of [1, [], [], reg].*/
-	  gel(cgp, 2) = mkvecsmall(1);
-	  gel(cgp, 3) = mkvec(qfbred(qfbidentity(D)));
-	}
-	else gel(cgp, 2) = ZV_to_zv(gel(cgp, 2));/*Convert to Vecsmall.*/
-	return gerepilecopy(av, vec_shorten(cgp, 3));
+      gel(cgp, 2) = mkvecsmall(1);
+      gel(cgp, 3) = mkvec(qfbred(qfbidentity(D)));
+    }
+    else gel(cgp, 2) = ZV_to_zv(gel(cgp, 2));/*Convert to Vecsmall.*/
+    return gerepilecopy(av, vec_shorten(cgp, 3));
   }
   GEN minus1;/*-id, the new form to add*/
   if (mod2(D)) minus1 = qfbred(mkqfb(gen_m1, gen_1, shifti(subis(D, 1), -2), D));/*[-1, 1, (D-1)/4]*/
@@ -219,21 +219,21 @@ qfbnarrow(GEN D, long prec)
   GEN gens = gel(cgp, 3);
   long lgens = lg(gens), firstm1 = 0, i;/*Start by checking if any of our current generators power to -1.*/
   for (i = 1; i < lgens; i++) {
-	GEN qpow = qfbpows(gel(gens, i), orders[i]);
+    GEN qpow = qfbpows(gel(gens, i), orders[i]);
     if (!qfbequal1(qpow)) { firstm1 = i; break; }/*note: qpow is either -1 or 1*/
   }
   if (!firstm1) {/*Nothing powers to -1, just add in new Z/2Z copy*/
     long lastodd = 0;/*Index of largest odd order*/
     for (i = 1; i < lgens; i++) { if (orders[i] % 2) { lastodd = i; break; } }
     if (!lastodd) {/*All even, add a new Z/2Z at the end.*/
-	  orders = vecsmall_append(orders, 2);
-	  gens = vec_append(gens, minus1);
+      orders = vecsmall_append(orders, 2);
+      gens = vec_append(gens, minus1);
     }
-	else {/*Now there is an odd order element. Composing this with minus1 gives the new generator, and is the only change required.*/
-	  orders[lastodd] <<= 1; /*Double order*/
-	  gel(gens, lastodd) = qfbcomp_i(gel(gens, lastodd), minus1);/*q*minus1*/
-	}
-	return gerepilecopy(av, mkvec3(newsize, orders, gens));
+    else {/*Now there is an odd order element. Composing this with minus1 gives the new generator, and is the only change required.*/
+      orders[lastodd] <<= 1; /*Double order*/
+      gel(gens, lastodd) = qfbcomp_i(gel(gens, lastodd), minus1);/*q*minus1*/
+    }
+    return gerepilecopy(av, mkvec3(newsize, orders, gens));
   }
   /*Now we have an element powering to -1 and not 1. We must fix the previous and subsequent entries.*/
   GEN g = gel(gens, firstm1);
@@ -261,9 +261,9 @@ qfbnarrow(GEN D, long prec)
     }
     else {/*firstm1 is g1 and has order 2^((v+1)h1), optplace is g2 and has order 2^(vh2) with h1, h2 odd and h1|h2.*/
       long h2 = orders[optplace] >> v;
-	  /*Replace g1 by g1^2*g2^h2, which has order 2^vh1, and replace g2 by g1*g2, which has order 2^(v+1)h2. These elements generate the same subgroup as well since 2-h2 is coprime to 2h2.*/
+      /*Replace g1 by g1^2*g2^h2, which has order 2^vh1, and replace g2 by g1*g2, which has order 2^(v+1)h2. These elements generate the same subgroup as well since 2-h2 is coprime to 2h2.*/
       gel(gens, firstm1) = qfbcomp_i(qfbpow(g, gen_2), qfbpows(gel(gens, optplace), h2));/*g1^2*g2^h2*/
-	  gel(gens, optplace) = qfbcomp_i(g, gel(gens, optplace));/*g1*g2*/
+      gel(gens, optplace) = qfbcomp_i(g, gel(gens, optplace));/*g1*g2*/
     }
   }
   orders[optplace] <<= 1;/*Doubling the correct place*/
@@ -276,8 +276,8 @@ qfbequal1(GEN q)
 {
   pari_sp av = avma;
   if (signe(gel(q, 4)) < 0) {/*D<0*/
-	GEN qred = qfbred(q);
-	return gc_int(av, equali1(gel(qred, 1)));
+    GEN qred = qfbred(q);
+    return gc_int(av, equali1(gel(qred, 1)));
   }
   GEN sols = qfbsolve(q, gen_1, 0);
   if (lg(sols) > 1) return gc_int(av, 1);
@@ -299,7 +299,7 @@ qfbnarrowlex(GEN D, long prec)
   pari_sp av = avma;
   GEN nar;/*Narrow class group.*/
   if (typ(D) == t_VEC) {/*Fix D/nar*/
-	nar = D;
+    nar = D;
     D = gmael3(nar, 3, 1, 4);
   }
   else nar = qfbnarrow(D, prec);/*Get the narrow class group.*/
