@@ -1057,6 +1057,37 @@ GEN apol_words(int d){
 
 
 
+
+//LISTS OF VARIABLE LENGTH TEMPORARY TO REMOVE
+
+
+/* Sample use of veclist_append:
+pari_sp top=avma;
+long vind=0, vlen=10;
+GEN v=zerovec(vlen);//So that we can garbage collect.
+...
+GEN x=...;
+v=veclist_append(v, &vind, &vlen, x);
+...
+v=vec_shorten(v, vind);
+return gerepilecopy(top, v);
+*/
+
+//Appends x to v, returning v, and updating vind to vind++. If vind++>vlen, then we double the length of v as well. Don't forget to call vec_shorten at the end, since some positions are uninitialized.
+GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x){
+  if(*vind==*vlen){//Need to lengthen!
+    *vlen=2**vlen;
+    v=vecsmall_lengthen(v, *vlen);
+  }
+  *vind=*vind+1;
+  v[*vind]=x;
+  return v;
+}
+
+
+
+
+
 //SPECIALIZED METHODS
 //These are scripts that are useful to me, but not likely useful in general.
 

@@ -38,6 +38,7 @@ static GEN seg_int(GEN l1, GEN l2, GEN tol, long prec);
 
 //GEOMETRIC HELPER METHODS
 static GEN anglediff(GEN ang, GEN bot, GEN tol, long prec);
+static GEN divoo(GEN a, GEN b);
 static int geom_check(GEN c);
 static GEN shiftangle(GEN ang, GEN bot, GEN tol, long prec);
 
@@ -579,6 +580,20 @@ static GEN anglediff(GEN ang, GEN bot, GEN tol, long prec){
   GEN angdiff=gmod(gsub(ang, bot), twopi);
   if(toleq(angdiff, twopi, tol, prec) || toleq0(angdiff, tol, prec)){set_avma(top);return gen_0;}
   return gerepileupto(top, angdiff);
+}
+
+//Divides a and b, and allows for oo and division by 0. Returns oo for 0/0.
+static GEN divoo(GEN a, GEN b){//No garbage collection necessary
+  if(gequal0(b)){//b=0
+    if(gcmpgs(a,0)>=0) return mkoo();
+    return mkmoo();
+  }
+  if(typ(a)==t_INFINITY){//a=+/-oo
+    if(gsigne(a)==gsigne(b)) return mkoo();
+    return mkmoo();
+  }
+  if(typ(b)==t_INFINITY) return gen_0;
+  return gdiv(a,b);
 }
 
 //Returns 0 if c is a circle, 1 if c is a line, 2 if c is a circle arc, 3 if c is line segment, and -1 if none of the above

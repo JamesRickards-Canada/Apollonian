@@ -1,24 +1,3 @@
-//STRUCTURES
-
-typedef struct listtype1{//A circular list of GENs, stores data, next, and previous terms
-  GEN data; 
-  struct listtype1 *next;
-  struct listtype1 *prev;
-}clist;
-
-typedef struct listtype2{//A generic linked list of GENs, stores data and next term
-  GEN data; 
-  struct listtype2 *next;
-}glist;
-
-typedef struct listtype3{//A generic linked list of longs, stores data and next term
-  long data; 
-  struct listtype3 *next;
-}llist;
-
-//METHODS
-
-
 //apol.c
 
 //BASIC METHODS
@@ -65,6 +44,9 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
 //SUPPORTING METHODS
 GEN apol_words(int d);
 
+//LISTS OF VARIABLE LENGTH TO DELETE
+GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x);
+
 //SPECIALIZED METHODS
 GEN apol_makeall_extdepths(GEN n, long prec);
 GEN apol_makeall_small(GEN n, int red, long prec);
@@ -72,9 +54,6 @@ GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 
 //base.c
 
-
-//INFINITY 
-GEN divoo(GEN a, GEN b);
 
 //VECTORS
 GEN vecrev(GEN v);
@@ -88,10 +67,6 @@ GEN FpM_eigenvecs(GEN M, GEN p);
 GEN lin_intsolve(GEN A, GEN B, GEN n);
 GEN lin_intsolve_tc(GEN A, GEN B, GEN n);
 
-//LISTS OF VARIABLE LENGTH
-GEN veclist_append(GEN v, long *vind, long *vlen, GEN x);
-GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x);
-
 //MODS
 GEN modsquares(GEN n, long cop);
 GEN mod_breakdown(GEN res, GEN n);
@@ -99,26 +74,6 @@ GEN mod_breakdown(GEN res, GEN n);
 //PRIMES
 GEN primes_mod(GEN range, GEN residues, long modulus);
 GEN primefactors(GEN N);
-
-//RANDOM
-GEN rand_elt(GEN v);
-
-//LISTS
-void clist_free(clist *l, long length);
-void clist_putbefore(clist **head_ref, GEN new_data);
-void clist_putafter(clist **head_ref, GEN new_data);
-GEN clist_togvec(clist *l, long length, int dir);
-void glist_free(glist *l);
-GEN glist_pop(glist **head_ref);
-void glist_putstart(glist **head_ref, GEN new_data);
-GEN glist_togvec(glist *l, long length, int dir);
-GEN glist_togvec_append(glist *l, GEN v, long length, int dir);
-void llist_free(llist *l);
-long llist_pop(llist **head_ref);
-void llist_putstart(llist **head_ref, long new_data);
-GEN llist_togvec(llist *l, long length, int dir);
-GEN llist_tovecsmall(llist *l, long length, int dir);
-
 
 /*bqf.c*/
 
@@ -138,74 +93,8 @@ GEN lexind(GEN v, long ind);
 GEN qfbnarrow(GEN D, long prec);
 GEN qfbnarrowlex(GEN D, long prec);
 
-//BASIC OPERATIONS ON BINARY QUADRATIC FORMS
-GEN bqf_automorph(GEN q);
-GEN bqf_disc(GEN q);
-int bqf_isreduced(GEN q, GEN D);
-GEN bqf_random(GEN maxc, int type, int primitive);
-GEN bqf_random_D(GEN maxc, GEN D);
-GEN bqf_red(GEN q, GEN rootD, int Dsign, int tmat);
-GEN bqf_red_tc(GEN q, int tmat, long prec);
-GEN bqf_roots(GEN q, GEN D, GEN w);
-GEN bqf_roots_tc(GEN q);
-GEN bqf_trans(GEN q, GEN mtx);
-GEN bqf_trans_tc(GEN q, GEN mtx);
-GEN bqf_transL(GEN q, GEN n);
-GEN bqf_transR(GEN q, GEN n);
-GEN bqf_transS(GEN q);
-GEN bqf_trans_coprime(GEN q, GEN n);
-GEN bqf_trans_coprime_tc(GEN q, GEN n);
 
-//EQUIVALENCE OF BQFs
-GEN bqf_isequiv(GEN q1, GEN q2, GEN rootD, int Dsign, int tmat);
-GEN bqf_isequiv_set(GEN q, GEN S, GEN rootD, int Dsign, int tmat);
-GEN bqf_isequiv_tc(GEN q1, GEN q2, int tmat, long prec);
-GEN dbqf_isequiv(GEN q1, GEN q2);
-GEN dbqf_isequiv_tmat(GEN q1, GEN q2);
-long dbqf_isequiv_set(GEN q, GEN S);
-GEN dbqf_isequiv_set_tmat(GEN q, GEN S);
-GEN ibqf_isequiv(GEN q1, GEN q2, GEN rootD);
-GEN ibqf_isequiv_tmat(GEN q1, GEN q2, GEN rootD);
-long ibqf_isequiv_set_byq(GEN q, GEN S, GEN rootD);
-long ibqf_isequiv_set_byq_presorted(GEN qredsorted, GEN S, GEN rootD);
-GEN ibqf_isequiv_set_byq_tmat(GEN q, GEN S, GEN rootD);
-GEN ibqf_isequiv_set_byq_tmat_presorted(GEN qredsorted, GEN S, GEN rootD);
-long ibqf_isequiv_set_byS(GEN q, GEN S, GEN rootD);
-long ibqf_isequiv_set_byS_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD);
-GEN ibqf_isequiv_set_byS_tmat(GEN q, GEN S, GEN rootD);
-GEN ibqf_isequiv_set_byS_tmat_presorted(GEN q, GEN Sreds, GEN perm, GEN rootD);
-
-
-//CLASS GROUPS AND COMPOSITION OF FORMS
-GEN bqf_allforms(GEN D, int prim, int GL, long prec);
-GEN bqf_comp(GEN q1, GEN q2);
-GEN bqf_comp_red(GEN q1, GEN q2, GEN rootD, int Dsign);
-GEN bqf_comp_tc(GEN q1, GEN q2, int tored, long prec);
-GEN bqf_idelt(GEN D);
-GEN bqf_identify(GEN ncgp_lexic, GEN q, GEN rootD, int Dsign);
-GEN bqf_identify_tc(GEN ncgp_lexic, GEN q, long prec);
-GEN bqf_lexicind_tobasis(GEN orders, long ind);
-GEN bqf_ncgp(GEN D, long prec);
-GEN bqf_ncgp_lexic(GEN D, long prec);
-GEN bqf_pow(GEN q, GEN n);
-GEN bqf_pow_red(GEN q, GEN n, GEN rootD, int Dsign);
-GEN bqf_pow_tc(GEN q, GEN n, int tored, long prec);
-GEN bqf_square(GEN q);
-GEN bqf_square_red(GEN q, GEN rootD, int Dsign);
-GEN bqf_square_tc(GEN q, int tored, long prec);
-GEN ideal_tobqf(GEN numf, GEN ideal);
-
-//GENERAL CHECKING METHODS
-void bqf_check(GEN q);
-GEN bqf_checkdisc(GEN q);
-void intmatrix_check(GEN mtx);
-
-//TUPLE REPS OF PRIMES
-GEN bqf_primesmod(GEN q);
-GEN bqf_primetuplereps(GEN v, GEN pmin, GEN pmax);
-int bqf_tuplevalid(GEN v);
-
-//geo.c
+/*geo.c*/
 
 //BASIC LINE, CIRCLE, AND POINT OPERATIONS
 GEN circle_fromcp(GEN cent, GEN p, long prec);
@@ -224,6 +113,8 @@ INLINE GEN gc_0vec(pari_sp av){set_avma(av);return cgetg(1, t_VEC);}//Resets avm
 int tolcmp(GEN x, GEN y, GEN tol, long prec);
 int toleq(GEN x, GEN y, GEN tol, long prec);
 int toleq0(GEN x, GEN tol, long prec);
+
+
 
 //visual.c
 
