@@ -6,6 +6,9 @@
 
 /*STATIC DECLARATIONS*/
 
+/*SECTION 2: BASIC QUADRATIC FORM METHODS*/
+static GEN nf_get_rootD(GEN nf, GEN D);
+
 /*SECTION 3: CLASS GROUP*/
 static int qfbequal1(GEN q);
 static GEN qfbidentity(GEN D);
@@ -104,6 +107,73 @@ qfbapplyS(GEN q)
   return Sq;
 }
 
+/*Converts the ideal x in the (necessarily quadratic) number field nf into an integral quadratic form. We are assuming that we are working in the maximal ideal for now. We follow Buell.*/
+GEN
+idealtoqfb(GEN nf, GEN x)
+{
+  pari_sp av = avma;
+  if (nf_get_degree(nf) != 2) pari_err_TYPE("must be a quadratic number field", nf);
+  GEN D = nf_get_disc(nf);
+  GEN hnfx = idealhnf(nf, x);
+  GEN a1 = gel(hnfx, 1), a2 = gel(hnfx, 2);/*Generators of the ideal, with a1 in Q.*/
+  GEN a2tr = nftrace(nf, a2);/*integer or fraction*/
+  GEN a2conj = nfsub(nf, a2tr, a2);
+  GEN diff = nfsub(nf, a2conj, a2);/*conj(a)-a2*/
+  GEN normrt = nfmul(nf, a1, diff);/*a1*conj(a2)-conj(a1)*a2 since a1=conj(a1)*/
+  GEN y = nf_get_rootD(nf, D);/*sqrt(D), chosen consistently.*/
+  GEN norm = lift(basistoalg(nf, nfdiv(nf, normrt, y)));/*(a1*conj(a2)-conj(a1)*a2)/sqrt(D)=N(a), lives in Q*/
+  int swap = 0;
+  if (gsigne(norm) < 0) { swap = 1; norm = gneg(norm); }/*We order so that norm>0, so must swap if not.*/
+  GEN invnorm = ginv(norm);
+  GEN A = gmul(nfnorm(nf, a1), invnorm);
+  GEN B = gmul(gmul(lift(basistoalg(nf, a1)), a2tr), invnorm);
+  GEN C = gmul(nfnorm(nf, a2), invnorm);
+  if (swap) return gerepilecopy(av, mkqfb(C, B, A, D));
+  return gerepilecopy(av, mkqfb(A, B, C, D));
+}
+
+/*Converts the qfb (positive definite if disc<0) to a fractional ideal in the number field nf. Under SL(2, Z) equivalence, this is inverse to idealtoqfb.*/
+GEN
+qfbtoideal(GEN nf, GEN q)
+{
+  pari_sp av = avma;
+  GEN D = gel(q, 4), A = gel(q, 1);
+  GEN y = nf_get_rootD(nf, D), b, delta;
+  if (mod2(D)) {/*D odd*/
+	b = shifti(subis(gel(q, 2), 1), -1);/*(B-1)/2*/
+	delta = gdivgs(nfsub(nf, gen_1, y), 2);/*1-sqrt(D)/2*/
+  }
+  else {/*D even*/
+	b = shifti(gel(q, 2), -1);/*B/2*/
+	delta = gneg(y);/*-sqrt(D)*/
+  }
+  GEN a1 = mkcol2(A, gen_0);/*The element A in the number field*/
+  GEN a2 = nfadd(nf, b, delta);/*b+delta*/
+  if (signe(A) < 0) {
+	a1 = nfmul(nf, a1, delta);/*A*delta*/
+	a2 = nfmul(nf, a2, delta);/*(b+delta)*delta*/
+  }
+  GEN x = mkmat2(algtobasis(nf, a1), algtobasis(nf, a2));/*a1 and a2 are the generators of the ideal*/
+  return gerepilecopy(av, idealhnf(nf, x));
+}
+
+/*In a quadratic number field Q(sqrt(D)), returns the algebraic expression for the element which squares to D and has positive coefficient in the number field variable. Not stack clean.*/
+static GEN
+nf_get_rootD(GEN nf, GEN D)
+{
+  pari_sp av = avma;
+  GEN y = mkcol2(gen_0, gen_1);
+  y = nfsub(nf, y, gdivgs(nftrace(nf, y), 2));/*Trace 0, so squares to D*square*/
+  GEN ysqr = lift(basistoalg(nf, nfsqr(nf, y)));/*integer or fraction*/
+  GEN shift = gdiv(D, ysqr);/*Times the square root of this.*/
+  if (typ(shift) == t_INT) shift = sqrti(shift);/*Guaranteed to be a square.*/
+  else { gel(shift, 1) = sqrti(gel(shift, 1)); gel(shift, 2) = sqrti(gel(shift, 2)); }/*Must be a square fraction.*/
+  y = lift(basistoalg(nf, nfmul(nf, y, shift)));/*Now, y^2=D*/
+  GEN firstcoef = polcoef_i(y, 1, nf_get_varn(nf));/*The coefficient of the variable defining nf.*/
+  if (gsigne(firstcoef) < 0) y = gneg(y);/*We want y to be the square root of D for which the first coefficient is positive. This is consistent.*/
+  return gerepilecopy(av, y);
+}
+
 
 /*SECTION 3: CLASS GROUP*/
 
@@ -135,15 +205,15 @@ qfbnarrow(GEN D, long prec)
 	if (equali1(gel(cgp, 1))) {
       /*We modify the second and third entries, as we want [1, Vecsmall([1]), [identity], reg] instead of [1, [], [], reg].*/
 	  gel(cgp, 2) = mkvecsmall(1);
-	  gel(cgp, 3) = mkvec(qfbidentity(D));
+	  gel(cgp, 3) = mkvec(qfbred(qfbidentity(D)));
 	}
 	else gel(cgp, 2) = ZV_to_zv(gel(cgp, 2));/*Convert to Vecsmall.*/
 	return gerepilecopy(av, vec_shorten(cgp, 3));
   }
   GEN minus1;/*-id, the new form to add*/
-  if (mod2(D)) minus1 = mkqfb(gen_m1, gen_1, shifti(subis(D, 1), -2), D);/*[-1, 1, (D-1)/4]*/
-  else minus1 = mkqfb(gen_m1, gen_0, shifti(D, -2), D);/*[-1, 0, D/4]*/
-  if (equali1(gel(cgp, 1))) return gerepilecopy(av, mkvec4(gen_2, mkvecsmall(2), mkvec(minus1), gel(cgp, 4)));/*h^+(D)=2, done separately.*/
+  if (mod2(D)) minus1 = qfbred(mkqfb(gen_m1, gen_1, shifti(subis(D, 1), -2), D));/*[-1, 1, (D-1)/4]*/
+  else minus1 = qfbred(mkqfb(gen_m1, gen_0, shifti(D, -2), D));/*[-1, 0, D/4]*/
+  if (equali1(gel(cgp, 1))) return gerepilecopy(av, mkvec3(gen_2, mkvecsmall(2), mkvec(minus1)));/*h^+(D)=2, done separately.*/
   GEN newsize = shifti(gel(cgp, 1), 1);
   GEN orders = ZV_to_zv(gel(cgp, 2));/*Convert to Vecsmall.*/
   GEN gens = gel(cgp, 3);
@@ -163,7 +233,7 @@ qfbnarrow(GEN D, long prec)
 	  orders[lastodd] <<= 1; /*Double order*/
 	  gel(gens, lastodd) = qfbcomp_i(gel(gens, lastodd), minus1);/*q*minus1*/
 	}
-	return gerepilecopy(av, mkvec4(newsize, orders, gens, gel(cgp, 4)));
+	return gerepilecopy(av, mkvec3(newsize, orders, gens));
   }
   /*Now we have an element powering to -1 and not 1. We must fix the previous and subsequent entries.*/
   GEN g = gel(gens, firstm1);
@@ -254,164 +324,4 @@ qfbnarrowlex(GEN D, long prec)
   }
   return gerepilecopy(av, mkvec3(gel(nar, 1), ords, allforms));
 }
-
-
-
-
-//TUPLE REPS OF PRIMES
-static int mod_collapse(GEN L);
-static int bqf_tuplevalid_cmp(void *data, GEN x, GEN y);
-
-
-
-
-
-
-//Converts the ideal ideal in the (necessarily quadratic) number field numf into an integral quadratic form.
-GEN ideal_tobqf(GEN numf, GEN ideal){
-  pari_sp top = avma;
-  ideal = idealhnf0(numf, ideal, NULL);
-  GEN alph1 = gadd(gmul(gcoeff(ideal, 1, 1), gel(member_zk(numf), 1)), gmul(gcoeff(ideal, 2, 1), gel(member_zk(numf), 2)));
-  GEN alph2 = gadd(gmul(gcoeff(ideal, 1, 2), gel(member_zk(numf), 1)), gmul(gcoeff(ideal, 2, 2), gel(member_zk(numf), 2)));//alph1,alph2 generate the ideal
-  long varno=varn(alph1);//The variable number
-  GEN alph2conj=gsubst(alph2, varno, gneg(pol_0(varno)));//Conjugating alph2
-  GEN a1 = lift(gmodulo(gmul(alph1, alph2conj), member_pol(numf))); //a1=alph1*conj(alph2)=u*sqrt(D)+b
-  GEN A, C;
-  if(gcmpgs(polcoef_i(a1, 1, varno), 0) > 0){//if >0 we are not properly ordered (we require (conj(a1)-a1)/sqrt(D)>0), and must swap alph1,alph2; */
-    A=nfnorm(numf, alph2);
-    C=nfnorm(numf, alph1);
-  }
-  else{
-    A=nfnorm(numf, alph1);
-    C=nfnorm(numf, alph2);
-  }
-  GEN B=gmul(polcoef_i(a1, 0, varno), gen_2);//B/2 may be a half integer, so can't use shifti or mulii sadly
-  togglesign_safe(&B);//Negate B in place
-  GEN d=gcdii(gcdii(A, B), C);
-  GEN Q=cgetg(4, t_VEC);
-  if(equali1(d)){
-    gel(Q, 1)=icopy(A);
-    gel(Q, 2)=icopy(B);
-    gel(Q, 3)=icopy(C);
-  }
-  else{
-    gel(Q, 1)=diviiexact(A, d);
-    gel(Q, 2)=diviiexact(B, d);
-    gel(Q, 3)=diviiexact(C, d);
-  }
-  return gerepileupto(top, Q);
-}
-
-
-
-
-
-//TUPLE REPS OF PRIMES
-
-//Returns the residue classes modulo D that q could represent.
-GEN bqf_primesmod(GEN q){
-  pari_sp top=avma, mid;
-  GEN D=absi(bqf_disc(q));//WLOG work with a positive number.
-  mid=avma;
-  GEN divs=divisors(D);
-  GEN L=vectrunc_init(lg(divs)*itos(D));//Stores q(x, y) as x loops over divisors of D and 0, and y ranges from 0 to D-1
-  if(equali1(gcdii(gel(q, 3), D))) vectrunc_append(L, Fp_red(gel(q, 3), D));//q(0, 1), the only value we care about if x=0.
-  for(long i=1;i<lg(divs)-1;i++){//Don't want to include D as a divisor, already treated this case.
-    GEN x=gel(divs, i);
-	GEN c1=Fp_mul(gel(q, 1), Fp_sqr(x, D), D);//q[1]*x^2
-	GEN c2part=Fp_mul(gel(q, 2), x, D);//q[2]*x
-	for(GEN y=gen_0;cmpii(y, D)<0;y=addis(y, 1)){
-	  if(!equali1(gcdii(x, y))) continue;//gcd(x, y)!=1
-	  GEN val=Fp_addmul(c1, Fp_addmul(c2part, gel(q, 3), y, D), y, D);//q(x, y) mod D
-	  if(!equali1(gcdii(val, D))) continue;//gcd(D, q(x, y))!=1
-	  vectrunc_append(L, val);
-	}
-  }
-  L=gerepileupto(mid, ZV_sort_uniq(L));//All primitive values of q coprime to D are equal to a square times an element of L.
-  GEN gens=vectrunc_init(lg(L));//Stores one element per part.
-  GEN sq=modsquares(D, 1);//coprime squares mod D
-  long lg;
-  while(lg(L)>1){
-	GEN x=gel(L, 1);//New rep.
-	vectrunc_append(gens, x);
-	GEN xgen=cgetg_copy(sq, &lg);
-	for(long i=1;i<lg;i++) gel(xgen, i)=Fp_mul(gel(sq, i), x, D);
-	xgen=ZV_sort(xgen);//No need for uniq, already distinct guaranteed.
-	L=setminus(L, xgen);
-  }
-  long lsq=lg(sq), lgen=lg(gens);
-  GEN ret=vectrunc_init((lsq-1)*(lgen-1)+1);
-  for(long i=1;i<lsq;i++){
-	for(long j=1;j<lgen;j++) vectrunc_append(ret, Fp_mul(gel(sq, i), gel(gens, j), D));//Multiply sq and gens
-  }
-  return gerepileupto(top, ZV_sort(ret));//Again, no need for uniq
-}
-
-//Returns the smallest prime primitively represented by all BQFs in v in the range pmin to pmax
-GEN bqf_primetuplereps(GEN v, GEN pmin, GEN pmax){
-  pari_sp top=avma;
-  long lgv;
-  GEN vqfb=cgetg_copy(v, &lgv), Dlist=cgetg_copy(v, &lgv);
-  for(long i=1;i<lgv;i++){gel(vqfb, i)=Qfb0(gel(v, i), NULL, NULL);gel(Dlist, i)=negi(bqf_disc(gel(v, i)));}//Convert to Qfbs and get discs
-  Dlist=ZV_sort(Dlist);
-  int pbigenough=0;
-  forprime_t T;
-  if(gequal0(pmax)){pmax=pmin;pmin=gen_2;}//In case we only supply a maximum.
-  forprime_init(&T, pmin, pmax);
-  GEN p;
-  GEN fact=mkmat2(mkcol(gen_1), mkcol(gen_1));//Matrix [1 1], will be modified to be [p 1]=factor(p)
-  while((p=forprime_next(&T))){
-	int success=1;
-	if(!pbigenough){//Need to check that p is coprime to all discs.
-	  for(long i=1;i<lgv;i++) if(!equali1(gcdii(p, gel(Dlist, i)))){success=0;break;}
-	  if(!success) continue;//p not always coprime
-	  if(cmpii(gel(Dlist, lgv-1), p)<0) pbigenough=1;//p>all discs, no need to check for gcd=1 as it's guaranteed.
-	}
-	gcoeff(fact, 1, 1)=p;
-	for(long i=1;i<lgv;i++){
-	  if(lg(qfbsolve(gel(vqfb, i), fact, 0))==1){success=0;break;}
-	}
-	if(success) return gerepilecopy(top, p);
-  }
-  return gc_const(top, gen_0);
-}
-
-//Returns 1 if there are residue classes that could contain primes simultaneously represented by all BQF's in v, and 0 if not (some restrictions mod n).
-int bqf_tuplevalid(GEN v){
-  pari_sp top=avma;
-  long lv;
-  GEN res=cgetg_copy(v, &lv);
-  for(long i=1;i<lv;i++) gel(res, i)=mod_breakdown(bqf_primesmod(gel(v, i)), bqf_disc(gel(v, i)));
-  res=shallowconcat1(res);//Put the residues all together
-  return gc_int(top, mod_collapse(res));
-}
-
-//Given a bunch of residue classes [res, [p, e, p^e]], this returns 1 if there exists a number that obeys 1 congruence from each class, and 0 if not.
-static int mod_collapse(GEN L){
-  pari_sp top=avma;
-  GEN Lsort=gen_sort(L, NULL, &bqf_tuplevalid_cmp);
-  long i0=1;
-  for(long i=2;i<=lg(L);i++){
-	if(i<lg(L) && equalii(gmael3(Lsort, i, 2, 1), gmael3(Lsort, i-1, 2, 1))) continue;//Go until we hit a new prime
-	long i1=i-1;//We go from i0 to i1.
-	if(i1==i0){i0=i;continue;}//Fine!
-	//Go backwards and keep set intersecting
-	GEN resbase=gmael(Lsort, i1, 1);//The baseline to search with
-	for(long j=i1-1;j>=i0;j--){
-	  resbase=FpV_red(resbase, gmael3(Lsort, j, 2, 3));//Mod the lower prime power
-	  resbase=ZV_sort_uniq(resbase);//Sort it
-	  resbase=setintersect(resbase, gmael(Lsort, j, 1));
-	  if(lg(resbase)==1) return gc_int(top, 0);//No can do
-	}
-	i0=i;
-  }
-  return gc_int(top, 1);//Made it through, it works.
-}
-
-static int bqf_tuplevalid_cmp(void *data, GEN x, GEN y){//[res, [p, e, p^e]]. We sort by p, then by e.
-  int a=cmpii(gmael(x, 2, 1), gmael(y, 2, 1));
-  if(a!=0) return a;
-  return cmpii(gmael(x, 2, 2), gmael(y, 2, 2));
-}
-
 

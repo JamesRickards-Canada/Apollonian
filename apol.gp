@@ -157,7 +157,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(geo, "These methods deal with geometry. There are 5 types of objects:\n     Points: stored as a complex number or oo.\n     Circles: [centre, radius, curvature]. The curvature may be set to negative to denote the exterior.\n     Lines: [slope, intercept]. If slope<oo, we give the y-intercept, else we give the x-intercept.\n     Arcs: [centre, radius, curvature, start pt, end pt, start angle, end angle, dir]. We take the arc counterclockwise between startpt and endpt. If dir=-1 we orient it in the opposite direction.\n     Segments: [slope, intercept, start pt, end pt, ooendptdir, dir]. Same as lines, where we also have a start and end point. dir=1 means we go on the line in the upper half plane, dir=-1 means through oo. If one endpoint is oo, ooendptdir=1 means the segment travels vertically upward or right, and -1 means vertically down or left.\n\nInstalled methods: circle_fromcp, circle_fromppp, line_fromsp, line_frompp, mat_eval, mobius.");
 
 /*quadratic.c*/
-	addhelp(quadratic,"Discriminant methods:\n    disclist, isdisc.\n\nBasic quadratic form methods:\n    qfbapply, qfbapplyL, qfbapplyR, qfbapplyS.\nClass groups:\n    lexind, qfbnarrow, qfbnarrowlex.");
+	addhelp(quadratic,"Discriminant methods:\n\tdisclist, isdisc.\n\nBasic quadratic form methods:\n\tqfbapply, qfbapplyL, qfbapplyR, qfbapplyS, idealtoqfb, qfbtoideal.\n\nClass groups:\n\tlexind, qfbnarrow, qfbnarrowlex.");
 
 	/*SECTION 1: DISCRIMINANT METHODS*/
 		install(disclist,"GGD0,L,D0,G,",,apol_library);
@@ -174,6 +174,10 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(qfbapplyR,"qfbapplyR(q, {n=1}): returns R^n acting on q, where R=[1, 0;1, 1].");
 		install(qfbapplyS,"G");
 		addhelp(qfbapplyS,"qfbapplyS(q): returns S acting on q, where S=[0, 1;-1, 0].");
+		install(idealtoqfb,"GG");
+		addhelp(idealtoqfb,"idealtoqfb(nf, x): given a quadratic number field, returns the primitive integral binary quadratic form corresponding to the fractional ideal x, positive definite if the field is imaginary. We also assume that we are working in the maximal ideal.");
+		install(qfbtoideal,"GG");
+		addhelp(qfbtoideal,"qfbtoideal(nf, q): given a quadratic number field, returns the fractional ideal corresponding to the primitive integral binary quadratic form q (positive definite if the field is imaginary). We also assume that its discriminant is fundamental.");
 		
 	/*SECTION 3: CLASS GROUP*/
 		install(lexind,"GL");
@@ -183,10 +187,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(qfbnarrowlex,"Gp");
 		addhelp(qfbnarrowlex,"qfbnarrowlex(D): does qfbnarrow, except the third entry is the lexicographic ordering of representatives of the class group (with respect to the generators and their orders). Can pass in qfbnarrow(D) for D.");
 		
-		
-		
-		install("ideal_tobqf","GG","ideal_tobqf",apol_library);
-		addhelp(ideal_tobqf,"Inputs nf, ideal: a quadratic number field nf with ideal ideal.\n Returns the corresponding binary quadratic form.");
+
 	\\TUPLE REPS OF PRIMES
 		install("bqf_primesmod","G",,apol_library);
 		addhelp(bqf_primesmod,"Input q, an integral BQF.\n Returns the residue classes modulo D=disc(q) coprime to D that are represented by q.");
