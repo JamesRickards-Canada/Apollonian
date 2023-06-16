@@ -740,7 +740,7 @@ apol_missing(GEN v, GEN B)
   pari_sp av = avma;
   v = ZV_sort(apol_red(v, 0));
   GEN modres = apol_mod24(v);
-  char *torun = pari_sprintf("./missing_curvatures %Pd %Pd %Pd %Pd %Pd", B, gel(v, 1), gel(v, 2), gel(v, 3), gel(v, 4));
+  char *torun = pari_sprintf("./missing_curvatures 0 %Pd %Pd %Pd %Pd %Pd", B, gel(v, 1), gel(v, 2), gel(v, 3), gel(v, 4));
   long lmod = lg(modres), i;
   for (i = 1; i < lmod; i++) torun = pari_sprintf("%s %Pd", torun, gel(modres, i));/*Making the command to run.*/
   int s = system(torun);

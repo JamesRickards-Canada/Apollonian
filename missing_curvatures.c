@@ -5,6 +5,7 @@ Run with:		./missing_curvatures bound a b c d r1 ... rn,
 In order to do larger computations, we need a 64-bit operating system, so will assume that we have it.
 */
 
+/*INCLUSIONS*/
 #include <dirent.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -12,27 +13,35 @@ In order to do larger computations, we need a 64-bit operating system, so will a
 #include <stdio.h>
 #include <time.h>
 
-void findmissing(long B, long x[], long res[], long lenres);
+/*DECLARATIONS*/
+void findmissing(long B, long x[], long res[], long lenres, int families);
+unsigned long **findfamilies(long B, unsigned long **rclass, long res[], long lenres, unsigned long *bitswap);
+int removefamily(long B, long *curvs, unsigned long *bitswap, long u, long cop);
+static int iscop(long n, long cop);
+
+
 
 int
 main(int argc, char *argv[])
 {
-  if (argc < 12) return 1;/*Problem.*/
-  long B = atol(argv[1]);/*Bound.*/
+  if (argc < 13) return 1;/*Problem.*/
+  int families = atoi(argv[1]);/*Family or not.*/
+  long B = atol(argv[2]);/*Bound.*/
   long x[4], i;/*The circle packing.*/
-  for (i = 2; i <= 5; i++) x[i - 2] = atol(argv[i]);
-  long res[argc - 6];/*The residue classes.*/
-  for (i = 6; i < argc; i++) res[i - 6] = atol(argv[i]);
+  for (i = 3; i <= 6; i++) x[i - 3] = atol(argv[i]);
+  long res[argc - 7];/*The residue classes.*/
+  for (i = 7; i < argc; i++) res[i - 7] = atol(argv[i]);
   clock_t tstart = clock();
-  findmissing(B, x, res, argc - 6);
+  findmissing(B, x, res, argc - 7, families);
   clock_t tend = clock();
   double time_spent = (double)(tend - tstart) / CLOCKS_PER_SEC;
   printf("Total computation time: %fs\n", time_spent);
   return 0;
 }
 
+/*Finds all missing positive curvatures in the given residue classes.*/
 void
-findmissing(long B, long x[], long res[], long lenres)
+findmissing(long B, long x[], long res[], long lenres, int families)
 {
   unsigned long *bitswap = (unsigned long*)malloc(64 * sizeof(unsigned long)), i;/*Used for swapping bits of longs.*/
   bitswap[0] = 1;
@@ -141,6 +150,8 @@ findmissing(long B, long x[], long res[], long lenres)
 	  maxdepth = newdepth;
 	}
   }
+  unsigned long **fams;
+  if (families)	fams = findfamilies(B, rclass, res, lenres, bitswap);/*Find and remove the families.*/
   char fname[100];
   int pos = 0;
   DIR* dir = opendir("missing");
@@ -157,9 +168,27 @@ findmissing(long B, long x[], long res[], long lenres)
   }
   if (x[0] < 0) pos += sprintf(&fname[pos], "m%ld_", -x[0]);
   else pos += sprintf(&fname[pos], "%ld_", x[0]);
-  pos += sprintf(&fname[pos], "%ld_%ld_%ld_%ld.dat", x[1], x[2], x[3], B);
+  pos += sprintf(&fname[pos], "%ld_%ld_%ld_%ld", x[1], x[2], x[3], B);
+  if (families) pos += sprintf(&fname[pos], "_fam");
+  pos += sprintf(&fname[pos], ".dat");
   FILE *F;
   F = fopen(fname, "w");
+  if (families) {/*Print the residue classes and the families found.*/
+	fprintf(F, "[%ld", res[0]);
+	for (i = 1; i < lenres; i++) fprintf(F, ", %ld", res[i]);
+	fprintf(F, "]\n[");
+	for (i = 0; i < lenres; i++) {
+	  if (i) fprintf(F, ", ");
+	  fprintf(F, "[");
+	  long j;
+	  for (j = 1; j <= fams[i][0]; j++) {
+		if (j > 1) fprintf(F, ", ");
+		fprintf(F, "%ld", fams[i][j]);
+	  }
+	  fprintf(F, "]");
+	}
+	fprintf(F, "]\n");
+  }
   for (i = 0; i < lenres; i++) {/*The ith residue*/
     long b = res[i];
 	fprintf(F, "[");
@@ -172,7 +201,7 @@ findmissing(long B, long x[], long res[], long lenres)
 		if (!(val & 1)) {/*A missing value*/
 		  long a = (u << 6) + v;
 		  long n = 24 * a + b;/*The correct one!*/
-		  if (n <= B) {/*Small enough!*/
+		  if (n <= B && n) {/*Small enough!*/
 			if (found) fprintf(F, ", %ld", n);/*Print it to the file.*/
 			else { found = 1; fprintf(F, "%ld", n); }
 		  }
@@ -183,6 +212,11 @@ findmissing(long B, long x[], long res[], long lenres)
 	fprintf(F, "]\n");
   }
   fclose(F);
+  /*Time to free all of the allocated memory.*/
+  if (families) {
+	for (i = 0; i < lenres; i++) free(fams[i]);
+	free(fams);
+  }
   free(swaps);
   for (i = 0; i < maxdepth; i++) free(depthseq[i]);
   free(depthseq);
@@ -190,5 +224,147 @@ findmissing(long B, long x[], long res[], long lenres)
   free(rclass);
   free(bitswap);
   return;
+}
+
+/*Returns the families found, and updates rclass to have them removed too.*/
+unsigned long **
+findfamilies(long B, unsigned long **rclass, long res[], long lenres, unsigned long *bitswap)
+{
+  unsigned long **fams = (unsigned long **)malloc(lenres * sizeof(unsigned long *));/*Pointers to the families that exist. The first element of each family is the number of families in that class.*/
+  long i, fampos;
+  for (i = 0; i < lenres; i++) {
+	switch (res[i]) {
+	  case 0:
+	    fams[i] = (unsigned long *)malloc(5 * sizeof(unsigned long));/*Up to 4 families.*/
+		fampos = 1;
+		if (removefamily(B, rclass[res[i]], bitswap, 24, 1)) {/*We have one family!*/
+		  fams[i][fampos] = 24;
+		  fampos++;
+		}
+		if (removefamily(B, rclass[res[i]], bitswap, 48, 1)) {
+		  fams[i][fampos] = 48;
+		  fampos++;
+		}
+		if (removefamily(B, rclass[res[i]], bitswap, 72, 1)) {
+		  fams[i][fampos] = 72;
+		  fampos++;
+		}
+		if (removefamily(B, rclass[res[i]], bitswap, 144, 1)) {
+		  fams[i][fampos] = 144;
+		  fampos++;
+		}
+		fams[i][0] = fampos - 1;/*The size.*/
+		continue;
+	  case 2:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
+		if (removefamily(B, rclass[res[i]], bitswap, 2, 6)) {
+		  fams[i][1] = 2;
+		  fams[i][0] = 1;
+		}
+		else fams[i][0] = 0;
+		continue;
+	  case 4:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
+		if (removefamily(B, rclass[res[i]], bitswap, 4, 6)) {
+		  fams[i][1] = 4;
+		  fams[i][0] = 1;
+		}
+		else fams[i][0] = 0;
+		continue;
+	  case 6:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
+		if (removefamily(B, rclass[res[i]], bitswap, 6, 2)) {
+		  fams[i][1] = 6;
+		  fams[i][0] = 1;
+		}
+		else fams[i][0] = 0;
+		continue;
+	  case 8:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
+		if (removefamily(B, rclass[res[i]], bitswap, 8, 3)) {
+		  fams[i][1] = 8;
+		  fams[i][0] = 1;
+		}
+		else fams[i][0] = 0;
+		continue;
+	  case 12:
+	    fams[i] = (unsigned long *)malloc(3 * sizeof(unsigned long));/*Up to 2 families.*/
+		fampos = 1;
+		if (removefamily(B, rclass[res[i]], bitswap, 12, 2)) {
+		  fams[i][fampos] = 12;
+		  fampos++;
+		}
+		if (removefamily(B, rclass[res[i]], bitswap, 36, 2)) {
+		  fams[i][fampos] = 36;
+		  fampos++;
+		}
+		fams[i][0] = fampos - 1;
+		continue;
+	  case 16:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
+		if (removefamily(B, rclass[res[i]], bitswap, 16, 3)) {
+		  fams[i][1] = 16;
+		  fams[i][0] = 1;
+		}
+		else fams[i][0] = 0;
+		continue;
+	  case 18:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
+		if (removefamily(B, rclass[res[i]], bitswap, 18, 2)) {
+		  fams[i][1] = 18;
+		  fams[i][0] = 1;
+		}
+		else fams[i][0] = 0;
+		continue;
+	  default:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long));/*No family*/
+		fams[i][0] = 0;
+	}
+  }
+  return fams;
+}
+
+/*Looks through the family n=c*x^2, x coprime to cop. If they truly are all missing, we return 1, and flip all the bits in curvs.*/
+int
+removefamily(long B, long *curvs, unsigned long *bitswap, long c, long cop)
+{
+  long x = 1, n = c;
+  while (n <= B) {
+	long a = n / 24;/*n = 24a + residue*/
+	long v = a % 64;
+	long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
+	if ((curvs[u] | bitswap[v]) == curvs[u]) return 0;/*This value was found, family not missing.*/
+	do {x++;} while (!iscop(x, cop));
+	n = c * x * x;
+  }
+  /*If we make it here, the family exists! We now must redo the above and actually do the swaps.*/
+  x = 1;
+  n = c;
+  while (n <= B) {
+	long a = n / 24;/*n = 24a + residue*/
+	long v = a % 64;
+	long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
+	curvs[u] |= bitswap[v];
+	do {x++;} while (!iscop(x, cop));
+	n = c * x * x;
+  }
+  return 1;
+}
+
+/*Returns 1 if n is coprime to cop, where cop=1, 2, 3, or 6.*/
+static int
+iscop(long n, long cop)
+{
+  switch (cop) {
+	case 1: return 1;
+	case 2: return n % 2;
+	case 3:
+	  if (n % 3) return 1;
+	  return 0;
+	default:
+	  if (!(n % 2)) return 0;
+	  if (!(n % 3)) return 0;
+	  return 1;
+  }
 }
 
