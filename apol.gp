@@ -1,5 +1,5 @@
 print("\n\nType '?apol' for help.\n\n");
-addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages:\n apollonian\n base\n geometry\n quadratic\n visual");
+addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages:\n apollonian\n data\n geometry\n quadratic");
 parigp_version=version();
 apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
@@ -101,49 +101,13 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 	\\GENERAL HELP
 		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)\nSpecialized methods (?ap_special)");
 
-/*mobius.c*/
-	addhelp(geometry,"Lines:\n\t[slope, intercept]\n\ty=slope*x+intercept unless slope=oo, where it is x=intercept instead.\n\nCircles:\n\t[centre, radius, curvature]\n\tRadius > 0, but curvature can be < 0 to mean the 'outside' is the inside. This does not get preserved under the mobius function.\n\nGeometry methods:\n\tmobius.");
+/*data.c*/
 
-	/*SECTION 2: MOBIUS*/
-		install("mobius","GGp");
-		addhelp(mobius,"mobius(M, x): returns the image of x under the Mobius map M, which is a 2x2 invertible matrix. Allows points (including oo), circles, and lines as input. If the return is a circle, the curvature will always be positive.");
 
-/*quadratic.c*/
-	addhelp(quadratic,"Discriminant methods:\n\tdisclist, isdisc.\n\nBasic quadratic form methods:\n\tqfbapply, qfbapplyL, qfbapplyR, qfbapplyS, idealtoqfb, qfbtoideal.\n\nClass groups:\n\tlexind, qfbnarrow, qfbnarrowlex.");
-
-	/*SECTION 1: DISCRIMINANT METHODS*/
-		install(disclist,"GGD0,L,D0,G,",,apol_library);
-		addhelp(disclist, "disclist(D1, D2, {fund=0}, {cop=0}): returns the set of discriminants between D1 and D2, inclusive. If fund=1, only returns fundamental discriminants. If cop!=0, only returns discriminants coprime to cop.");
-		install(isdisc,"iG");
-		addhelp(isdisc,"isdisc(D): returns 1 if D is a discriminant, 0 else.");
-
-	/*SECTION 2: BASIC QUADRATIC FORM METHODS*/
-		install(qfb_apply_ZM,"GG",qfbapply);/*In PARI but not installed.*/
-		addhelp(qfbapply,"qfbapply(q, g): returns the quadratic form formed by g acting on q, where g is a matrix with integral coefficients.");
-		install(qfbapplyL,"GD1,G,");
-		addhelp(qfbapplyL,"qfbapplyL(q, {n=1}): returns L^n acting on q, where L=[1, 1;0, 1].");
-		install(qfbapplyR,"GD1,G,");
-		addhelp(qfbapplyR,"qfbapplyR(q, {n=1}): returns R^n acting on q, where R=[1, 0;1, 1].");
-		install(qfbapplyS,"G");
-		addhelp(qfbapplyS,"qfbapplyS(q): returns S acting on q, where S=[0, 1;-1, 0].");
-		install(idealtoqfb,"GG");
-		addhelp(idealtoqfb,"idealtoqfb(nf, x): given a quadratic number field, returns the primitive integral binary quadratic form corresponding to the fractional ideal x, positive definite if the field is imaginary. We also assume that we are working in the maximal ideal.");
-		install(qfbtoideal,"GG");
-		addhelp(qfbtoideal,"qfbtoideal(nf, q): given a quadratic number field, returns the fractional ideal corresponding to the primitive integral binary quadratic form q (positive definite if the field is imaginary). We also assume that its discriminant is fundamental.");
+	/*SECTION 1: DATA*/
+		install(integerbin,"GGD0,G,");
+		addhelp(integerbin,"integerbin(v, blen, {bstart=0}): assumes v is a sorted list of integers, and puts them into bins of length blen, starting with bstart (defaults to 0). Returns [binends, counts], with binends being the ends of each bin.");
 		
-	/*SECTION 3: CLASS GROUP*/
-		install(lexind,"GL");
-		addhelp(lexind,"lexind(v, ind): returns the index ind output of forvec(a=vector(#v, i, [0, v[i]-1]), print(a)), i.e. finds the corresponding lexicographic ordering element.");
-		install(qfbnarrow,"Gp");
-		addhelp(qfbnarrow,"qfbnarrow(D): returns the narrow class group C=Cl^+(D) in terms of quadratic forms. C[1] is the class number, C[2] are the orders of generators as a Vecsmall (largest to smallest, with each term dividing the previous one), and C[3] are the corresponding generators. Note that class number 1 will return [1, Vecsmall([1]), [idelt]], not [1, [], []], and the second return element is always a Vecsmall, not a vector.");
-		install(qfbnarrowlex,"Gp");
-		addhelp(qfbnarrowlex,"qfbnarrowlex(D): does qfbnarrow, except the third entry is the lexicographic ordering of representatives of the class group (with respect to the generators and their orders). Can pass in qfbnarrow(D) for D.");
-
-
-\\visual.c
-	\\DATA
-		install("integerbin","GGD0,G,",,apol_library);
-		addhelp(integerbin,"Inputs v, binlen, {binstart=0}.\n Assumes v is a sorted list of integers, and puts them into bins of length binlen, starting with binstart (assumed to be 0). Returns [binends, counts], with binends being the last number in the bin.");
 		install("integerbin_cumu","GGD0,G,",,apol_library);
 		addhelp(integerbin_cumu,"Inputs v, binlen, {binstart=0}.\n Assumes v is a sorted list of integers, and puts them into bins of length binlen, starting with binstart (assumed to be 0). Returns [binends, counts], with binends being the last number in the bin. This is cumulative, so counts is increasing.");
 		install("veccount","G",,apol_library);
@@ -183,5 +147,44 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(hist,"Installed methods:\n hist_make, hist_rebin, hist_rerange, hist_rescale.");
 		addhelp(reg,"OLS, OLS_nointercept, OLS_single, rsquared.");
 		addhelp(tex,"tex_recompile");
+
+
+/*mobius.c*/
+	addhelp(geometry,"Lines:\n\t[slope, intercept]\n\ty=slope*x+intercept unless slope=oo, where it is x=intercept instead.\n\nCircles:\n\t[centre, radius, curvature]\n\tRadius > 0, but curvature can be < 0 to mean the 'outside' is the inside. This does not get preserved under the mobius function.\n\nGeometry methods:\n\tmobius.");
+
+	/*SECTION 2: MOBIUS*/
+		install(mobius,"GGp");
+		addhelp(mobius,"mobius(M, x): returns the image of x under the Mobius map M, which is a 2x2 invertible matrix. Allows points (including oo), circles, and lines as input. If the return is a circle, the curvature will always be positive.");
+
+/*quadratic.c*/
+	addhelp(quadratic,"Discriminant methods:\n\tdisclist, isdisc.\n\nBasic quadratic form methods:\n\tqfbapply, qfbapplyL, qfbapplyR, qfbapplyS, idealtoqfb, qfbtoideal.\n\nClass groups:\n\tlexind, qfbnarrow, qfbnarrowlex.");
+
+	/*SECTION 1: DISCRIMINANT METHODS*/
+		install(disclist,"GGD0,L,D0,G,");
+		addhelp(disclist, "disclist(D1, D2, {fund=0}, {cop=0}): returns the set of discriminants between D1 and D2, inclusive. If fund=1, only returns fundamental discriminants. If cop!=0, only returns discriminants coprime to cop.");
+		install(isdisc,"iG");
+		addhelp(isdisc,"isdisc(D): returns 1 if D is a discriminant, 0 else.");
+
+	/*SECTION 2: BASIC QUADRATIC FORM METHODS*/
+		install(qfb_apply_ZM,"GG",qfbapply);/*In PARI but not installed.*/
+		addhelp(qfbapply,"qfbapply(q, g): returns the quadratic form formed by g acting on q, where g is a matrix with integral coefficients.");
+		install(qfbapplyL,"GD1,G,");
+		addhelp(qfbapplyL,"qfbapplyL(q, {n=1}): returns L^n acting on q, where L=[1, 1;0, 1].");
+		install(qfbapplyR,"GD1,G,");
+		addhelp(qfbapplyR,"qfbapplyR(q, {n=1}): returns R^n acting on q, where R=[1, 0;1, 1].");
+		install(qfbapplyS,"G");
+		addhelp(qfbapplyS,"qfbapplyS(q): returns S acting on q, where S=[0, 1;-1, 0].");
+		install(idealtoqfb,"GG");
+		addhelp(idealtoqfb,"idealtoqfb(nf, x): given a quadratic number field, returns the primitive integral binary quadratic form corresponding to the fractional ideal x, positive definite if the field is imaginary. We also assume that we are working in the maximal ideal.");
+		install(qfbtoideal,"GG");
+		addhelp(qfbtoideal,"qfbtoideal(nf, q): given a quadratic number field, returns the fractional ideal corresponding to the primitive integral binary quadratic form q (positive definite if the field is imaginary). We also assume that its discriminant is fundamental.");
+		
+	/*SECTION 3: CLASS GROUP*/
+		install(lexind,"GL");
+		addhelp(lexind,"lexind(v, ind): returns the index ind output of forvec(a=vector(#v, i, [0, v[i]-1]), print(a)), i.e. finds the corresponding lexicographic ordering element.");
+		install(qfbnarrow,"Gp");
+		addhelp(qfbnarrow,"qfbnarrow(D): returns the narrow class group C=Cl^+(D) in terms of quadratic forms. C[1] is the class number, C[2] are the orders of generators as a Vecsmall (largest to smallest, with each term dividing the previous one), and C[3] are the corresponding generators. Note that class number 1 will return [1, Vecsmall([1]), [idelt]], not [1, [], []], and the second return element is always a Vecsmall, not a vector.");
+		install(qfbnarrowlex,"Gp");
+		addhelp(qfbnarrowlex,"qfbnarrowlex(D): does qfbnarrow, except the third entry is the lexicographic ordering of representatives of the class group (with respect to the generators and their orders). Can pass in qfbnarrow(D) for D.");
 
 default(parisize, "4096M");\\Must come at the end
