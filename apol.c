@@ -732,11 +732,13 @@ static GEN apol_primes_layer_getdata(GEN vdat, int ind, GEN reps, void *nul, int
 }
 
 
+
 /*Runs C code to find the missing curvatures up to the given bound, then returns them in a vector.*/
 GEN
 apol_missing(GEN v, GEN B)
 {
   pari_sp av = avma;
+  v = ZV_sort(apol_red(v, 0));
   GEN modres = apol_mod24(v);
   char *torun = pari_sprintf("./missing_curvatures %Pd %Pd %Pd %Pd %Pd", B, gel(v, 1), gel(v, 2), gel(v, 3), gel(v, 4));
   long lmod = lg(modres), i;
@@ -759,8 +761,8 @@ apol_missing(GEN v, GEN B)
 }
 
 
-//STRIP PACKING METHODS
 
+//STRIP PACKING METHODS
 
 //Returns [centre, radius, curvature]/[slope, intercept], where the depth pairing corresponding to L is given by corresponding circle/line. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to (S_L[1]*...*S_L[n], L[1]).
 GEN apol_depthelt_circle(GEN L){
