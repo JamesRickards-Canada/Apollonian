@@ -62,7 +62,10 @@ findmissing(long B, long x[], long res[], long lenres)
 	printf("Insufficient memory to allocate to store the swaps.\n");
 	exit(1);
   }
-  for (i = 0; i < maxdepth; i++) swaps[i] = -1;/*Initialize to all -1's*/
+  for (i = 0; i < maxdepth; i++) {
+	depthseq[i] = (long *)malloc(sizeof(long) << 2);
+	swaps[i] = -1;/*Initialize to all -1's*/
+  }
   for (i = 1; i < 4; i++) {/*Do the first 3 curvatures (ignore the negative one).*/
 	long b = x[i] % 24;
 	long a = x[i] / 24;/*newc=24a+b. b gives the block to insert into, and we need to save "a"*/
@@ -70,31 +73,30 @@ findmissing(long B, long x[], long res[], long lenres)
 	long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
 	rclass[b][u] |= bitswap[v];
   }
-  long *xstart = (long *)malloc(4 * sizeof(long));/*We adjust the starting quadruple in case of symmetries.*/
+  /*We adjust the starting quadruple in case of symmetries.*/
   if (x[0] == 0) {/*We are the [0, 0, 1, 1] packing: do [0, 1, 1, 0] and start with swapping the last.*/
-	xstart[0] = 0; xstart[1] = 1; xstart[2] = 1; xstart[3] = 0;
+	depthseq[0][0] = 0; depthseq[0][1] = 1; depthseq[0][2] = 1; depthseq[0][3] = 0;
 	swaps[1] = 2;/*Will get incremented to 3 right away.*/
   }
   else if (x[0] == -1) {/*[-1, 2, 2, 3]: do [2, 3, -1, 2]*/
-    xstart[0] = 2; xstart[1] = 3; xstart[2] = -1; xstart[3] = 2;
+    depthseq[0][0] = 2; depthseq[0][1] = 3; depthseq[0][2] = -1; depthseq[0][3] = 2;
 	swaps[1] = 1;  
   }
   else if (x[1] == x[2]) {/*b=c, so do [b, a, b, d]*/
-	xstart[0] = x[1]; xstart[1] = x[0]; xstart[2] = x[2]; xstart[3] = x[3];
+	depthseq[0][0] = x[1]; depthseq[0][1] = x[0]; depthseq[0][2] = x[2]; depthseq[0][3] = x[3];
 	swaps[1] = 0;
   }
   else if (x[2] == x[3]) {/*c=d, so do [c, a, b, c]*/
-	xstart[0] = x[3]; xstart[1] = x[0]; xstart[2] = x[1]; xstart[3] = x[2];
+	depthseq[0][0] = x[3]; depthseq[0][1] = x[0]; depthseq[0][2] = x[1]; depthseq[0][3] = x[2];
 	swaps[1] = 0;
   }
   else if ((x[0] + x[1] + x[2]) == x[3]) {/*a+b+c=d, so do [d, a, b, c]*/
-	xstart[0] = x[3]; xstart[1] = x[0]; xstart[2] = x[1]; xstart[3] = x[2];
+	depthseq[0][0] = x[3]; depthseq[0][1] = x[0]; depthseq[0][2] = x[1]; depthseq[0][3] = x[2];
 	swaps[1] = 0;
   }
   else {
-	xstart[0] = x[0]; xstart[1] = x[1]; xstart[2] = x[2]; xstart[3] = x[3];
+	depthseq[0][0] = x[0]; depthseq[0][1] = x[1]; depthseq[0][2] = x[2]; depthseq[0][3] = x[3];
   }
-  depthseq[0] = xstart;/*Starting tuple, will always remain.*/
   long ind = 1;/*Which depth we are working at.*/
   while (ind > 0) {/*We are coming in trying to swap this circle out.*/
     int cind = ++swaps[ind];/*Increment the swapping index.*/
@@ -116,11 +118,9 @@ findmissing(long B, long x[], long res[], long lenres)
 	long v = a % 64;
 	long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
 	rclass[b][u] |= bitswap[v];
-	long *newx = (long*) malloc(4 * sizeof(long));
-	for (i = 0; i < cind; i++) newx[i] = depthseq[lastind][i];
-	newx[cind] = newc;
-	for (i = cind + 1; i < 4; i++) newx[i] = depthseq[lastind][i];
-	depthseq[ind] = newx;/*Add the tuple in.*/
+	for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
+	depthseq[ind][cind] = newc;
+	for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
 	ind++;
 	if (ind == maxdepth) {/*We are going too deep, must reallocate the storage location.*/
 	  long newdepth = maxdepth << 1;/*Double it.*/
@@ -134,7 +134,10 @@ findmissing(long B, long x[], long res[], long lenres)
 	    printf("Insufficient memory to reallocate the swaps.\n");
 	    exit(1);
       }
-	  for (i = maxdepth; i < newdepth; i++) swaps[i] = -1;
+	  for (i = maxdepth; i < newdepth; i++) {
+		depthseq[i] = (long *)malloc(sizeof(long) << 2);
+		swaps[i] = -1;
+	  }
 	  maxdepth = newdepth;
 	}
   }
@@ -180,5 +183,12 @@ findmissing(long B, long x[], long res[], long lenres)
 	fprintf(F, "]\n");
   }
   fclose(F);
+  free(swaps);
+  for (i = 0; i < maxdepth; i++) free(depthseq[i]);
+  free(depthseq);
+  for (i = 0; i < lenres; i++) free(rclass[res[i]]);
+  free(rclass);
+  free(bitswap);
+  return;
 }
 
