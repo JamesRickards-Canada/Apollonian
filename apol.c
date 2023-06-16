@@ -733,14 +733,14 @@ static GEN apol_primes_layer_getdata(GEN vdat, int ind, GEN reps, void *nul, int
 
 
 
-/*Runs C code to find the missing curvatures up to the given bound, then returns them in a vector.*/
+/*Runs C code to find the missing curvatures up to the given bound, then returns them in a vector. If family=1, removes the known families.*/
 GEN
-apol_missing(GEN v, GEN B)
+apol_missing(GEN v, GEN B, int family, int load)
 {
   pari_sp av = avma;
-  v = ZV_sort(apol_red(v, 0));
-  GEN modres = apol_mod24(v);
-  char *torun = pari_sprintf("./missing_curvatures 0 %Pd %Pd %Pd %Pd %Pd", B, gel(v, 1), gel(v, 2), gel(v, 3), gel(v, 4));
+  GEN w = ZV_sort(apol_red(v, 0));
+  GEN modres = apol_mod24(w);
+  char *torun = pari_sprintf("./missing_curvatures %d %Pd %Pd %Pd %Pd %Pd", family, B, gel(w, 1), gel(w, 2), gel(w, 3), gel(w, 4));
   long lmod = lg(modres), i;
   for (i = 1; i < lmod; i++) torun = pari_sprintf("%s %Pd", torun, gel(modres, i));/*Making the command to run.*/
   int s = system(torun);
@@ -748,16 +748,29 @@ apol_missing(GEN v, GEN B)
 	pari_err(e_MISC, "problem finding the missing curvatures.");
 	return gc_const(av, gen_m1);
   }
+  if (!load) return gc_const(av, gen_0);/*Do not load.*/
+  set_avma(av);
+  return apol_missing_load(v, B, family);
+}
+
+/*Loads the saved file of curvatures.*/
+GEN
+apol_missing_load(GEN v, GEN B, int family)
+{
+  pari_sp av = avma;
+  v = ZV_sort(apol_red(v, 0));
   char *fname;
   if (signe(gel(v, 1)) < 0) fname = pari_sprintf("m%Pd", negi(gel(v, 1)));
   else fname = pari_sprintf("%Pd", gel(v, 1));
+  long i;
   for (i = 2; i <= 4; i++) fname = pari_sprintf("%s_%Pd", fname, gel(v, i));
-  fname = pari_sprintf("%s_%Pd.dat", fname, B);
+  if (family) fname = pari_sprintf("%s_%Pd_fam.dat", fname, B);
+  else fname = pari_sprintf("%s_%Pd.dat", fname, B);
   if (pari_is_dir("missing")) {
     fname = pari_sprintf("missing/%s", fname);
   }
-  GEN found = gp_readvec_file(fname);/*Load them up!*/
-  return gerepileupto(av, found);
+  set_avma(av);
+  return gp_readvec_file(fname);/*Load them up!*/
 }
 
 
