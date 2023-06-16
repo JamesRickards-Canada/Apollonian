@@ -35,7 +35,7 @@ EXTRALIBS  =
 DLCFLAGS   = -fPIC
 
 #Recipes
-all: $(DYN)
+all: $(DYN) missing
 
 #Rule to build the library
 $(DYN): $(OBJS)
@@ -45,5 +45,9 @@ $(DYN): $(OBJS)
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(EXTRACFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
 
+missing: missing_curvatures.c
+	$(CC) missing_curvatures.c -o missing_curvatures
+
 clean:
 	-$(RM) *.o $(ALL)
+	-$(RM) missing_curvatures

@@ -55,6 +55,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_primes,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns the prime curvatures at most bound in the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicities.");
 		install("apol_primes_layer","GLGD0,L,",,apol_library);
 		addhelp(apol_primes_layer,"Inptus v, maxlayer, bound, {countsymm=0}: Descartes quadruple v, maxlayer>=1, bound>=0, countsymm=0, 1.\n Returns the prime curvatures in layer at most maxlayer with curvature at most bound. If countsymm=1, symmetries are counted with their multiplicities.");
+		install(apol_missing,"GG");
+		addhelp(apol_missing,"apol_missing(v, B): finds all the curvatures up to B in the correct residue classes modulo 24 but are missing from the packing. The returned vector separates this out into the 6 or 8 residue classes (depending on the obstructions). It is also saved to a file in the folder 'missing'.");
 
 		addhelp(ap_search,"Installed methods:\napol_circles, apol_curvatures, apol_curvatures_depth, apol_curvatures_layer, apol_find, apol_primes, apol_primes_layer.");
 

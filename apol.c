@@ -732,6 +732,32 @@ static GEN apol_primes_layer_getdata(GEN vdat, int ind, GEN reps, void *nul, int
 }
 
 
+/*Runs C code to find the missing curvatures up to the given bound, then returns them in a vector.*/
+GEN
+apol_missing(GEN v, GEN B)
+{
+  pari_sp av = avma;
+  GEN modres = apol_mod24(v);
+  char *torun = pari_sprintf("./missing_curvatures %Pd %Pd %Pd %Pd %Pd", B, gel(v, 1), gel(v, 2), gel(v, 3), gel(v, 4));
+  long lmod = lg(modres), i;
+  for (i = 1; i < lmod; i++) torun = pari_sprintf("%s %Pd", torun, gel(modres, i));/*Making the command to run.*/
+  int s = system(torun);
+  if (s == -1) {
+	pari_err(e_MISC, "problem finding the missing curvatures.");
+	return gc_const(av, gen_m1);
+  }
+  char *fname;
+  if (signe(gel(v, 1)) < 0) fname = pari_sprintf("m%Pd", negi(gel(v, 1)));
+  else fname = pari_sprintf("%Pd", gel(v, 1));
+  for (i = 2; i <= 4; i++) fname = pari_sprintf("%s_%Pd", fname, gel(v, i));
+  fname = pari_sprintf("%s_%Pd.dat", fname, B);
+  if (pari_is_dir("missing")) {
+    fname = pari_sprintf("missing/%s", fname);
+  }
+  GEN found = gp_readvec_file(fname);/*Load them up!*/
+  return gerepileupto(av, found);
+}
+
 
 //STRIP PACKING METHODS
 

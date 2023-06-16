@@ -28,6 +28,8 @@ GEN apol_find(GEN v, GEN N, int countsymm);
 GEN apol_primes(GEN v, GEN bound, int countsymm);
 GEN apol_primes_layer(GEN v, int maxlayers, GEN bound, int countsymm);
 GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right);
+GEN apol_missing(GEN v, GEN B);
+
 
 //STRIP PACKING METHODS
 GEN apol_depthelt_circle(GEN L);
