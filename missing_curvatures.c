@@ -4,6 +4,9 @@ Run with:		./missing_curvatures bound a b c d r1 ... rn,
 	where the reduced ACP in nondecreasing order is [a, b, c, d], we go up to bound, and r1, ..., rn are the possible residues modulo 24.
 In order to do larger computations, we need a 64-bit operating system, so will assume that we have it.
 */
+#include <dirent.h>
+#include <errno.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -136,6 +139,18 @@ findmissing(long B, long x[], long res[], long lenres)
   }
   char fname[100];
   int pos = 0;
+  DIR* dir = opendir("missing");
+  if (dir) {
+	closedir(dir);/* Directory exists. */
+	pos += sprintf(&fname[pos], "missing/");
+  }
+  else if (ENOENT == errno) {/* Directory does not exist. */
+	mkdir("missing", 0777);
+	pos += sprintf(&fname[pos], "missing/");
+  }
+  else {/* opendir() failed for some other reason. */
+	printf("Could not create directory, saving to current folder");
+  }
   if (x[0] < 0) pos += sprintf(&fname[pos], "m%ld_", -x[0]);
   else pos += sprintf(&fname[pos], "%ld_", x[0]);
   pos += sprintf(&fname[pos], "%ld_%ld_%ld_%ld.dat", x[1], x[2], x[3], B);
