@@ -28,6 +28,8 @@ static GEN toldiv(GEN a, GEN b, GEN tol);
 static int toleq0(GEN x, GEN tol);
 
 
+/*MAIN BODY*/
+
 /* FORMATTING
 LINE:
 	[slope, intercept]

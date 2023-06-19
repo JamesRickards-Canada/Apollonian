@@ -65,15 +65,11 @@ GEN integerbin_cumu(GEN v, GEN blen, GEN bstart);
 GEN vecreduce(GEN v);
 GEN vecsmallreduce(GEN v);
 
-
-//HISTOGRAMS
-void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *plotoptions, int open);
-GEN hist_make(GEN data, char *imagename, int compilenew, int open, char *plotoptions, long prec);
-GEN hist_tobins(GEN data, GEN minx, GEN maxx, GEN nbins, int toscale, int compilenew, char *imagename, char *plotoptions, int open, long prec);
-GEN hist_tobins_defaultbins(GEN data, GEN minx, GEN maxx, int toscale, int compilenew, char *imagename, char *plotoptions, int open, long prec);
-GEN hist_rebin(GEN data, GEN histdata, GEN nbins, long prec);
-GEN hist_rerange(GEN data, GEN histdata, GEN minx, GEN maxx, long prec);
-GEN hist_rescale(GEN data, GEN histdata, int scale, long prec);
+/*SECTION 2: HISTOGRAMS*/
+GEN hist_make(GEN v, char *imagename, int compilenew, int open, char *plotoptions, long prec);
+GEN hist_rebin(GEN v, GEN histdata, GEN nbins, long prec);
+GEN hist_rerange(GEN v, GEN histdata, GEN minx, GEN maxx, long prec);
+GEN hist_rescale(GEN v, GEN histdata, int scale, long prec);
 
 //REGRESSIONS
 GEN OLS(GEN X, GEN y, int retrsqr);

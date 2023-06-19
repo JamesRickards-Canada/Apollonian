@@ -13,8 +13,8 @@ static GEN nf_get_rootD(GEN nf, GEN D);
 static int qfbequal1(GEN q);
 static GEN qfbidentity(GEN D);
 
-/*MAIN BODY*/
 
+/*MAIN BODY*/
 
 /*SECTION 1: DISCRIMINANT METHODS*/
 

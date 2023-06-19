@@ -119,15 +119,15 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(vecsmallreduce,"G");
 		addhelp(vecsmallreduce,"vecsmallreduce(v): returns [uniq, count], where uniq is the sorted Vecsmall v with repeats removed, and count is the corresponding number of times they appear in v (as a Vecsmall).");
 		
-	\\HISTOGRAMS
-		install("hist_make","GrD0,L,D0,L,Drp",,apol_library);
-		addhelp(hist_make,"Inputs data, imagename, {compilenew=0}, {open=0}, {plotoptions=NULL}: sorted list of real numbers data, name of the tikz picture, {compilenew=0, 1}, {open=0, 1}, {plotoptions=NULL, string}.\n Automatically bins the data, and creates a pdf of the histogram using tikz and externalize. The output is in the folder /images, with the build file (named imagename_build.tex) being in the folder /images/build. If compilenew=0 assumes the LaTeX document to compile the plot is pre-made, and otherwise this method automatically writes it. If additionally, plotoptions!=NULL, this string is inserted in between \\begin{axis} and \\end{axis} in the LaTeX document (allowing one to customize how the histogram looks). If open=1, the pdf is automatically opened (only works with Linux subsystem for Windows). The returned value is used to modify the histogram, e.g. changing the bins, scaling it, and changing the range.");
-		install("hist_rebin","GGGp",,apol_library);
-		addhelp(hist_rebin,"Inputs data, histdata, nbins: the sorted data, the length 7 vector output of a hist_ method, the number of bins.\n Rebins the data according to the new number of bins, and updates histdata.");
-		install("hist_rerange","GGGGp",,apol_library);
-		addhelp(hist_rerange,"Inputs data, histdata, minx, maxx: the sorted data, the length 7 vector output of a hist_ method, minimum x-value, maximum x-value.\n Rebins the data according to the new minimum and maximum value. This is useful when there are outliers that skew the look of the graph. Returns the updated histdata.");
-		install("hist_rescale","GGLp",,apol_library);
-		addhelp(hist_rescale,"Inputs data, histdata, scale: the sorted data, the length 7 vector output of a hist_ method, and scale=0, 1.\n If scale=1 scales the data so the total area is 1, and if scale=0 uses the absolute count for the y-axis. Returns the updated histdata.");
+	/*SECTION 2: HISTOGRAMS*/
+		install(hist_make,"GrD0,L,D0,L,Drp");
+		addhelp(hist_make,"hist_make(v, imagename, {compilenew=0}, {open=0}, {plotoptions=NULL}): assuming v is a sorted vector of real numbers, this bins the data and makes a histogram in LaTeX using tikz and externalize. The output is in the folder /images, with the build file (named imagename_build.tex) being in the folder /images/build. If compilenew=0, assumes the LaTeX document to compile the plot is pre-made, and otherwise this method automatically writes it. If additionally plotoptions!=NULL, this string is inserted in between \\begin{axis} and \\end{axis} in the LaTeX document (allowing one to customize how the histogram looks). If open=1, the pdf is automatically opened (only works with Linux subsystem for Windows). The returned value is used to modify the histogram, e.g. changing the bins, scaling it, and changing the range.");
+		install(hist_rebin,"GGGp");
+		addhelp(hist_rebin,"hist_rebin(v, histdata, nbins): rebins the data according to the new number of bins, and updates histdata (which is the output of any hist_ method).");
+		install(hist_rerange,"GGGGp");
+		addhelp(hist_rerange,"hist_rerange(v, histdata, minx, maxx): rebins v according to the new minimum and maximum value. This is useful when there are outliers that skew the look of the graph. Returns the updated histdata.");
+		install(hist_rescale,"GGLp");
+		addhelp(hist_rescale,"hist_rescale(v, histdata, scale): if scale=1 scales the data so the total area is 1, and if scale=0 uses the absolute count for the y-axis. Returns the updated histdata.");
 
 	\\REGRESSIONS & PLOTS
 		install("OLS","GGD1,L,",,apol_library);
