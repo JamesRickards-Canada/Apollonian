@@ -5,6 +5,10 @@
 #include "apol.h"
 #include <stdlib.h>
 
+/*STATIC DECLARATIONS*/
+
+/*SECTION 1: DATA*/
+static GEN vecsmall_reduce(GEN v, GEN *pE);
 
 /*SECTION 1: DATA*/
 
@@ -14,7 +18,7 @@ integerbin(GEN v, GEN blen, GEN bstart)
 {
   pari_sp av = avma;
   long lv = lg(v);
-  GEN last = gel(v, lv-1);
+  GEN last = gel(v, lv - 1);
   long nbins = itos(divii(subis(subii(last, bstart), 1), blen)) + 1, i;
   GEN bends = cgetg(nbins + 1, t_VEC);
   gel(bends, 1) = addii(bstart, blen);
@@ -32,74 +36,72 @@ integerbin(GEN v, GEN blen, GEN bstart)
 }
 
 /*integerbin, but cumulative.*/
-GEN integerbin_cumu(GEN v, GEN binlen, GEN binstart){
-  pari_sp top=avma;
-  long lv=lg(v);
-  GEN last=gel(v, lv-1);
-  long nbins=itos(divii(subis(subii(last, binstart), 1), binlen))+1;
-  GEN binends=cgetg(nbins+1, t_VEC);
-  gel(binends, 1)=addii(binstart, binlen);
-  for(long i=2;i<=nbins;i++) gel(binends, i)=addii(gel(binends, i-1), binlen);
-  GEN counts=vecsmall_ei(nbins, 1);
-  counts[1]=0;//Making it the vector of 0's.
-  long binind=1;
-  for(long i=1;i<lv;i++){
-	if(cmpii(gel(v, i), gel(binends, binind))<=0) counts[binind]++;
-	else{
-	  i--;//Redo this index
-	  binind++;//Move to a new bin.
-	  counts[binind]=counts[binind-1];
+GEN
+integerbin_cumu(GEN v, GEN blen, GEN bstart)
+{
+  pari_sp av = avma;
+  long lv = lg(v);
+  GEN last = gel(v, lv - 1);
+  long nbins = itos(divii(subis(subii(last, bstart), 1), blen)) + 1, i;
+  GEN bends = cgetg(nbins + 1, t_VEC);
+  gel(bends, 1) = addii(bstart, blen);
+  for (i = 2; i <= nbins; i++) gel(bends, i) = addii(gel(bends, i - 1), blen);
+  GEN counts = const_vecsmall(nbins, 0);
+  long bind = 1;
+  for (i = 1; i < lv; i++) {
+	if (cmpii(gel(v, i), gel(bends, bind)) <= 0) counts[bind]++;
+	else {
+	  i--;/*Redo this index*/
+	  bind++;/*Move to a new bin.*/
+	  counts[bind] = counts[bind - 1];
 	}
   }
-  for(long i=binind+1;i<=nbins;i++) counts[i]=counts[i-1];//Filling in the rest of the bins to have the final count (shouldn't be an issue but just in case).
-  return gerepilecopy(top, mkvec2(binends, counts));
+  for (i = bind + 1; i <= nbins; i++) counts[i] = counts[i - 1];/*Filling in the rest of the bins to have the final count (shouldn't be an issue but just in case).*/
+  return gerepilecopy(av, mkvec2(bends, counts));
 }
 
-//SEE ALSO vec_equiv: this does something very similar.
-//Returns [vsort, count], where vsort is the sorted vector v with duplicates removed, and count is the Vecsmall of corresponding number of each in the original vector v. This is not the most efficient, but is fine.
-GEN veccount(GEN v){
+/*Returns [vsort, count], where vsort is the sorted vector v with duplicates removed, and count is the Vecsmall of corresponding number of each in the original vector v.*/
+GEN
+vecreduce(GEN v)
+{
   pari_sp av = avma;
   GEN E;
   GEN uniq = vec_reduce(v, &E);
   return gerepilecopy(av, mkvec2(uniq, E));
 }
 
-//veccount, but for a vecsmall
-GEN vecsmallcount(GEN v){
-  pari_sp top=avma;
-  GEN vsort=gcopy(v);
-  vecsmall_sort(vsort);//Sort it.
-  long lv=lg(vsort);
-  GEN uniq=vecsmalltrunc_init(lv), count=vecsmalltrunc_init(lv);
-  vecsmalltrunc_append(uniq, vsort[1]);
-  long run=1;
-  for(long i=2;i<lv;i++){
-    if(vsort[i]==vsort[i-1]){run++;continue;}//Go on
-    vecsmalltrunc_append(count, run);//run is over.
-    run=1;
-    vecsmalltrunc_append(uniq, vsort[i]);//Add the new number in.
-  }
-  vecsmalltrunc_append(count, run);
-  return gerepilecopy(top, mkvec2(uniq, count));
+/*vecreduce for a Vecsmall*/
+GEN
+vecsmallreduce(GEN v)
+{
+  pari_sp av = avma;
+  GEN E;
+  GEN uniq = vecsmall_reduce(v, &E);
+  return gerepilecopy(av, mkvec2(uniq, E));
 }
 
-//Given a sorted ZV, counts how many entries are non-positive.
-long ZV_countnonpos(GEN v){
-  long i1=1, i2=lg(v)-1, i=0;
-  if(signe(gel(v, i1))==1) return 0;//None <=0
-  if(signe(gel(v, i2))!=1) return i2;//All <=0
-  while(i1+1<i2){
-    i=(i1+i2)/2;//Floor
-    if(signe(gel(v, i))==1) i2=i;//v[i]>0
-    else i1=i;//v[i]<=0
+/*Adapted from vec_reduce in bibli2.c; does the same thing, except for a Vecsmall.*/
+static GEN
+vecsmall_reduce(GEN v, GEN *pE)
+{
+  GEN E, F, P = vecsmall_indexsort(v);
+  long i, m, l;
+  F = cgetg_copy(v, &l);
+  *pE = E = cgetg_copy(v, &l);
+  for (i = m = 1; i < l;)
+  {
+    long u = v[P[i]];
+    long k;
+    for (k = i + 1; k < l; k++)
+      if (v[P[k]] != u) break;
+    E[m] = k - i; F[m] = u; i = k; m++;
   }
-  return i1;
+  setlg(F, m);
+  setlg(E, m); return F;
 }
-
 
 
 //HISTOGRAMS
-
 
 //Creates LaTeX document and compiles the histogram. If plotoptions!=NULL, adds this between begin and end tikzpicture
 void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *plotoptions, int open){

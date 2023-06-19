@@ -111,16 +111,13 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 
 	/*SECTION 1: DATA*/
 		install(integerbin,"GGD0,G,");
-		addhelp(integerbin,"integerbin(v, blen, {bstart=0}): assumes v is a sorted list of integers, and puts them into bins of length blen, starting with bstart (defaults to 0). Returns [binends, counts], with binends being the ends of each bin.");
-		
-		install("integerbin_cumu","GGD0,G,",,apol_library);
-		addhelp(integerbin_cumu,"Inputs v, binlen, {binstart=0}.\n Assumes v is a sorted list of integers, and puts them into bins of length binlen, starting with binstart (assumed to be 0). Returns [binends, counts], with binends being the last number in the bin. This is cumulative, so counts is increasing.");
-		install("veccount","G",,apol_library);
-		addhelp(veccount,"Input v, a vector.\n Returns [uniq, count], where uniq is the sorted vector v with repeats removed, and count is the corresponding number of times they appear in v.");
-		install("vecsmallcount","G",,apol_library);
-		addhelp(vecsmallcount,"Input v, a vecsmall.\n Returns [uniq, count], where uniq is the sorted vecsmall v with repeats removed, and count is the corresponding number of times they appear in v.");
-		install("ZV_countnonpos","lG",,apol_library);
-		addhelp(ZV_countnonpos,"Input v, a sorted vector of integers.\n Returns the number of entries that are nonpositive.");
+		addhelp(integerbin,"integerbin(v, blen, {bstart=0}): assumes v is a sorted vector of integers, and puts them into bins of length blen, starting with bstart (defaults to 0). Returns [bends, counts], with bends being the ends of each bin.");
+		install(integerbin_cumu,"GGD0,G,");
+		addhelp(integerbin_cumu,"integerbin_cumu(v, blen, {bstart=0}): assumes v is a sorted vector of integers, and puts them into bins of length blen, starting with bstart (defaults to 0). Returns [bends, counts], with bends being the ends of each bin. This is cumulative, so counts is nondecreasing.");
+		install(vecreduce,"G");
+		addhelp(vecreduce,"vecreduce(v): returns [uniq, count], where uniq is the sorted vector v with repeats removed, and count is the corresponding number of times they appear in v (as a Vecsmall).");
+		install(vecsmallreduce,"G");
+		addhelp(vecsmallreduce,"vecsmallreduce(v): returns [uniq, count], where uniq is the sorted Vecsmall v with repeats removed, and count is the corresponding number of times they appear in v (as a Vecsmall).");
 		
 	\\HISTOGRAMS
 		install("hist_make","GrD0,L,D0,L,Drp",,apol_library);
@@ -154,7 +151,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(tex,"tex_recompile");
 
 
-/*mobius.c*/
+/*geometry.c*/
 	addhelp(geometry,"Lines:\n\t[slope, intercept]\n\ty=slope*x+intercept unless slope=oo, where it is x=intercept instead.\n\nCircles:\n\t[centre, radius, curvature]\n\tRadius > 0, but curvature can be < 0 to mean the 'outside' is the inside. This does not get preserved under the mobius function.\n\nGeometry methods:\n\tmobius.");
 
 	/*SECTION 2: MOBIUS*/

@@ -61,12 +61,10 @@ GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 
 /*SECTION 1: DATA*/
 GEN integerbin(GEN v, GEN blen, GEN bstart);
+GEN integerbin_cumu(GEN v, GEN blen, GEN bstart);
+GEN vecreduce(GEN v);
+GEN vecsmallreduce(GEN v);
 
-
-GEN integerbin_cumu(GEN v, GEN binlen, GEN binstart);
-GEN veccount(GEN v);
-GEN vecsmallcount(GEN v);
-long ZV_countnonpos(GEN v);
 
 //HISTOGRAMS
 void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *plotoptions, int open);
