@@ -129,15 +129,15 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(hist_rescale,"GGLp");
 		addhelp(hist_rescale,"hist_rescale(v, histdata, scale): if scale=1 scales the data so the total area is 1, and if scale=0 uses the absolute count for the y-axis. Returns the updated histdata.");
 
-	\\REGRESSIONS & PLOTS
-		install("OLS","GGD1,L,",,apol_library);
-		addhelp(OLS,"Inputs X, y, {retrsqr=1}:  m*n matrix X with top row being all 1's, length n column vector y, retrsqr=0, 1.\n Performs ordinary least squares regression on the data, where the n inputs are the columns of X, and the outputs are the entries of y. We must include a constant term, hence why the first row of X must be all 1's. If retrsqr=1, returns [pararms, R^2], and otherwise returns params, where params is the length m column vector of best fit parameters.");
-		install("OLS_nointercept","GGD1,L,",,apol_library);
-		addhelp(OLS_nointercept,"Inputs X, y, {retrsqr=1}: vector X, column vector y (of same length), retrsqr=0, 1.\n Performs ordinary least squares regression on the data assuming that y[i]=c*X[i], i.e. the y-intercept is 0. Returns c if retrsqr=0, or [c, R^2] otherwise.");
-		install("OLS_single","GGD1,L,",,apol_library);
-		addhelp(OLS_single,"Inputs x, y, {retrsqr=1}: vector x, column vector y, retrsqr=0, 1. Performs linear regression for a single variable (essentially a macro for OLS with y=mx+b.");
-		install("rsquared","GGG",,apol_library);
-		addhelp(rsquared,"Inputs X, y, fit: X and y data supplied to OLS, and fit the proposed fit (a column vector of parameters). This returns the R^2 value for this proposal.");
+	/*SECTION 3: LINEAR REGRESSION*/
+		install(OLS,"GGD1,L,");
+		addhelp(OLS,"OLS(X, y, {retrsqr=1}): performs ordinary least squares regression on the data, with the inputs being the n columns of the matrix X, and the outputs being the entries of the column vector y. We include a constant term, so the first row of X must be all 1's. If retrsqr=1, returns [params, R^2], and otherwise returns params, where params is the column vector of best fit parameters.");
+		install(OLS_nointercept,"GGD1,L,");
+		addhelp(OLS_nointercept,"OLS_nointercept(x, y, {retrsqr=1}): performs ordinary least squares regression assuming that y[i]=c*X[i] (where X and y are both (column) vectors), i.e. the y-intercept is 0. Returns c if retrsqr=0, or [c, R^2] otherwise.");
+		install(OLS_single,"GGD1,L,");
+		addhelp(OLS_single,"OLS_single(x, y, {retrsqr=1}): performs linear regression for a single variable (essentially a macro for OLS with y=mx+b). Requires y to be a column vector and x is either a vector or column vector.");
+		install(rsquared,"GGG");
+		addhelp(rsquared,"rsquared(X, y, fit): returns the R^2 value for the proposed linear regression, where the input is X, output is y, and fit is the proposed parameters.");
 
 	\\TEX
 		install("tex_recompile","vG",,apol_library);

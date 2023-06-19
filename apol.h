@@ -71,9 +71,9 @@ GEN hist_rebin(GEN v, GEN histdata, GEN nbins, long prec);
 GEN hist_rerange(GEN v, GEN histdata, GEN minx, GEN maxx, long prec);
 GEN hist_rescale(GEN v, GEN histdata, int scale, long prec);
 
-//REGRESSIONS
+/*SECTION 3: LINEAR REGRESSION*/
 GEN OLS(GEN X, GEN y, int retrsqr);
-GEN OLS_nointercept(GEN X, GEN y, int retrsqr);
+GEN OLS_nointercept(GEN x, GEN y, int retrsqr);
 GEN OLS_single(GEN x, GEN y, int retrsqr);
 GEN rsquared(GEN X, GEN y, GEN fit);
 

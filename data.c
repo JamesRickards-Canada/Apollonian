@@ -15,6 +15,7 @@ static void hist_autocompile(GEN minx, GEN maxx, char *imagename, char *plotopti
 static GEN hist_tobins(GEN v, GEN minx, GEN maxx, GEN nbins, int toscale, int compilenew, char *imagename, char *plotoptions, int open, long prec);
 static GEN hist_tobins_defaultbins(GEN data, GEN minx, GEN maxx, int toscale, int compilenew, char *imagename, char *plotoptions, int open, long prec);
 
+
 /*MAIN BODY*/
 
 /*SECTION 1: DATA*/
@@ -235,70 +236,73 @@ hist_rescale(GEN v, GEN histdata, int scale, long prec)
 }
 
 
+/*SECTION 3: LINEAR REGRESSION*/
 
-//REGRESSIONS
-
-
-/*Perform ordinary least squares regression. X is a matrix whose columns are the parameters, and y is a column vector of results. Must include linear term as first variable of X.
-The formula is B=Bhat=(X*X^T)^(-1)Xy, for the ordinary least squares regression for y=X^T*B+error (formula differs to Wikipedia due to X here being the transpose of what they define there.
-Returns [best fit, R^2]*/
-GEN OLS(GEN X, GEN y, int retrsqr){
-  pari_sp top=avma;
-  if(typ(y)!=t_COL) y=gtocol(y);
-  if(lg(y)!=lg(X)) pari_err_TYPE("The inputs must have the same length.", mkvec2(X, y));
-  GEN Xy=RgM_RgC_mul(X, y);
-  GEN XTX=RgM_multosym(X, shallowtrans(X));//X*X^T, which is symmetric
-  GEN fit=RgM_solve(XTX, Xy);//Best fit.
-  if(!fit) pari_err(e_MISC, "Could not compute matrix inverse. Error with given data or with precision?");
-  if(!retrsqr) return gerepileupto(top, fit);
-  GEN rsqr=rsquared(X, y, fit);
-  return gerepilecopy(top, mkvec2(fit, rsqr));
+/*Perform ordinary least squares regression. X is a matrix whose columns are the parameters, and y is a column vector of results. Must include linear term as first variable of X. The formula is B=Bhat=(X*X^T)^(-1)Xy, for the ordinary least squares regression for y=X^T*B+error (formula differs to Wikipedia due to X here being the transpose of what they define there. Returns either best fit or [best fit, R^2]*/
+GEN
+OLS(GEN X, GEN y, int retrsqr)
+{
+  pari_sp av = avma;
+  if (typ(y) != t_COL) y = gtocol(y);
+  if (lg(y) != lg(X)) pari_err_TYPE("The inputs must have the same length.", mkvec2(X, y));
+  GEN Xy = RgM_RgC_mul(X, y);
+  GEN XTX = RgM_multosym(X, shallowtrans(X));/*X*X^T, which is symmetric*/
+  GEN fit = RgM_solve(XTX, Xy);/*Best fit.*/
+  if (!fit) pari_err(e_MISC, "Could not compute matrix inverse. Error with given data or with precision?");
+  if (!retrsqr) return gerepileupto(av, fit);
+  GEN rsqr = rsquared(X, y, fit);
+  return gerepilecopy(av, mkvec2(fit, rsqr));
 }
 
-//Performs OLS where we have one independant variable and assume the intercept is 0 (so y=ax). The formua is now sum(x*y)/sum(x^2).
-GEN OLS_nointercept(GEN X, GEN y, int retrsqr){
-  pari_sp top=avma;
-  GEN xysum=gen_0, xsqrsum=gen_0;
-  if(lg(X)!=lg(y)) pari_err_TYPE("The inputs must have the same length.", mkvec2(X, y));
-  for(long i=1;i<lg(X);i++){
-    xysum=gadd(xysum, gmul(gel(X, i), gel(y, i)));
-    xsqrsum=gadd(xsqrsum, gsqr(gel(X, i)));
+/*Performs OLS where we have one independant variable and assume the intercept is 0 (so y=ax). The formua is now sum(x*y)/sum(x^2).*/
+GEN
+OLS_nointercept(GEN x, GEN y, int retrsqr)
+{
+  pari_sp av = avma;
+  GEN xysum = gen_0, xsqrsum = gen_0;
+  long lx = lg(x), i;
+  if (lx != lg(y)) pari_err_TYPE("The inputs must have the same length.", mkvec2(x, y));
+  for (i = 1; i < lx; i++) {
+    xysum = gadd(xysum, gmul(gel(x, i), gel(y, i)));
+    xsqrsum = gadd(xsqrsum, gsqr(gel(x, i)));
   }
-  GEN fit=gdiv(xysum, xsqrsum);
-  if(!retrsqr) return gerepileupto(top, fit);
-  long lX=lg(X);
-  GEN M=cgetg(lX, t_MAT);
-  for(long i=1;i<lX;i++) gel(M, i)=mkcol2(gen_1, gel(X, i));
-  GEN rsqr=rsquared(M, y, mkcol2(gen_0, fit));
-  return gerepilecopy(top, mkvec2(fit, rsqr));
+  GEN fit = gdiv(xysum, xsqrsum);
+  if (!retrsqr) return gerepileuptoleaf(av, fit);
+  GEN M = cgetg(lx, t_MAT);
+  for (i = 1; i < lx; i++) gel(M, i) = mkcol2(gen_1, gel(x, i));
+  GEN rsqr = rsquared(M, y, mkcol2(gen_0, fit));
+  return gerepilecopy(av, mkvec2(fit, rsqr));
 }
 
-//OLS, where there is only one input variable. This just puts it into a matrix form and calls OLS, and is included for convenience.
-GEN OLS_single(GEN x, GEN y, int retrsqr){
-  pari_sp top=avma;
-  long lgx=lg(x);
-  GEN xmat=cgetg(lgx, t_MAT);
-  for(long i=1;i<lgx;i++) gel(xmat, i)=mkcol2(gen_1, gel(x, i));
-  return gerepileupto(top, OLS(xmat, y, retrsqr));
+/*OLS, where there is only one input variable. This just puts it into a matrix form and calls OLS, and is included for convenience.*/
+GEN
+OLS_single(GEN x, GEN y, int retrsqr)
+{
+  pari_sp av = avma;
+  long lgx = lg(x), i;
+  GEN xmat = cgetg(lgx, t_MAT);
+  for (i = 1; i < lgx; i++) gel(xmat, i) = mkcol2(gen_1, gel(x, i));
+  return gerepileupto(av, OLS(xmat, y, retrsqr));
 }
 
-//Given inputs for OLS and the proposed linear fit, this returns the R^2 value of the regression.
-GEN rsquared(GEN X, GEN y, GEN fit){
-  pari_sp top=avma;
-  long n=lg(y)-1;//Number of observations
-  GEN predicted=RgV_RgM_mul(shallowtrans(fit), X);//1xn matrix of the fitted values.
-  GEN yavg=gen_0;
-  for(long i=1;i<=n;i++) yavg=gadd(yavg, gel(y, i));
-  yavg=gdivgs(yavg, n);//Average value of y
-  GEN sstot=gen_0;
-  GEN ssres=gen_0;
-  for(long i=1;i<=n;i++){
-    sstot=gadd(sstot, gsqr(gsub(gel(y, i), yavg)));
-    ssres=gadd(ssres, gsqr(gsub(gel(y, i), gel(predicted, i))));
+/*Given inputs for OLS and the proposed linear fit, this returns the R^2 value of the regression.*/
+GEN
+rsquared(GEN X, GEN y, GEN fit)
+{
+  pari_sp av = avma;
+  long n = lg(y) - 1, i;/*Number of observations*/
+  GEN predicted = RgV_RgM_mul(shallowtrans(fit), X);/*1xn matrix of the fitted values.*/
+  GEN yavg = gen_0;
+  for (i = 1; i <= n; i++) yavg = gadd(yavg, gel(y, i));
+  yavg = gdivgs(yavg, n);/*Average value of y*/
+  GEN sstot = gen_0;
+  GEN ssres = gen_0;
+  for (i = 1; i <= n; i++) {
+    sstot = gadd(sstot, gsqr(gsub(gel(y, i), yavg)));
+    ssres = gadd(ssres, gsqr(gsub(gel(y, i), gel(predicted, i))));
   }
-  return gerepileupto(top, gsubsg(1, gdiv(ssres, sstot)));
+  return gerepileupto(av, gsubsg(1, gdiv(ssres, sstot)));
 }
-
 
 
 //TEX
