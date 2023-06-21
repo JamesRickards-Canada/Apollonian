@@ -78,15 +78,17 @@ GEN apol_getmatrices(){
   return gerepilecopy(top, mkvec5(S1, S2, S3, S4, K));
 }
 
-//Returns the possible obstructions modulo 24 of a primitive ACP, sorted lexicographically.
-GEN apol_admissiblesets(){
-  GEN ret=cgetg(7, t_VEC);
-  gel(ret, 1)=mkvecsmalln(6, 0L, 1L, 4L, 9L, 12L, 16L);
-  gel(ret, 2)=mkvecsmalln(6, 0L, 4L, 12L, 13L, 16L, 21L);
-  gel(ret, 3)=mkvecsmalln(6, 0L, 5L, 8L, 12L, 20L, 21L);
-  gel(ret, 4)=mkvecsmalln(6, 0L, 8L, 9L, 12L, 17L, 20L);
-  gel(ret, 5)=mkvecsmalln(8, 2L, 3L, 6L, 11L, 14L, 15L, 18L, 23L);
-  gel(ret, 6)=mkvecsmalln(8, 3L, 6L, 7L, 10L, 15L, 18L, 19L, 22L);
+/*Returns the possible obstructions modulo 24 of a primitive ACP, sorted lexicographically.*/
+GEN
+apol_admissiblesets()
+{
+  GEN ret = cgetg(7, t_VEC);
+  gel(ret, 1) = mkvecsmalln(6, 0L, 1L, 4L, 9L, 12L, 16L);
+  gel(ret, 2) = mkvecsmalln(6, 0L, 5L, 8L, 12L, 20L, 21L);
+  gel(ret, 3) = mkvecsmalln(6, 0L, 4L, 12L, 13L, 16L, 21L);
+  gel(ret, 4) = mkvecsmalln(6, 0L, 8L, 9L, 12L, 17L, 20L);
+  gel(ret, 5) = mkvecsmalln(8, 3L, 6L, 7L, 10L, 15L, 18L, 19L, 22L);
+  gel(ret, 6) = mkvecsmalln(8, 2L, 3L, 6L, 11L, 14L, 15L, 18L, 23L);
   return ret;
 }
 
