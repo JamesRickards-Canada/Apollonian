@@ -255,10 +255,26 @@ findfamilies(long B, unsigned long **rclass, long res[], long lenres, unsigned l
 		}
 		fams[i][0] = fampos - 1;/*The size.*/
 		continue;
+	  case 1:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
+		if (removefamily(B, rclass[res[i]], bitswap, 1, 6)) {
+		  fams[i][1] = 1;
+		  fams[i][0] = 1;
+		}
+		else fams[i][0] = 0;
+		continue;
 	  case 2:
 	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
 		if (removefamily(B, rclass[res[i]], bitswap, 2, 6)) {
 		  fams[i][1] = 2;
+		  fams[i][0] = 1;
+		}
+		else fams[i][0] = 0;
+		continue;
+	  case 3:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
+		if (removefamily(B, rclass[res[i]], bitswap, 3, 2)) {
+		  fams[i][1] = 3;
 		  fams[i][0] = 1;
 		}
 		else fams[i][0] = 0;
@@ -283,6 +299,14 @@ findfamilies(long B, unsigned long **rclass, long res[], long lenres, unsigned l
 	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
 		if (removefamily(B, rclass[res[i]], bitswap, 8, 3)) {
 		  fams[i][1] = 8;
+		  fams[i][0] = 1;
+		}
+		else fams[i][0] = 0;
+		continue;
+	  case 9:
+	    fams[i] = (unsigned long *)malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
+		if (removefamily(B, rclass[res[i]], bitswap, 9, 2)) {
+		  fams[i][1] = 9;
 		  fams[i][0] = 1;
 		}
 		else fams[i][0] = 0;
