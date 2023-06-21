@@ -32,13 +32,13 @@ static int toleq0(GEN x, GEN tol);
 
 /* FORMATTING
 LINE:
-	[slope, intercept]
-	y=slope*x+intercept unless slope=oo, where it is x=intercept instead.
+    [slope, intercept]
+    y=slope*x+intercept unless slope=oo, where it is x=intercept instead.
 CIRCLE:
-	[centre, radius, curvature]
-	Radius > 0, but curvature can be < 0 to mean the "outside" is the inside. This does NOT get preserved under mobius.
+    [centre, radius, curvature]
+    Radius > 0, but curvature can be < 0 to mean the "outside" is the inside. This does NOT get preserved under mobius.
 TOLERANCE:
-	We deem two points as equal if they are equal up to tolerance. The default value is half the precision, i.e. if we work with 38-digit precision, then they are equal if 19 digits agree.
+    We deem two points as equal if they are equal up to tolerance. The default value is half the precision, i.e. if we work with 38-digit precision, then they are equal if 19 digits agree.
 */
 
 
@@ -130,9 +130,9 @@ static int
 geom_check(GEN x)
 {
   switch (typ(x)) {
-	case t_VEC: break;
-	case t_INT: case t_FRAC: case t_REAL: case t_COMPLEX: case t_INFINITY: return 0;
-	default: return -1;
+    case t_VEC: break;
+    case t_INT: case t_FRAC: case t_REAL: case t_COMPLEX: case t_INFINITY: return 0;
+    default: return -1;
   }
   switch (lg(x)) {
     case 3: return 1;/*Line*/
@@ -192,8 +192,8 @@ mobius_line(GEN M, GEN l, GEN tol)
     GEN p2base = gadd(p1base, slopeIp1);
     GEN p3base = gadd(p2base, slopeIp1);
     p1 = mobius_point(M, p1base, tol);
-	p2 = mobius_point(M, p2base, tol);
-	p3 = mobius_point(M, p3base, tol);
+    p2 = mobius_point(M, p2base, tol);
+    p3 = mobius_point(M, p3base, tol);
   }
   return circle_fromppp(p1, p2, p3, tol);
 }
@@ -269,8 +269,8 @@ toleq(GEN x, GEN y, GEN tol)
 {
   pari_sp av = avma;
   if (typ(x) == t_INFINITY) {
-	if (typ(y) == t_INFINITY) return 1;
-	return 0;
+    if (typ(y) == t_INFINITY) return 1;
+    return 0;
   }
   if (typ(y) == t_INFINITY) return 0;
   GEN d = gsub(x, y);

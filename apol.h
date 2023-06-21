@@ -1,10 +1,11 @@
-//apol.c
+/*apol.c*/
 
-//BASIC METHODS
+/*SECTION 1: BASIC METHODS*/
+GEN apol_admissiblesets();
 int apol_check(GEN v);
 long apol_extdepth(GEN v);
-GEN apol_getmatrices();
-GEN apol_admissiblesets();
+GEN apol_matrices();
+
 GEN apol_mod24(GEN v);
 GEN apol_move_1(GEN v, int ind);
 GEN apol_move_1GEN(GEN v, int ind);

@@ -1,18 +1,17 @@
-//(integral) Apollonian circle packing methods
+/*Basic methods to deal with Apollonian circle packings. This part of the package is not designed to be as efficient as possible: it should be good, but we use pari GENS which are slower than C longs. Efficient methods should be written in C and placed in apol_fast.*/
 
-//INCLUSIONS
-
-#ifndef PARILIB
-#define PARILIB
+/*INCLUSIONS*/
 #include <pari/pari.h>
-#endif
-
-#ifndef METHDECL
-#define METHDECL
 #include "apol.h"
-#endif
 
-//STATIC DECLARATIONS
+
+/*STATIC DECLARATIONS*/
+
+/*SECTION 1: BASIC METHODS*/
+static int apol_check_integral(GEN v);
+static int apol_check_primitive(GEN v);
+
+
 static GEN apol_make_n(GEN q, GEN n, int red);
 
 static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN), int overridestrip);
@@ -37,46 +36,10 @@ static GEN apol_stairs_getdata(GEN vdat, int ind, GEN reps, void *info, int stat
 
 static GEN ZV_copy(GEN v);
 
-//BASIC METHODS
+/*MAIN BODY*/
 
 
-//Checks if v gives 4 circles that generate an integral Apollonian packing, returning 1 if so and 0 else
-int apol_check(GEN v){
-  pari_sp top=avma;
-  if(typ(v)!=t_VEC || lg(v)!=5) pari_err_TYPE("Must be a length 4 integer vector", v);
-  for(int i=1;i<=4;i++) if(typ(gel(v, i))!=t_INT) pari_err_TYPE("Entries must be integral", gel(v, i));
-  GEN L=gen_0;
-  for(int i=1;i<=4;i++) L=addii(L, sqri(gel(v, i)));
-  L=shifti(L, 1);
-  GEN R=gen_0;
-  for(int i=1;i<=4;i++) R=addii(R, gel(v, i));
-  R=sqri(R);
-  return gc_int(top, equalii(L, R)? 1:0);
-}
-
-//Returns the external depth of v, i.e. the minimal number of swaps required to reach a quadruple with negative curvature.
-long apol_extdepth(GEN v){
-  pari_sp top=avma;
-  long ind, step=0;
-  for(;;){
-    ind=vecindexmin(v);
-    if(signe(gel(v, ind))!=1) return gc_long(top, step);//An index is <=0.
-    step++;
-    ind=vecindexmax(v);
-    v=apol_move_1(v, ind);
-  }
-}
-
-//Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]) (see Staircase paper for theta description)
-GEN apol_getmatrices(){
-  pari_sp top=avma;
-  GEN S1=mkmat4(mkcol4s(-1, 0, 0, 0), mkcol4s(2, 1, 0, 0), mkcol4s(2, 0, 1, 0), mkcol4s(2, 0, 0, 1));
-  GEN S2=mkmat4(mkcol4s(1, 2, 0, 0), mkcol4s(0, -1, 0, 0), mkcol4s(0, 2, 1 ,0), mkcol4s(0, 2, 0, 1));
-  GEN S3=mkmat4(mkcol4s(1, 0, 2, 0), mkcol4s(0, 1, 2, 0), mkcol4s(0, 0, -1, 0), mkcol4s(0, 0, 2, 1));
-  GEN S4=mkmat4(mkcol4s(1, 0, 0, 2), mkcol4s(0, 1, 0, 2), mkcol4s(0, 0, 1, 2), mkcol4s(0, 0, 0, -1));
-  GEN K=mkmat4(mkcol4s(1, -1, -1, -1), mkcol4s(0, 1, 0, 1), mkcol4s(0, 0, 0, -1), mkcol4s(0, 0, 1, 1));
-  return gerepilecopy(top, mkvec5(S1, S2, S3, S4, K));
-}
+/*SECTION 1: BASIC METHODS*/
 
 /*Returns the possible obstructions modulo 24 of a primitive ACP, sorted lexicographically.*/
 GEN
@@ -91,6 +54,69 @@ apol_admissiblesets()
   gel(ret, 6) = mkvecsmalln(8, 2L, 3L, 6L, 11L, 14L, 15L, 18L, 23L);
   return ret;
 }
+
+/*Checks if v gives 4 circles that generate an integral Apollonian packing, not up to tolerance.*/
+int
+apol_check(GEN v)
+{
+  pari_sp av = avma;
+  if (typ(v) != t_VEC || lg(v) != 5) pari_err_TYPE("Must be a length 4 vector", v);
+  GEN L = gen_0, R = gen_0;
+  long i;
+  for (i = 1; i <= 4; i++) L = gadd(L, gsqr(gel(v, i)));
+  L = gmulgs(L, 2);
+  for (i = 1; i <= 4; i++) R = gadd(R, gel(v, i));
+  R = gsqr(R);
+  return gc_int(av, gequal(L, R));
+}
+
+/*Checks if v is an integral packing.*/
+static int
+apol_check_integral(GEN v)
+{
+  if (!apol_check(v)) return 0;/*Else, we are a Descartes quadruple.*/
+  return RgV_is_ZV(v);
+}
+
+/*Checks if v is a primitive integral packing.*/
+static int
+apol_check_primitive(GEN v)
+{
+  if (!apol_check_integral(v)) return 0;
+  pari_sp av = avma;
+  GEN g = ZV_content(v);
+  return gc_int(av, equali1(g));
+}
+
+/*Returns the external depth of v, i.e. the minimal number of swaps required to reach a quadruple with non-positive curvature. Only works for integral packings.*/
+long
+apol_extdepth(GEN v)
+{
+  pari_sp av = avma;
+  if (!apol_check_integral(v)) pari_err_TYPE("Must be an integral packing", v);
+  long ind = vecindexmin(v), step = 0;
+  for (;;) {
+    if (signe(gel(v, ind)) != 1) return gc_long(av, step);/*An index is <=0.*/
+    step++;
+    ind = vecindexmax(v);
+    v = apol_move_1(v, ind);
+  }
+}
+
+/*Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]) (see Staircase paper for theta description)*/
+GEN
+apol_matrices()
+{
+  pari_sp av = avma;
+  GEN S1 = mkmat4(mkcol4s(-1, 0, 0, 0), mkcol4s(2, 1, 0, 0), mkcol4s(2, 0, 1, 0), mkcol4s(2, 0, 0, 1));
+  GEN S2 = mkmat4(mkcol4s(1, 2, 0, 0), mkcol4s(0, -1, 0, 0), mkcol4s(0, 2, 1 ,0), mkcol4s(0, 2, 0, 1));
+  GEN S3 = mkmat4(mkcol4s(1, 0, 2, 0), mkcol4s(0, 1, 2, 0), mkcol4s(0, 0, -1, 0), mkcol4s(0, 0, 2, 1));
+  GEN S4 = mkmat4(mkcol4s(1, 0, 0, 2), mkcol4s(0, 1, 0, 2), mkcol4s(0, 0, 1, 2), mkcol4s(0, 0, 0, -1));
+  GEN K = mkmat4(mkcol4s(1, -1, -1, -1), mkcol4s(0, 1, 0, 1), mkcol4s(0, 0, 0, -1), mkcol4s(0, 0, 1, 1));
+  return gerepilecopy(av, mkvec5(S1, S2, S3, S4, K));
+}
+
+
 
 /*Returns the set of admissible residues modulo 24. There are 6 possible primitive sets: 
 [0, 1, 4, 9, 12, 16]; primes are 1 mod 24                 1  1  1
@@ -803,7 +829,7 @@ GEN apol_depthelt_circle(GEN L){
     default:
       pari_err_TYPE("L needs to be an integer from 1 to 4, or a vecsmall/vector of such integers", L);
   }
-  GEN M=apol_getmatrices();
+  GEN M=apol_matrices();
   GEN W=matid(4);
   for(long i=1;i<lg(L);i++) W=ZM_mul(W, gel(M, L[i]));
   W=ZM_mul(W, gel(M, 5));//Times k at the end
@@ -875,7 +901,7 @@ GEN apol_stair(GEN L, int format, long prec){
 	return gerepilecopy(top, mkvec2(gsubsg(7, gmulgs(rt12, 2)), gdivsg(1, rt12)));//S_1
   }
   //Now we must find t. Code copied from apol_depthelt_circle
-  GEN M=apol_getmatrices();
+  GEN M=apol_matrices();
   GEN W=matid(4);
   for(long i=1;i<lg(L);i++) W=ZM_mul(W, gel(M, L[i]));
   W=ZM_mul(W, gel(M, 5));//Times k at the end
@@ -888,7 +914,7 @@ GEN apol_stair(GEN L, int format, long prec){
   return gerepilecopy(top, mkvec2(gsub(t, rt), gdivsg(aw, rt)));
 }
 
-//vdat=[v, matrix, onbot], info=[apol_getmatrices(), -tmax];
+//vdat=[v, matrix, onbot], info=[apol_matrices(), -tmax];
 static GEN apol_stairs_nextquad(GEN vdat, int ind, void *info){
   pari_sp top=avma;
   if(ind==0) return mkvec3(vdat, gmael((GEN)info, 1, 5), gen_1);//vdat=[0, 0, 1, 1]. We must initialize vdat=[v, mtx, onbot].
@@ -922,7 +948,7 @@ static GEN apol_stairs_getdata(GEN vdat, int ind, GEN reps, void *nul, int state
 //Returns the stairs in the packing up to tmax. We use the format of apol_stair with format=1, i.e. [t, a_W], hence we skip the identity element. We also don't combine stairs of the same height.
 GEN apol_stairs(GEN tmax){
   pari_sp top=avma;
-  GEN M=apol_getmatrices();
+  GEN M=apol_matrices();
   GEN info=mkvec2(M, negi(tmax));//The info we want to pass to the methods.
   GEN v=mkvec4s(0, 0, 1, 1);//Starting quadruple.
   long rm;

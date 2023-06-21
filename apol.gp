@@ -1,20 +1,20 @@
 print("\n\nType '?apol' for help.\n\n");
-addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages:\n apollonian\n data\n geometry\n quadratic");
+addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages:\napollonian\napollonian_fast\ndata\n geometry\nquadratic");
 parigp_version=version();
 apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
-\\apol.c
+/*apol.c*/
 
-\\ACP=Apollonian circle packaing
-	\\BASIC METHODS
-		install("apol_check","iG",,apol_library);
-		addhelp(apol_check, "Input v, a length 4 integral vector.\n Retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2.");
-		install("apol_extdepth","lG",,apol_library);
-		addhelp(apol_extdepth,"Input v, a Descartes quadruple.\n Returns the external depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
-		install("apol_getmatrices","",,apol_library);
-		addhelp(apol_getmatrices, "Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]).");
-		install("apol_admissiblesets","",,apol_library);
-		addhelp(apol_admissiblesets,"Returns the possible classes modulo 24 of an Apollonian circle packing.");
+	/*SECTION 1: BASIC METHODS*/
+		install(apol_admissiblesets,"",,apol_library);
+		addhelp(apol_admissiblesets,"apol_admissiblesets(): returns the possible classes modulo 24 of an Apollonian circle packing.");
+		install(apol_check,"iG");
+		addhelp(apol_check,"apol_check(v): retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2. We do not account for precision.");
+		install(apol_extdepth,"lG");
+		addhelp(apol_extdepth,"apol_extdepth(v): returns the external depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with nonpositive curvature. Only integral packings are allowed.");
+		install(apol_matrices,"");
+		addhelp(apol_matrices, "apol_matrices(): returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]) (see the 'Apollonian Staircase' paper for a description of K).");
+		
 		install("apol_mod24","G",,apol_library);
 		addhelp(apol_mod24,"Input v, a Descartes quadruple.\n Returns the set of curvatures modulo 24 possible in the correponding ACP. There are 6 possible primitive sets.");
 		install("apol_move","GG",,apol_library);

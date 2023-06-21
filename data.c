@@ -34,11 +34,11 @@ integerbin(GEN v, GEN blen, GEN bstart)
   GEN counts = const_vecsmall(nbins, 0);
   long bind = 1;
   for (i = 1; i < lv; i++) {
-	if (cmpii(gel(v, i), gel(bends, bind)) <= 0) counts[bind]++;
-	else {
-	  i--;//Redo this index
-	  bind++;//Move to a new bin.
-	}
+    if (cmpii(gel(v, i), gel(bends, bind)) <= 0) counts[bind]++;
+    else {
+      i--;//Redo this index
+      bind++;//Move to a new bin.
+    }
   }
   return gerepilecopy(av, mkvec2(bends, counts));
 }
@@ -57,12 +57,12 @@ integerbin_cumu(GEN v, GEN blen, GEN bstart)
   GEN counts = const_vecsmall(nbins, 0);
   long bind = 1;
   for (i = 1; i < lv; i++) {
-	if (cmpii(gel(v, i), gel(bends, bind)) <= 0) counts[bind]++;
-	else {
-	  i--;/*Redo this index*/
-	  bind++;/*Move to a new bin.*/
-	  counts[bind] = counts[bind - 1];
-	}
+    if (cmpii(gel(v, i), gel(bends, bind)) <= 0) counts[bind]++;
+    else {
+      i--;/*Redo this index*/
+      bind++;/*Move to a new bin.*/
+      counts[bind] = counts[bind - 1];
+    }
   }
   for (i = bind + 1; i <= nbins; i++) counts[i] = counts[i - 1];/*Filling in the rest of the bins to have the final count (shouldn't be an issue but just in case).*/
   return gerepilecopy(av, mkvec2(bends, counts));
@@ -315,13 +315,13 @@ tex_makecolours(int ncol)
   GEN rvec = cgetg(ncol + 1, t_VEC);
   long i;
   if (ncol <= 63) {
-	const char *cs[] = {"00FF00", "0000FF", "FF0000", "01FFFE", "FFA6FE", "FFDB66", "006401", "010067", "95003A", "007DB5", "FF00F6", "FFEEE8", "774D00", "90FB92", "0076FF", "D5FF00", "FF937E", "6A826C", "FF029D", "FE8900", "7A4782", "7E2DD2", "85A900", "FF0056", "A42400", "00AE7E", "683D3B", "BDC6FF", "263400", "BDD393", "00B917", "9E008E", "001544", "C28C9F", "FF74A3", "01D0FF", "004754", "E56FFE", "788231", "0E4CA1", "91D0CB", "BE9970", "968AE8", "BB8800", "43002C", "DEFF74", "00FFC6", "FFE502", "620E00", "008F9C", "98FF52", "7544B1", "B500FF", "00FF78", "FF6E41", "005F39", "6B6882", "5FAD4E", "A75740", "A5FFD2", "FFB167", "009BFF", "E85EBE"};
-	int first = itos(randomi(stoi(63)));
-	gel(rvec, 1) = strtoGENstr(cs[first]);
-	for (i = 2; i <= ncol; i++) {
+    const char *cs[] = {"00FF00", "0000FF", "FF0000", "01FFFE", "FFA6FE", "FFDB66", "006401", "010067", "95003A", "007DB5", "FF00F6", "FFEEE8", "774D00", "90FB92", "0076FF", "D5FF00", "FF937E", "6A826C", "FF029D", "FE8900", "7A4782", "7E2DD2", "85A900", "FF0056", "A42400", "00AE7E", "683D3B", "BDC6FF", "263400", "BDD393", "00B917", "9E008E", "001544", "C28C9F", "FF74A3", "01D0FF", "004754", "E56FFE", "788231", "0E4CA1", "91D0CB", "BE9970", "968AE8", "BB8800", "43002C", "DEFF74", "00FFC6", "FFE502", "620E00", "008F9C", "98FF52", "7544B1", "B500FF", "00FF78", "FF6E41", "005F39", "6B6882", "5FAD4E", "A75740", "A5FFD2", "FFB167", "009BFF", "E85EBE"};
+    int first = itos(randomi(stoi(63)));
+    gel(rvec, 1) = strtoGENstr(cs[first]);
+    for (i = 2; i <= ncol; i++) {
       first = (first + 1) % 63;
-	  gel(rvec, i) = strtoGENstr(cs[first]);
-	}
+      gel(rvec, i) = strtoGENstr(cs[first]);
+    }
   }
   else {
     long prec = 3;
@@ -329,7 +329,7 @@ tex_makecolours(int ncol)
     GEN a = randomr(prec), b = randomr(prec), c = randomr(prec);
     gel(rvec, 1) = mkvec3(a, b, c);
     for (i = 2; i <= ncol; i++) {
-	  gel(rvec, i) = mkvec3(gfrac(gadd(gmael(rvec, i - 1, 1), shift)), gfrac(gadd(gmael(rvec, i - 1, 2), shift)), gfrac(gadd(gmael(rvec, i - 1, 3), shift)));
+      gel(rvec, i) = mkvec3(gfrac(gadd(gmael(rvec, i - 1, 1), shift)), gfrac(gadd(gmael(rvec, i - 1, 2), shift)), gfrac(gadd(gmael(rvec, i - 1, 3), shift)));
     }
   }
   return gerepilecopy(av, rvec);
