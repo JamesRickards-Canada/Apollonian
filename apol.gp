@@ -114,7 +114,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 
 
 /*data.c*/
-
+	addhelp(data,"Data methods:\n\tintegerbin, integerbin_cumu, vecreduce, vecsmallreduce.\n\nHistograms:\n\thist_make, hist_rebin, hist_rereange, hist_rescale.\n\nLinear regression:\n\tOLS, OLS_nointercept, OLS_single, rsquared.\n\nLatex:\n\ttex_recompile.");
 
 	/*SECTION 1: DATA*/
 		install(integerbin,"GGD0,G,");
@@ -146,17 +146,9 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(rsquared,"GGG");
 		addhelp(rsquared,"rsquared(X, y, fit): returns the R^2 value for the proposed linear regression, where the input is X, output is y, and fit is the proposed parameters.");
 
-	\\TEX
-		install("tex_recompile","vG",,apol_library);
-		addhelp(tex_recompile,"Input data, the output of a tex image creation call.\n Recompiles the image, returning nothing. This is used when you edit the LaTeX document by hand.");
-
-	\\GENERAL HELP
-		addhelp(visual,"This package deals with visualizing data. Subtopics:\n Data (data)\n Histograms (hist)\n Regressions/plots (reg)\n Tex (tex)");
-		addhelp(data,"integerbin, veccount, vecsmallcount.");
-		addhelp(hist,"Installed methods:\n hist_make, hist_rebin, hist_rerange, hist_rescale.");
-		addhelp(reg,"OLS, OLS_nointercept, OLS_single, rsquared.");
-		addhelp(tex,"tex_recompile");
-
+	/*SECTION 4: LATEX*/
+		install(tex_recompile,"vG");
+		addhelp(tex_recompile,"tex_recompile(data): given the output of a tex image creation call, Recompiles the image, returning nothing. This is used when you edit the LaTeX document by hand.");
 
 /*geometry.c*/
 	addhelp(geometry,"Lines:\n\t[slope, intercept]\n\ty=slope*x+intercept unless slope=oo, where it is x=intercept instead.\n\nCircles:\n\t[centre, radius, curvature]\n\tRadius > 0, but curvature can be < 0 to mean the 'outside' is the inside. This does not get preserved under the mobius function.\n\nGeometry methods:\n\tmobius.");

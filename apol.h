@@ -61,6 +61,9 @@ GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 /*SECTION 1: MISSING CURVATURES*/
 GEN apol_type(GEN v);
 
+
+
+
 /*data.c*/
 
 /*SECTION 1: DATA*/
@@ -81,12 +84,10 @@ GEN OLS_nointercept(GEN x, GEN y, int retrsqr);
 GEN OLS_single(GEN x, GEN y, int retrsqr);
 GEN rsquared(GEN X, GEN y, GEN fit);
 
-//TEX
+/*SECTION 4: LATEX*/
 GEN tex_makecolours(int ncol);
 void tex_compile(char *imagename, int open);
 void tex_recompile(GEN data);
-
-
 
 
 /*geometry.c*/
@@ -97,6 +98,7 @@ GEN mobius(GEN M, GEN x, long prec);
 /*SECTION 3: TOLERANCE*/
 GEN deftol(long prec);
 int toleq(GEN x, GEN y, GEN tol);
+
 
 /*quadratic.c*/
 
