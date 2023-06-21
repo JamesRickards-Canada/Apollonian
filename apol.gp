@@ -13,8 +13,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_extdepth,"Input v, a Descartes quadruple.\n Returns the external depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with negative curvature.");
 		install("apol_getmatrices","",,apol_library);
 		addhelp(apol_getmatrices, "Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]).");
-		install("apol_getobstructions","",,apol_library);
-		addhelp(apol_getobstructions,"Returns the possible classes modulo 24 of an Apollonian circle packing.");
+		install("apol_admissiblesets","",,apol_library);
+		addhelp(apol_admissiblesets,"Returns the possible classes modulo 24 of an Apollonian circle packing.");
 		install("apol_mod24","G",,apol_library);
 		addhelp(apol_mod24,"Input v, a Descartes quadruple.\n Returns the set of curvatures modulo 24 possible in the correponding ACP. There are 6 possible primitive sets.");
 		install("apol_move","GG",,apol_library);
@@ -105,6 +105,13 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 
 	\\GENERAL HELP
 		addhelp(apollonian,"This package is a collection of methods used to deal with integral Apollonian circle packings. Subtopics:\n Basic methods (?ap_basic)\nCreation of ACPs (?ap_make)\nSearching for curvatures (?ap_search)\nStrip packing methods (?ap_strip)\nVisualization (?ap_visual)\nSupporting methods (?ap_support)\nSpecialized methods (?ap_special)");
+
+/*apol_fast.c*/
+
+	/*SECTION 1: MISSING CURVATURES*/
+		install(apol_type,"G");
+		addhelp(apol_type,"apol_type(v): returns the type of the primitive Apollonian circle packing v, i.e. the pair (a, b) where a is how many residues modulo 24 are hit, and b is the smallest residue coprime to 6, which uniquely determines the admissible set.");
+
 
 /*data.c*/
 

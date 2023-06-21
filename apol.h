@@ -4,7 +4,7 @@
 int apol_check(GEN v);
 long apol_extdepth(GEN v);
 GEN apol_getmatrices();
-GEN apol_getobstructions();
+GEN apol_admissiblesets();
 GEN apol_mod24(GEN v);
 GEN apol_move_1(GEN v, int ind);
 GEN apol_move_1GEN(GEN v, int ind);
@@ -56,6 +56,10 @@ GEN apol_makeall_extdepths(GEN n, long prec);
 GEN apol_makeall_small(GEN n, int red, long prec);
 GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 
+/*apol_fast.c*/
+
+/*SECTION 1: MISSING CURVATURES*/
+GEN apol_type(GEN v);
 
 /*data.c*/
 

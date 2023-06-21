@@ -78,8 +78,8 @@ GEN apol_getmatrices(){
   return gerepilecopy(top, mkvec5(S1, S2, S3, S4, K));
 }
 
-//Returns the possible obstructions modulo 24 of a primitive ACP, sorted lexicographically. They are stored in obstructions.dat
-GEN apol_getobstructions(){
+//Returns the possible obstructions modulo 24 of a primitive ACP, sorted lexicographically.
+GEN apol_admissiblesets(){
   GEN ret=cgetg(7, t_VEC);
   gel(ret, 1)=mkvecsmalln(6, 0L, 1L, 4L, 9L, 12L, 16L);
   gel(ret, 2)=mkvecsmalln(6, 0L, 4L, 12L, 13L, 16L, 21L);
