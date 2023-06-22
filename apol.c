@@ -1,4 +1,4 @@
-/*Basic methods to deal with Apollonian circle packings. This part of the package is not designed to be as efficient as possible: it should be good, but we use pari GENS which are slower than C longs. Efficient methods should be written in C and placed in apol_fast. We allow integral and real packings, but NOT fractions.*/
+/*Basic methods to deal with Apollonian circle packings. This part of the package is not designed to be as efficient as possible: it should be good, but we use pari GENS which are slower than C longs. Efficient methods should be written in C and placed in apol_fast. We allow integral and real packings, but NOT fractions (and cannot mix real and integral).*/
 
 /*INCLUSIONS*/
 #include <pari/pari.h>
@@ -8,9 +8,8 @@
 /*STATIC DECLARATIONS*/
 
 /*SECTION 1: BASIC METHODS*/
-static int apol_check_integral(GEN v);
 static int apol_check_primitive(GEN v);
-
+static GEN apol_fix(GEN v, int *isint, long prec);
 
 
 static int ismp(GEN x);
@@ -78,21 +77,15 @@ apol_check(GEN v, long prec)
   return gc_int(av, toleq(L, R, deftol(prec)));
 }
 
-/*Checks if v is an integral Descartes quadruple, returning -1 if not a quadruple, 0 if real, and 1 if integral Descartes.*/
-static int
-apol_check_integral(GEN v)
-{
-  if (!apol_check(v, 3)) return -1;/*Else, we are a Descartes quadruple. We only care about integral ones, so the precision doesn't matter.*/
-  return RgV_is_ZV(v);
-}
-
-/*Checks if v is a primitive integral packing.*/
+/*Checks if v is a primitive integral packing. Returns 1 if it is, 0 if not.*/
 static int
 apol_check_primitive(GEN v)
 {
-  if (!apol_check_integral(v)) return 0;
   pari_sp av = avma;
-  GEN g = ZV_content(v);
+  int isint;
+  GEN w = apol_fix(v, &isint, 3);/*Don't care about the precision.*/
+  if (!w || !isint) return gc_int(av, 0);
+  GEN g = ZV_content(w);
   return gc_int(av, equali1(g));
 }
 
@@ -105,9 +98,20 @@ apol_complete(GEN a, GEN b, GEN c, long prec)
   if (t == t_VEC || t == t_COL) {
 	c = gel(a, 3); b = gel(a, 2); a = gel(a, 1);
   }
-  if (!ismp(a)) pari_err_TYPE("Each input must be integral or real.", a);
-  if (!ismp(b)) pari_err_TYPE("Each input must be integral or real.", b);
-  if (!ismp(c)) pari_err_TYPE("Each input must be integral or real.", c);
+  int ta = ismp(a);
+  if (!ta) pari_err_TYPE("Each input must be integral or real.", a);
+  int tb = ismp(b);
+  if (!tb) pari_err_TYPE("Each input must be integral or real.", b);
+  if (ta != tb) {
+	if (ta == 1) a = gtofp(a, prec);/*Fix to both be real.*/
+	else b = gtofp(b, prec);
+  }
+  int tc = ismp(c);
+  if (!tc) pari_err_TYPE("Each input must be integral or real.", c);
+  if (tb != tc) {
+	if (tb == 1) { a = gtofp(a, prec); b = gtofp(b, prec); }
+	else c = gtofp(c, prec);
+  }
   GEN bpc = mpadd(b, c);
   GEN bc = mpmul(b, c);
   GEN tort = mpadd(mpmul(a, bpc), bc);/*ab+ac+bc*/
@@ -117,7 +121,12 @@ apol_complete(GEN a, GEN b, GEN c, long prec)
 	if (typ(tort) == t_INT) {
 	  GEN r;
 	  rt = sqrtremi(tort, &r);
-	  if (!isintzero(r)) rt = gsqrt(tort, prec);/*Square root not integral.*/
+	  if (!isintzero(r)) {/*Square root not integral.*/
+		rt = gsqrt(tort, prec);
+		a = gtofp(a, prec);/*Must update them all.*/
+		b = gtofp(b, prec);
+		c = gtofp(c, prec);
+	  }
 	}
 	else rt = sqrtr(tort);
   }
@@ -128,10 +137,12 @@ apol_complete(GEN a, GEN b, GEN c, long prec)
 
 /*Returns the external depth of v, i.e. the minimal number of swaps required to reach a quadruple with non-positive curvature.*/
 long
-apol_extdepth(GEN v)
+apol_extdepth(GEN v, long prec)
 {
   pari_sp av = avma;
-  if (!apol_check_integral(v)) pari_err_TYPE("Must be an integral packing", v);
+  int isint;
+  v = apol_fix(v, &isint, 3);
+  if (!v) pari_err_TYPE("Not a Descartes quadruple", v);
   long ind = vecindexmin(v), step = 0;
   for (;;) {
     if (signe(gel(v, ind)) != 1) return gc_long(av, step);/*An index is <=0.*/
@@ -139,6 +150,37 @@ apol_extdepth(GEN v)
     ind = vecindexmax(v);
     v = apol_move_1(v, ind);
   }
+}
+
+/*Returns NULL if not a Descartes quadruple. Otherwise, makes sure all entries are t_INT or t_REAL, and returns the updated vector. If no updates required, it is shallow and returns v without copying. Updates isint to 1 if it is integral, 0 if not (if not passed as NULL).*/
+static GEN
+apol_fix(GEN v, int *isint, long prec)
+{
+  pari_sp av = avma;
+  if (typ(v) != t_VEC || lg(v) != 5) return NULL;
+  int t = ismp(gel(v, 1));
+  if (!t) pari_err_TYPE("Each entry must be integral or real.", v);
+  int onlyint = t, mixing = 0, i;
+  for (i = 2; i <= 4; i++) {
+	t = ismp(gel(v, i));
+	if (!t) pari_err_TYPE("Each entry must be integral or real.", v);
+	if (t != onlyint) mixing = 1;/*Go back and fix*/
+  }
+  GEN L = gen_0, R = gen_0;
+  for (i = 1; i <= 4; i++) L = mpadd(L, mpsqr(gel(v, i)));
+  L = mpshift(L, 1);
+  for (i = 1; i <= 4; i++) R = mpadd(R, gel(v, i));
+  R = mpsqr(R);
+  if (!toleq(L, R, deftol(prec))) return gc_NULL(av);/*Descartes equation not satisfied.*/
+  if (!mixing) {/*Uniform type.*/
+    if (isint) *isint = 2 - onlyint;
+	set_avma(av);
+	return v;
+  }
+  if (isint) *isint = 0;/*Must be real, as we mixed the two.*/
+  GEN w = cgetg(5, t_VEC);
+  for (i = 1; i <= 4; i++) gel(w, i) = gtofp(gel(v, i), prec);
+  return gerepileupto(av, w);
 }
 
 /*Returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]) (see Staircase paper for theta description)*/
@@ -162,14 +204,17 @@ apol_matrices()
 [2, 3, 6, 11, 14, 15, 18, 23]; primes are 11, 23 mod 24  -1 -1  1   -1  1  1
 [3, 6, 7, 10, 15, 18, 19, 22]; primes are 7, 19 mod 24   -1  1 -1   -1 -1 -1
 You ONLY need to go to depth 3 to find which class we are in (proven by brute force check).*/
-GEN apol_mod24(GEN v){
-  pari_sp top=avma;
+GEN
+apol_mod24(GEN v)
+{
+  pari_sp av = avma;
+  if (!apol_check_primitive(v)) pari_err_TYPE("must be a primitive integral packing", v);
   long lv;
   GEN v24=cgetg_copy(v, &lv), tw4=stoi(24);//lv=5
   for(long i=1;i<lv;i++) gel(v24, i)=Fp_red(gel(v, i), tw4);//Reduce v modulo 24
   GEN orb=apol_curvatures_depth(v24, 3, gen_0);//Only need depth 3
   for(long i=1;i<lg(orb);i++) gel(orb, i)=Fp_red(gel(orb, i), tw4);//Reduce modulo 24.
-  return gerepileupto(top, ZV_sort_uniq(orb));//Sort the result.
+  return gerepileupto(av, ZV_sort_uniq(orb));//Sort the result.
 }
 
 
@@ -1216,7 +1261,7 @@ GEN apol_makeall_extdepths(GEN n, long prec){
   long maxdepth=0, lf=lg(forms);
   GEN depths=cgetg(lf, t_VECSMALL);
   for(long i=1;i<lf;i++){//Computing depths
-    long d=apol_extdepth(gel(forms, i));
+    long d=apol_extdepth(gel(forms, i), prec);
     depths[i]=d;
     if(d>maxdepth) maxdepth=d;
   }
@@ -1252,12 +1297,12 @@ GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec){
 }
 
 
-/*Returns 1 if x is t_REAL or t_INT*/
+/*Returns 1 if x is t_INT, 2 if t_REAL, 0 else*/
 static int
 ismp(GEN x)
 {
   long t = typ(x);
   if (t == t_INT) return 1;
-  if (t == t_REAL) return 1;
+  if (t == t_REAL) return 2;
   return 0;
 }
