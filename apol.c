@@ -1,4 +1,4 @@
-/*Basic methods to deal with Apollonian circle packings. This part of the package is not designed to be as efficient as possible: it should be good, but we use pari GENS which are slower than C longs. Efficient methods should be written in C and placed in apol_fast.*/
+/*Basic methods to deal with Apollonian circle packings. This part of the package is not designed to be as efficient as possible: it should be good, but we use pari GENS which are slower than C longs. Efficient methods should be written in C and placed in apol_fast. We allow integral and real packings, but NOT fractions.*/
 
 /*INCLUSIONS*/
 #include <pari/pari.h>
@@ -10,6 +10,11 @@
 /*SECTION 1: BASIC METHODS*/
 static int apol_check_integral(GEN v);
 static int apol_check_primitive(GEN v);
+
+
+
+static int ismp(GEN x);
+
 
 
 static GEN apol_make_n(GEN q, GEN n, int red);
@@ -55,26 +60,29 @@ apol_admissiblesets()
   return ret;
 }
 
-/*Checks if v gives 4 circles that generate an integral Apollonian packing, not up to tolerance.*/
+/*Checks if v gives 4 circles that generate an integral Apollonian packing, up to tolerance. Returns 1 if it is, 0 if not.*/
 int
-apol_check(GEN v)
+apol_check(GEN v, long prec)
 {
   pari_sp av = avma;
   if (typ(v) != t_VEC || lg(v) != 5) pari_err_TYPE("Must be a length 4 vector", v);
-  GEN L = gen_0, R = gen_0;
   long i;
-  for (i = 1; i <= 4; i++) L = gadd(L, gsqr(gel(v, i)));
-  L = gmulgs(L, 2);
-  for (i = 1; i <= 4; i++) R = gadd(R, gel(v, i));
-  R = gsqr(R);
-  return gc_int(av, gequal(L, R));
+  for (i = 1; i <= 4; i++) {
+	if (!ismp(gel(v, i))) pari_err_TYPE("Each entry must be integral or real.", v);
+  }
+  GEN L = gen_0, R = gen_0;
+  for (i = 1; i <= 4; i++) L = mpadd(L, mpsqr(gel(v, i)));
+  L = mpshift(L, 1);
+  for (i = 1; i <= 4; i++) R = mpadd(R, gel(v, i));
+  R = mpsqr(R);
+  return gc_int(av, toleq(L, R, deftol(prec)));
 }
 
-/*Checks if v is an integral packing.*/
+/*Checks if v is an integral Descartes quadruple, returning -1 if not a quadruple, 0 if real, and 1 if integral Descartes.*/
 static int
 apol_check_integral(GEN v)
 {
-  if (!apol_check(v)) return 0;/*Else, we are a Descartes quadruple.*/
+  if (!apol_check(v, 3)) return -1;/*Else, we are a Descartes quadruple. We only care about integral ones, so the precision doesn't matter.*/
   return RgV_is_ZV(v);
 }
 
@@ -88,7 +96,37 @@ apol_check_primitive(GEN v)
   return gc_int(av, equali1(g));
 }
 
-/*Returns the external depth of v, i.e. the minimal number of swaps required to reach a quadruple with non-positive curvature. Only works for integral packings.*/
+/*Given three curvatures, finds the Descartes quadruple containing them. We pick the smaller of the two possible curvatures, and sort the output.*/
+GEN
+apol_complete(GEN a, GEN b, GEN c, long prec)
+{
+  pari_sp av = avma;
+  long t = typ(a);
+  if (t == t_VEC || t == t_COL) {
+	c = gel(a, 3); b = gel(a, 2); a = gel(a, 1);
+  }
+  if (!ismp(a)) pari_err_TYPE("Each input must be integral or real.", a);
+  if (!ismp(b)) pari_err_TYPE("Each input must be integral or real.", b);
+  if (!ismp(c)) pari_err_TYPE("Each input must be integral or real.", c);
+  GEN bpc = mpadd(b, c);
+  GEN bc = mpmul(b, c);
+  GEN tort = mpadd(mpmul(a, bpc), bc);/*ab+ac+bc*/
+  GEN tol = deftol(prec), rt;
+  if (toleq0(tort, tol)) rt = gen_0;/*To account for rounding to be slightly negative.*/
+  else {
+	if (typ(tort) == t_INT) {
+	  GEN r;
+	  rt = sqrtremi(tort, &r);
+	  if (!isintzero(r)) rt = gsqrt(tort, prec);/*Square root not integral.*/
+	}
+	else rt = sqrtr(tort);
+  }
+  GEN term2 = mpshift(rt, 1);/*2*sqrt(ab+ac+bc)*/
+  GEN d = mpsub(mpadd(a, bpc), term2);/*The smaller of the roots.*/
+  return gerepileupto(av, sort(mkvec4(a, b, c, d)));
+}
+
+/*Returns the external depth of v, i.e. the minimal number of swaps required to reach a quadruple with non-positive curvature.*/
 long
 apol_extdepth(GEN v)
 {
@@ -116,9 +154,7 @@ apol_matrices()
   return gerepilecopy(av, mkvec5(S1, S2, S3, S4, K));
 }
 
-
-
-/*Returns the set of admissible residues modulo 24. There are 6 possible primitive sets: 
+/*Returns the set of admissible residues modulo 24 of a primitive packing. There are 6 possible primitive sets: 
 [0, 1, 4, 9, 12, 16]; primes are 1 mod 24                 1  1  1
 [0, 4, 12, 13, 16, 21]; primes are 13 mod 24              1 -1  1
 [0, 5, 8, 12, 20, 21]; primes are 5 mod 24                1 -1 -1
@@ -135,6 +171,8 @@ GEN apol_mod24(GEN v){
   for(long i=1;i<lg(orb);i++) gel(orb, i)=Fp_red(gel(orb, i), tw4);//Reduce modulo 24.
   return gerepileupto(top, ZV_sort_uniq(orb));//Sort the result.
 }
+
+
 
 //Calls apol_move_1 or apol_move_batch, depending on if command is an integer or a vector. This is intended for use in gp. Use apl_move_1 or apol_move_batch with PARI.
 GEN apol_move(GEN v, GEN command){
@@ -1213,3 +1251,13 @@ GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec){
   return gerepileupto(top, ZV_sort(curves));
 }
 
+
+/*Returns 1 if x is t_REAL or t_INT*/
+static int
+ismp(GEN x)
+{
+  long t = typ(x);
+  if (t == t_INT) return 1;
+  if (t == t_REAL) return 1;
+  return 0;
+}

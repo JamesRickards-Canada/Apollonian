@@ -25,7 +25,6 @@ static GEN mobius_point(GEN M, GEN x, GEN tol);
 
 /*SECTION 3: TOLERANCE*/
 static GEN toldiv(GEN a, GEN b, GEN tol);
-static int toleq0(GEN x, GEN tol);
 
 
 /*MAIN BODY*/
@@ -230,7 +229,7 @@ toldiv(GEN a, GEN b, GEN tol)
 }
 
 /*If x is of type t_INT or t_FRAC, returns 1 iff x==0. Otherwise, x must be of type t_REAL or t_COMPLEX, and returns 1 iff x=0 up to tolerance tol.*/
-static int
+int
 toleq0(GEN x, GEN tol)
 {
   switch (typ(x)) {

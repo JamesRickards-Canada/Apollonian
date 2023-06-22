@@ -2,7 +2,8 @@
 
 /*SECTION 1: BASIC METHODS*/
 GEN apol_admissiblesets();
-int apol_check(GEN v);
+int apol_check(GEN v, long prec);
+GEN apol_complete(GEN a, GEN b, GEN c, long prec);
 long apol_extdepth(GEN v);
 GEN apol_matrices();
 
@@ -99,7 +100,7 @@ GEN mobius(GEN M, GEN x, long prec);
 /*SECTION 3: TOLERANCE*/
 GEN deftol(long prec);
 int toleq(GEN x, GEN y, GEN tol);
-
+int toleq0(GEN x, GEN tol);
 
 /*quadratic.c*/
 

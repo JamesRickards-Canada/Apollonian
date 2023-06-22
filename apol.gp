@@ -8,8 +8,10 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 	/*SECTION 1: BASIC METHODS*/
 		install(apol_admissiblesets,"",,apol_library);
 		addhelp(apol_admissiblesets,"apol_admissiblesets(): returns the possible classes modulo 24 of an Apollonian circle packing.");
-		install(apol_check,"iG");
-		addhelp(apol_check,"apol_check(v): retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2. We do not account for precision.");
+		install(apol_check,"iGp");
+		addhelp(apol_check,"apol_check(v): retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2. If the terms are inexact, we only check up to tolerance (half of the precision).");
+		install(apol_complete,"GDGDGp");
+		addhelp(apol_complete,"apol_complete(a, {b}, {c}): given three curvatures, returns the Descartes quadruple containing them, choosing the one with minimal curvature, and sorting the result. Can pass a as a length 3 vector, or as three separate inputs.");
 		install(apol_extdepth,"lG");
 		addhelp(apol_extdepth,"apol_extdepth(v): returns the external depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with nonpositive curvature. Only integral packings are allowed.");
 		install(apol_matrices,"");
