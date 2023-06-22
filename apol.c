@@ -14,7 +14,7 @@ static void apol_move_1i(GEN v, int ind);
 static void apol_move_1r(GEN v, int ind);
 static void apol_move_batchi(GEN v, GEN bat);
 static void apol_move_batchr(GEN v, GEN bat);
-
+static GEN apol_red_i(GEN v, int seq, void (*move1)(GEN, int));
 
 static int ismp(GEN x);
 
@@ -63,7 +63,7 @@ apol_admissiblesets()
   return ret;
 }
 
-/*Checks if v gives 4 circles that generate an integral Apollonian packing, up to tolerance. Returns 1 if it is, 0 if not.*/
+/*Checks if v gives 4 circles that generate an Apollonian circle packing, up to tolerance. Returns 1 if it is, 0 if not.*/
 int
 apol_check(GEN v, long prec)
 {
@@ -308,11 +308,15 @@ apol_move_batchr(GEN v, GEN bat)
   for (i = 1; i < lbat; i++) apol_move_1r(v, bat[i]);
 }
 
-/*Returns the quadratic form whose primitive values are v[ind]+curvatures touching the ind^th circle. The formula is [a+b,a+b+c-d, a+c] if v=[a,b,c,d] and ind=1.*/
+/*Returns the intrgral quadratic form whose primitive values are v[ind]+curvatures touching the ind^th circle. The formula is [a+b,a+b+c-d, a+c] if v=[a,b,c,d] and ind=1.*/
 GEN
 apol_qf(GEN v, int ind)
 {
   pari_sp av = avma;
+  int isint;
+  v = apol_fix(v, &isint, 3);
+  if (!v) pari_err_TYPE("v is not a Descartes quadruple.", v);
+  if (!isint) pari_err_TYPE("v is not integral", v);
   GEN is = cgetg(5, t_VECSMALL);/*Used to shift around things since ind might not be 1.*/
   is[1] = ind;
   int i;
@@ -323,31 +327,57 @@ apol_qf(GEN v, int ind)
   return gerepilecopy(av, mkqfb(apb, subii(apbpc, gel(v, is[4])), addii(a, c), D));
 }
 
-//Returns the reduction of v. If seq=1, also returns a VECSMALL of the sequence of indices swapped to reduce.
-GEN apol_red(GEN v, int seq){
-  pari_sp top=avma;
+/*Returns the reduction of v. If seq=1, also returns a VECSMALL of the sequence of indices swapped to reduce.*/
+GEN
+apol_red(GEN v, int seq, long prec)
+{
+  pari_sp av = avma;
+  int isint;
+  v = apol_fix(v, &isint, prec);
+  if (!v) pari_err_TYPE("v is not a Descartes quadruple.", v);
+  void (*move1)(GEN, int);
+  if (isint) move1 = &apol_move_1i;
+  else move1 = &apol_move_1r;
+  return gerepileupto(av, apol_red_i(v, seq, move1));
+}
+
+/*Reduce the ACP given the move type.*/
+static GEN
+apol_red_i(GEN v, int seq, void (*move1)(GEN, int))
+{
+  pari_sp av = avma;
+  v = shallowcopy(v);
   long ind;
   GEN dold;
-  if(!seq){
-    do{
-      ind=vecindexmax(v);
-      dold=gel(v, ind);
-      v=apol_move(v, stoi(ind), 3);
-    }while(cmpii(gel(v, ind), dold)==-1);
-    return gerepileupto(top, apol_move(v, stoi(ind), 3));//Must go back one!
+  if (!seq) {
+    do {
+      ind = vecindexmax(v);
+      dold = gel(v, ind);
+      move1(v, ind);
+    } while(cmpii(gel(v, ind), dold) < 0);
+	move1(v, ind);/*Must go back one!*/
+    return gerepilecopy(av, v);
   }
-  //Now keep track of the sequence
-  long Sind=0, Slen=10;
-  GEN S=cgetg(Slen+1, t_VECSMALL);//Initialize S
-  do{
-    ind=vecindexmax(v);
-    dold=gel(v, ind);
-    v=apol_move(v, stoi(ind), 3);
-    S=vecsmalllist_append(S, &Sind, &Slen, ind);
-  }while(cmpii(gel(v, ind), dold)==-1);
-  S=vecsmall_shorten(S, Sind-1);//Remove last move.
-  return gerepilecopy(top, mkvec2(apol_move(v, stoi(ind), 3), S));
+  long i = 0, len = 40;
+  GEN S = cgetg(len + 1, t_VECSMALL);
+  do {
+    ind = vecindexmax(v);
+    dold = gel(v, ind);
+    move1(v, ind);
+	i++;
+	if (i > len) {
+	  len <<= 1;
+	  S = vecsmall_lengthen(S, len);
+	}
+	S[i] = ind;
+  } while(cmpii(gel(v, ind), dold) < 0);
+  S = vecsmall_shorten(S, i - 1);/*Remove last move.*/
+  move1(v, ind);
+  return gerepilecopy(av, mkvec2(v, S));
 }
+
+
+
 
 //Reduces v, where we go ONLY at most maxsteps steps.
 GEN apol_red_partial(GEN v, long maxsteps){
@@ -395,7 +425,7 @@ apol_make_n(GEN q, GEN n, int red)
   pari_sp av = avma;/*q=[A, B, C]->[n, A-n, C-n, A+C-n-B]*/
   GEN Amn = subii(gel(q, 1), n);
   GEN v = mkvec4(n, Amn, subii(gel(q, 3), n), addii(Amn, subii(gel(q, 3), gel(q, 2))));/*The ACP*/
-  if (red) v = apol_red(v, 0);
+  if (red) v = apol_red(v, 0, 0);
   return gerepileupto(av, ZV_sort(v));
 }
 
@@ -455,7 +485,7 @@ The outline of the searching methods is:
 //Starting at the integral Descartes quadruple v, we search through the circle packing, finding all circles with curvature <=bound. For each such circle we compute some data (from getdata), and return the final set. If countsymm=0, we do not double count when there is symmetry, otherwise we do. For the strip packing, we force countsymm=0, since otherwise it would be infinite. It can be shown that all symmetries are realized for the reduced form (i.e. [a, b, c, d] -> [a, b, c, d] or [a, b, c, c], if this happens in a packing, it happens for the reduced form, so we can just check it there). There are situtations where we want to override the strip packing not counting symmetries (when we sort this out in nextquad), and we can pass this in as an argument.
 static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN), int overridestrip){
   pari_sp top=avma, mid;
-  v=apol_red(v, 0);//Start by reducing v, since we want curvatures up to a given bound.
+  v=apol_red(v, 0, 0);//Start by reducing v, since we want curvatures up to a given bound.
   ZV_sort_inplace(v);//May as well make the minimal curvature first.
   int ind=1;//We reuse ind to track which depth we are going towards.
   int depth=10;//Initially we go up to depth 10, but this may change if we need to go deeper.
@@ -870,7 +900,7 @@ GEN
 apol_missing(GEN v, GEN B, int family, int load)
 {
   pari_sp av = avma;
-  GEN w = ZV_sort(apol_red(v, 0));
+  GEN w = ZV_sort(apol_red(v, 0, 0));
   GEN modres = apol_mod24(w);
   char *torun = pari_sprintf("./missing_curvatures %d %Pd %Pd %Pd %Pd %Pd", family, B, gel(w, 1), gel(w, 2), gel(w, 3), gel(w, 4));
   long lmod = lg(modres), i;
@@ -890,7 +920,7 @@ GEN
 apol_missing_load(GEN v, GEN B, int family)
 {
   pari_sp av = avma;
-  v = ZV_sort(apol_red(v, 0));
+  v = ZV_sort(apol_red(v, 0, 0));
   char *fname;
   if (signe(gel(v, 1)) < 0) fname = pari_sprintf("m%Pd", negi(gel(v, 1)));
   else fname = pari_sprintf("%Pd", gel(v, 1));

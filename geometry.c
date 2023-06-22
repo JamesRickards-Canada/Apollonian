@@ -210,11 +210,11 @@ mobius_point(GEN M, GEN x, GEN tol)
 
 /*SECTION 3: TOLERANCE*/
 
-/*Returns the default tolerance given the precision, which is saying that x==y if they are equal up to half of the precision.*/
+/*Returns the default tolerance given the precision, which is saying that x==y if they are equal up to half of the precision. If prec = 0, return 0.*/
 GEN
 deftol(long prec)
 {
-  return real2n((BITS_IN_LONG >> 1)*(2 - prec), prec);
+  return prec ? real2n((BITS_IN_LONG >> 1)*(2 - prec), prec) : gen_0;
 }
 
 /*Divides a and b, and allows for oo and division by 0, with this checked up to tolerance. Returns oo for x/0 and oo/x (any x, even 0 or oo), 0 for x/oo with x!=oo, and treats all infinities as +oo.*/

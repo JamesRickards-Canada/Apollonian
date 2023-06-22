@@ -20,11 +20,11 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_mod24,"apol_mod24(v): returns the set of curvatures modulo 24 possible in the necessarily primitive integral ACP. There are 6 possible sets, obtainable with apol_admissiblesets(). See also apol_type.");
 		install(apol_move,"GGp");
 		addhelp(apol_move, "apol_move(v, ind): returns the Descartes quadruple where we replace circle ind with the other possible circle. Can also supply v as a vector/vecsmall, where we apply the sequence of moves from left to right.");
+		install(apol_qf,"GD1,L,");
+		addhelp(apol_qf, "apol_qf(v, {ind=1}): returns a quadratic form q where the curvatures of circles tangent to v[ind] are the values q(x, y)-v[ind] with gcd(x, y)=1. If ind=1 and v=[a, b, c, d], the formula is q=[a+b, a+b+c-d, a+c].");
+		install(apol_red,"GD0,L,p");
+		addhelp(apol_red,"apol_red(v, {seq=0}): reduces v and returns the reduction. If seq=1, also returns a Vecsmall of the sequence of indices used to reach the reduced form. If the packing is full-plane, the output will be meaningless as eventually floating point errors will add up.");
 		
-		install("apol_qf","GD1,L,",,apol_library);
-		addhelp(apol_qf, "Inputs v, {ind=1}: Descartes quadruple v, 1<=ind<=4.\n Returns a quadratic form q where the integers primitively represented by q are a+the curvatures of the circles surrounding the circle with curvature a, a=v[ind].");
-		install("apol_red","GD0,L,",,apol_library);
-		addhelp(apol_red,"Inputs v, {seq=0}: Descartes quadruple v.\n Reduces v and returns the reduction. If seq=1, also returns a vecsmall of the sequence of indices used to reach the reduced form.");
 		install("apol_red_partial","GL",,apol_library);
 		addhelp(apol_red_partial,"Inputs: Descartes quadruple v and positive integer maxsteps.\n We reduce v, doing at most maxsteps. In particular, the returned quadruple may not be reduced!");
 		install("apol_thirdtangent","GGGGD1,L,",,apol_library);
