@@ -17,14 +17,13 @@ static void apol_move_batchr(GEN v, GEN bat);
 static GEN apol_red0(GEN v, int seq, void (*move1)(GEN, int), int (*cmp)(GEN, GEN));
 static GEN apol_red_partial0(GEN v, long maxsteps, void (*move1)(GEN, int), int (*cmp)(GEN, GEN));
 
-
+/*SECTION 2: CREATION OF ACPS*/
+static GEN apol_make_n(GEN q, GEN n, int red);
 
 
 static int ismp(GEN x);
 
 
-
-static GEN apol_make_n(GEN q, GEN n, int red);
 
 static GEN apol_search_bound(GEN v, GEN bound, int countsymm, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN), int overridestrip);
 static GEN apol_search_depth(GEN v, int depth, GEN bound, void *info, GEN (*getdata)(GEN, int, GEN, void*, int), GEN (*nextquad)(GEN, int, void*), GEN (*retquad)(GEN));
@@ -428,14 +427,14 @@ apol_type(GEN v)
 }
 
 
-
-/*CREATION OF ACPS*/
+/*SECTION 2: CREATION OF ACPS*/
 
 /*Given a qfb q of discriminant -4n^2, this gives the corresponding Descartes quadruple. if pos=-1, we give the quadruple with -n, and if pos=1, we give the quadruple with +n. If red=1 we reduce, else we don't.*/
 GEN
 apol_make(GEN q, int pos, int red)
 {
   pari_sp av = avma;
+  if (typ(q) != t_QFB) pari_err_TYPE("q must be an integral binary quadratic form of discriminant -4n^2 for some integer n.", q);
   GEN D = gel(q, 4);
   if (signe(D) != -1) pari_err_TYPE("q must have discriminant -4n^2 for some integer n.", D);
   long rem;
@@ -455,7 +454,7 @@ apol_make_n(GEN q, GEN n, int red)
   pari_sp av = avma;/*q=[A, B, C]->[n, A-n, C-n, A+C-n-B]*/
   GEN Amn = subii(gel(q, 1), n);
   GEN v = mkvec4(n, Amn, subii(gel(q, 3), n), addii(Amn, subii(gel(q, 3), gel(q, 2))));/*The ACP*/
-  if (red) v = apol_red(v, 0, 0);
+  if (red) v = apol_red0(v, 0, &apol_move_1i, &cmpii);
   return gerepileupto(av, ZV_sort(v));
 }
 

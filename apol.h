@@ -13,9 +13,7 @@ GEN apol_red(GEN v, int seq, long prec);
 GEN apol_red_partial(GEN v, long maxsteps, long prec);
 GEN apol_type(GEN v);
 
-
-
-//CREATION OF ACPS
+/*SECTION 2: CREATION OF ACPS*/
 GEN apol_make(GEN q, int pos, int red);
 GEN apol_makeall(GEN n, int red, long prec);
 

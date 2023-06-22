@@ -30,24 +30,13 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_red_partial,"apol_red_partial(v, maxsteps): reduce v, doing at most maxsteps. In particular, the returned quadruple may not be reduced!");
 		install(apol_type,"G");
 		addhelp(apol_type,"apol_type(v): returns the type of the primitive Apollonian circle packing v, i.e. the pair (a, b) where a is how many residues modulo 24 are hit, and b is the smallest residue coprime to 6, which uniquely determines the admissible set.");
-		
-		
-		
-		
-		
-		
-		install("apol_thirdtangent","GGGGD1,L,",,apol_library);
-		addhelp(apol_thirdtangent,"Inputs: circ1, circ2, c3, c4, {right=1}.\n Given two tangent circles circ1 and circ2 (given by [centre, radius, curvature] and curvatures c3 and c4 completing a Descartes quadruple, this computes the equation of the circle of curvature c3. We place it to the right of the ray from circ1 to circ2 if and only if right=1.");
 
-		addhelp(ap_basic,"Installed methods:\napol_check, apol_extdepth, apol_getmatrices, apol_getobstructions, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial, apol_thirdtangent.");
+	/*SECTION 2: CREATION OF ACPS*/
+		install(apol_make,"GD1,L,D1,L,");
+		addhelp(apol_make,"apol_make(q, {pos=1}, {red=1}); returns a (sorted) Descartes quadruple corresponding to q, which is a positive definite binary quadratic form of discriminant -4n^2. If pos=0, the root quadruple starts with -n<0. Otherwise, the quadruple has a circle of curvature n>0. If red=1 we reduce the form, which may eliminate the curvature n circle from the quadruple if pos=1.");
+		install(apol_makeall,"GD1,L,p");
+		addhelp(apol_makeall,"apol_makeall(n, {red=1}): returns all Descartes quadruples containing n. We reduce the quadruples iff red=1. The output has length h^{+/-}(-4n^2), and may contain Descartes quadruples in the same packing (if n appears multiple times in 'unique ways'.");
 
-	\\CREATION OF ACPS
-		install("apol_make","GD1,L,D1,L,", ,apol_library);
-		addhelp(apol_make,"Input q, {pos=1}, {red=1}; q a quadratic form of discriminant -4n^2.\n Returns the Descartes quadruple it corresponds to. If pos=0, the root quadruple starts with -n<0. Else, the form has a +n circle. If red=1 we reduce the form, otherwise we don't.");
-		install("apol_makeall","GD1,L,p",,apol_library);
-		addhelp(apol_makeall,"Inputs n, {red=1}.\n Returns all Descartes quadruples containing n. We reduce the quadruples iff red=1. The output has length h^{+/-}(-4n^2), and may contain Descartes quadruples in the same packing (if n appears multiple times in ''unique ways''.");
-
-		addhelp(ap_make,"Installed methods:\napol_make, apol_makeall.");
 
 	\\SEARCHING FOR CURVATURES
 		install("apol_circles","GG",,apol_library);
@@ -71,6 +60,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_missing,"apol_missing(v, B, {family=1}, {load=1}): saves all the curvatures up to B in the correct residue classes modulo 24 but are missing from the packing to a file in the folder 'missing'. The curvatures are separated by residue, each on a different line. If family=1, we also find the families of the form ax^2, remove those numbers, and print the modulo 24 residue classes and which families were found for each on the first two lines. If load=1, we load this output into a vector in gp. Note that if B is small, we may find families that do not exist.");
 		install(apol_missing_load,"GGD1,L,");
 		addhelp(apol_missing_load,"apol_missing_load(v, B, {family=1}): loads the saved curvature data. If family=1, the first entry is the vector of modulo 24 residues, then the corresponding families found in each class, then the missing curvatures that are not in one of the families. Creates an error if the data does not exist.");
+		install("apol_thirdtangent","GGGGD1,L,",,apol_library);
+		addhelp(apol_thirdtangent,"Inputs: circ1, circ2, c3, c4, {right=1}.\n Given two tangent circles circ1 and circ2 (given by [centre, radius, curvature] and curvatures c3 and c4 completing a Descartes quadruple, this computes the equation of the circle of curvature c3. We place it to the right of the ray from circ1 to circ2 if and only if right=1.");
 
 	\\STRIP PACKING METHODS
 		install("apol_depthelt_circle","G",,apol_library);
