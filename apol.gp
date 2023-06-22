@@ -16,9 +16,9 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_extdepth,"apol_extdepth(v): returns the external depth of the quadruple v, i.e. the minimal number of swaps to reach a quadruple with nonpositive curvature. If the packing is full-plane, the output will be meaningless as eventually floating point errors will add up.");
 		install(apol_matrices,"");
 		addhelp(apol_matrices, "apol_matrices(): returns [S1, S2, S3, S4, K], where Si generate the Apollonian group, and K*[n,A,B,C]~=theta([A, B, C]) (see the 'Apollonian Staircase' paper for a description of K).");
+		install(apol_mod24,"G");
+		addhelp(apol_mod24,"apol_mod24(v): returns the set of curvatures modulo 24 possible in the necessarily primitive integral ACP. There are 6 possible sets, obtainable with apol_admissiblesets(). See also apol_type.");
 		
-		install("apol_mod24","G",,apol_library);
-		addhelp(apol_mod24,"Input v, a Descartes quadruple.\n Returns the set of curvatures modulo 24 possible in the correponding ACP. There are 6 possible primitive sets.");
 		install("apol_move","GG",,apol_library);
 		addhelp(apol_move, "Inputs v, ind: Descartes quadruple v, 1<=ind<=4 or a vector/vecsmall of integers between 1 and 4.\n Returns the Descartes quadruple where we replace circle ind with the other possible circle (applying this left to right if ind is a vector/vecsmall).");
 		install("apol_qf","GD1,L,",,apol_library);

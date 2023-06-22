@@ -118,6 +118,7 @@ apol_complete(GEN a, GEN b, GEN c, long prec)
   GEN tol = deftol(prec), rt;
   if (toleq0(tort, tol)) rt = gen_0;/*To account for rounding to be slightly negative.*/
   else {
+	if (signe(tort) < 0) pari_err_TYPE("There does not exist a Descartes quadruple with these curvatures. Are two of them negative, or is the negative curvature too small?", mkvec3(a, b, c));
 	if (typ(tort) == t_INT) {
 	  GEN r;
 	  rt = sqrtremi(tort, &r);
@@ -209,17 +210,16 @@ apol_mod24(GEN v)
 {
   pari_sp av = avma;
   if (!apol_check_primitive(v)) pari_err_TYPE("must be a primitive integral packing", v);
-  long lv;
-  GEN v24=cgetg_copy(v, &lv), tw4=stoi(24);//lv=5
-  for(long i=1;i<lv;i++) gel(v24, i)=Fp_red(gel(v, i), tw4);//Reduce v modulo 24
-  GEN orb=apol_curvatures_depth(v24, 3, gen_0);//Only need depth 3
-  for(long i=1;i<lg(orb);i++) gel(orb, i)=Fp_red(gel(orb, i), tw4);//Reduce modulo 24.
-  return gerepileupto(av, ZV_sort_uniq(orb));//Sort the result.
+  long lv, i;
+  GEN v24 = cgetg_copy(v, &lv), tw4=stoi(24);
+  for (i = 1; i < lv; i++) gel(v24, i) = Fp_red(gel(v, i), tw4);/*Reduce v modulo 24*/
+  GEN orb = apol_curvatures_depth(v24, 3, gen_0);/*Only need depth 3*/
+  long lo = lg(orb);
+  for (i = 1; i < lo; i++) gel(orb, i) = Fp_red(gel(orb, i), tw4);/*Reduce modulo 24.*/
+  return gerepileupto(av, ZV_to_zv(ZV_sort_uniq(orb)));
 }
 
-
-
-//Calls apol_move_1 or apol_move_batch, depending on if command is an integer or a vector. This is intended for use in gp. Use apl_move_1 or apol_move_batch with PARI.
+/*Calls apol_move_1 or apol_move_batch, depending on if command is an integer or a vector. This is intended for use in gp. Use apl_move_1 or apol_move_batch with PARI.*/
 GEN apol_move(GEN v, GEN command){
   long t=typ(command);
   switch(t){

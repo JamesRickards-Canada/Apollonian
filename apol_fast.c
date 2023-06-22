@@ -18,7 +18,7 @@ apol_type(GEN v)
 {
   pari_sp av = avma;
   GEN m24 = apol_mod24(v);
-  long second = itos(gel(m24, 2));/*Uniquely identified by the second element*/
+  long second = m24[2];/*Uniquely identified by the second element*/
   set_avma(av);
   switch (second) {
     case 1: return mkvec2s(6, 1);
