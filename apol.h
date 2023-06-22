@@ -7,11 +7,8 @@ GEN apol_complete(GEN a, GEN b, GEN c, long prec);
 long apol_extdepth(GEN v, long prec);
 GEN apol_matrices();
 GEN apol_mod24(GEN v);
+GEN apol_move(GEN v, GEN command, long prec);
 
-GEN apol_move_1(GEN v, int ind);
-GEN apol_move_1GEN(GEN v, int ind);
-GEN apol_move_batch(GEN v, GEN bat);
-GEN apol_move_batchGEN(GEN v, GEN bat);
 GEN apol_qf(GEN v, int ind);
 GEN apol_red(GEN v, int seq);
 GEN apol_red_partial(GEN v, long maxsteps);

@@ -10,6 +10,10 @@
 /*SECTION 1: BASIC METHODS*/
 static int apol_check_primitive(GEN v);
 static GEN apol_fix(GEN v, int *isint, long prec);
+static void apol_move_1i(GEN v, int ind);
+static void apol_move_1r(GEN v, int ind);
+static void apol_move_batchi(GEN v, GEN bat);
+static void apol_move_batchr(GEN v, GEN bat);
 
 
 static int ismp(GEN x);
@@ -144,12 +148,16 @@ apol_extdepth(GEN v, long prec)
   int isint;
   v = apol_fix(v, &isint, 3);
   if (!v) pari_err_TYPE("Not a Descartes quadruple", v);
+  v = shallowcopy(v);
   long ind = vecindexmin(v), step = 0;
+  void (*move1)(GEN, int);
+  if (isint) move1 = &apol_move_1i;
+  else move1 = &apol_move_1r;
   for (;;) {
     if (signe(gel(v, ind)) != 1) return gc_long(av, step);/*An index is <=0.*/
     step++;
     ind = vecindexmax(v);
-    v = apol_move_1(v, ind);
+    move1(v, ind);
   }
 }
 
@@ -219,72 +227,87 @@ apol_mod24(GEN v)
   return gerepileupto(av, ZV_to_zv(ZV_sort_uniq(orb)));
 }
 
-/*Calls apol_move_1 or apol_move_batch, depending on if command is an integer or a vector. This is intended for use in gp. Use apl_move_1 or apol_move_batch with PARI.*/
-GEN apol_move(GEN v, GEN command){
-  long t=typ(command);
-  switch(t){
-    case t_INT: return apol_move_1GEN(v, itos(command));//itos does not clutter the stack.
-    case t_VECSMALL: return apol_move_batchGEN(v, command);
+/*Calls apol_move_(1/batch)(i/r), returning a clean result without affecting v. We also first check that v is a Descartes quadruple.*/
+GEN
+apol_move(GEN v, GEN command, long prec)
+{
+  pari_sp av = avma;
+  int isint;
+  v = apol_fix(v, &isint, prec);
+  if (!v) pari_err_TYPE("v is not a Descartes quadruple.", v);
+  GEN vcop = shallowcopy(v);
+  long t = typ(command);
+  switch (t) {
+    case t_INT:
+	  if (isint) apol_move_1i(vcop, itos(command));
+	  else apol_move_1r(vcop, itos(command));
+	  return gerepilecopy(av, vcop);
+	case t_VEC:
+	case t_COL:
+	  command = gtovecsmall(command);
+    case t_VECSMALL:
+	  if (isint) apol_move_batchi(vcop, command);
+	  else apol_move_batchr(vcop, command);
+	  return gerepilecopy(av, vcop);
   }
-  pari_sp top=avma;
-  command=gtovecsmall(command);
-  return gerepileupto(top, apol_move_batchGEN(v, command));
+  pari_err_TYPE("Input does not represent a valid move (or series of moves)", command);
+  return NULL;
 }
 
-//Returns the set of four curvatures when we replace circle ind.
-GEN apol_move_1(GEN v, int ind){
-  if(ind<=0 || ind>=5) return v;//Do nothing.
-  pari_sp top=avma;
-  GEN rep=vecsmall_ei(4, ind);
-  GEN S=gen_0;
-  for(int i=1;i<=4;i++) if(!rep[i]) S=addii(S, gel(v, i));
-  S=shifti(S, 1);//2(b+c+d)
-  long lv;
-  GEN newv=cgetg_copy(v, &lv);//lv=5
-  for(int i=1;i<=4;i++) gel(newv, i)=rep[i]? subii(S, gel(v, ind)):icopy(gel(v, i));
-  return gerepileupto(top, newv);
-}
-
-//apol_move_1, but v needs not be integral.
-GEN apol_move_1GEN(GEN v, int ind){
-  if(ind<=0 || ind>=5) return v;//Do nothing.
-  pari_sp top=avma;
-  GEN rep=vecsmall_ei(4, ind);
-  GEN S=gen_0;
-  for(int i=1;i<=4;i++) if(!rep[i]) S=gadd(S, gel(v, i));
-  S=gmulgs(S, 2);//2(b+c+d)
-  long lv;
-  GEN newv=cgetg_copy(v, &lv);//lv=5
-  for(int i=1;i<=4;i++) gel(newv, i)=rep[i]? gsub(S, gel(v, ind)):gcopy(gel(v, i));
-  return gerepileupto(top, newv);
-}
-
-//Does apol_move_1 for v and bat[1], bat[2], ... The input bat needs to be a Vecsmall.
-GEN apol_move_batch(GEN v, GEN bat){
-  pari_sp top=avma;
-  GEN newv=ZV_copy(v);
-  for(long bind=1;bind<lg(bat);bind++){
-    int ind=bat[bind];
-    GEN S=gen_0;
-    for(int i=1;i<=4;i++) if(i!=ind) S=addii(S, gel(newv, i));
-    S=shifti(S, 1);//2(b+c+d)
-    gel(newv, ind)=subii(S, gel(newv, ind));
+/*Replace the index ind in the integral ACP. Not gerepileupto safe, shallow, leaves garbage.*/
+static void
+apol_move_1i(GEN v, int ind)
+{
+  GEN a = gel(v, 1), b = gel(v, 2), c = gel(v, 3), d = gel(v, 4);
+  switch (ind) {
+	case 1:
+	  gel(v, 1) = subii(shifti(addii(addii(b, c), d), 1), a);
+	  return;
+	case 2:
+	  gel(v, 2) = subii(shifti(addii(addii(a, c), d), 1), b);
+	  return;
+	case 3:
+	  gel(v, 3) = subii(shifti(addii(addii(a, b), d), 1), c);
+	  return;
+	case 4:
+	  gel(v, 4) = subii(shifti(addii(addii(a, b), c), 1), d);
   }
-  return gerepilecopy(top, newv);
 }
 
-//Does apol_move_1GEN for v and bat[1], bat[2], ... The input bat needs to be a Vecsmall.
-GEN apol_move_batchGEN(GEN v, GEN bat){
-  pari_sp top=avma;
-  GEN newv=gcopy(v);
-  for(long bind=1;bind<lg(bat);bind++){
-    int ind=bat[bind];
-    GEN S=gen_0;
-    for(int i=1;i<=4;i++) if(i!=ind) S=gadd(S, gel(newv, i));
-    S=gmulgs(S, 2);//2(b+c+d)
-    gel(newv, ind)=gsub(S, gel(newv, ind));
+/*Replace the index ind in the real ACP. Not gerepileupto safe, shallow, leaves garbage.*/
+static void
+apol_move_1r(GEN v, int ind)
+{
+  GEN a = gel(v, 1), b = gel(v, 2), c = gel(v, 3), d = gel(v, 4);
+  switch (ind) {
+	case 1:
+	  gel(v, 1) = subrr(shiftr(addrr(addrr(b, c), d), 1), a);
+	  return;
+	case 2:
+	  gel(v, 2) = subrr(shiftr(addrr(addrr(a, c), d), 1), b);
+	  return;
+	case 3:
+	  gel(v, 3) = subrr(shiftr(addrr(addrr(a, b), d), 1), c);
+	  return;
+	case 4:
+	  gel(v, 4) = subrr(shiftr(addrr(addrr(a, b), c), 1), d);
   }
-  return gerepilecopy(top, newv);
+}
+
+/*Does apol_move_1i for v and bat[1], bat[2], ... The input bat needs to be a Vecsmall. Not gerepileupto safe, shallow, leaves garbage.*/
+static void
+apol_move_batchi(GEN v, GEN bat)
+{
+  long lbat = lg(bat), i;
+  for (i = 1; i < lbat; i++) apol_move_1i(v, bat[i]);
+}
+
+/*Does apol_move_1r for v and bat[1], bat[2], ... The input bat needs to be a Vecsmall. Not gerepileupto safe, shallow, leaves garbage.*/
+static void
+apol_move_batchr(GEN v, GEN bat)
+{
+  long lbat = lg(bat), i;
+  for (i = 1; i < lbat; i++) apol_move_1r(v, bat[i]);
 }
 
 /*Returns the quadratic form whose primitive values are v[ind]+curvatures touching the ind^th circle. The formula is [a+b,a+b+c-d, a+c] if v=[a,b,c,d] and ind=1.*/
@@ -311,9 +334,9 @@ GEN apol_red(GEN v, int seq){
     do{
       ind=vecindexmax(v);
       dold=gel(v, ind);
-      v=apol_move_1(v, ind);
+      v=apol_move(v, stoi(ind), 3);
     }while(cmpii(gel(v, ind), dold)==-1);
-    return gerepileupto(top, apol_move_1(v, ind));//Must go back one!
+    return gerepileupto(top, apol_move(v, stoi(ind), 3));//Must go back one!
   }
   //Now keep track of the sequence
   long Sind=0, Slen=10;
@@ -321,11 +344,11 @@ GEN apol_red(GEN v, int seq){
   do{
     ind=vecindexmax(v);
     dold=gel(v, ind);
-    v=apol_move_1(v, ind);
+    v=apol_move(v, stoi(ind), 3);
     S=vecsmalllist_append(S, &Sind, &Slen, ind);
   }while(cmpii(gel(v, ind), dold)==-1);
   S=vecsmall_shorten(S, Sind-1);//Remove last move.
-  return gerepilecopy(top, mkvec2(apol_move_1(v, ind), S));
+  return gerepilecopy(top, mkvec2(apol_move(v, stoi(ind), 3), S));
 }
 
 //Reduces v, where we go ONLY at most maxsteps steps.
@@ -339,11 +362,11 @@ GEN apol_red_partial(GEN v, long maxsteps){
     step++;
     ind=vecindexmax(v);
     dold=gel(v, ind);
-    v=apol_move_1(v, ind);
+    v=apol_move(v, stoi(ind), 3);
     if(cmpii(gel(v, ind), dold)!=-1){mstepsreached=0;break;}//We are reduced if we go back one.
   }while(step<maxsteps);
   if(mstepsreached) return gerepilecopy(top, v);
-  else return gerepileupto(top, apol_move_1(v, ind));//Must go back one!
+  else return gerepileupto(top, apol_move(v, stoi(ind), 3));//Must go back one!
 }
 
 
@@ -424,7 +447,7 @@ The outline of the searching methods is:
             state=0 happens at the end, and is used as a wrap-up. You should return a modified version of reps that is gerepileupto compatible, e.g. sort it, just copy it, etc.
     
     nextquad:
-        essentially does apol_move_1(vdat, ind), but formats it correctly in case vdat is not just the Descartes quadruple. Pass in ind=0 for the initial setup. Return NULL to say "too far, go backwards".
+        essentially does apol_move(vdat, ind), but formats it correctly in case vdat is not just the Descartes quadruple. Pass in ind=0 for the initial setup. Return NULL to say "too far, go backwards".
   
     retquad:
         Returns the Descartes quadruple from vdat. Normally this is just {return vdat;}, but if we keep track of more it is not.
@@ -736,7 +759,7 @@ static GEN apol_thirdtangent_line1(GEN circ1, GEN circ2, GEN c3, GEN c4, int rig
 static GEN apol_circles_nextquad(GEN vdat, int ind, void *nul){
   if(ind==0) return mkvec2(vdat, mkvecsmall4(1, 2, 3, 4));//The initial vdat.
   GEN v=gel(vdat, 1);//The actual quadruple
-  GEN newv=apol_move_1GEN(v, ind);//The new v
+  GEN newv=apol_move(v, stoi(ind), 3);//The new v
   return mkvec2(newv, zv_copy(gel(vdat, 2)));//We do NOT update the index in ind, which will update to lg(reps). This will be done in the getdata method, since we still need the old one for now.
 }
 
@@ -754,7 +777,7 @@ GEN apol_circles_depth(GEN v, int depth, GEN maxcurv){
 }
 
 //vdat=v=Descartes quadruple. This returns the next one
-static GEN apol_generic_nextquad(GEN vdat, int ind, void *nul){return apol_move_1(vdat, ind);}
+static GEN apol_generic_nextquad(GEN vdat, int ind, void *nul){return apol_move(vdat, stoi(ind), 3);}
 
 //vdat=v=Descartes quadruple. This returns it
 static GEN apol_generic_retquad(GEN vdat){return vdat;}
@@ -812,7 +835,7 @@ static GEN apol_layer_nextquad(GEN vdat, int ind, void *maxlayers){
     else{nextlayer[ind]++;nextlayer[6]--;}//Repeated minimum just moves up 1.
   }
   if(nextlayer[ind]>*(int *)maxlayers) return gc_NULL(top);//Too many layers deep.
-  GEN newv=apol_move_1(gel(vdat, 1), ind);//Make the move
+  GEN newv=apol_move(gel(vdat, 1), stoi(ind), 3);//Make the move
   return mkvec2(newv, nextlayer);//The new element.
 }
 
@@ -1013,7 +1036,7 @@ static GEN apol_stairs_nextquad(GEN vdat, int ind, void *info){
 	else if(ind==3) onbot=gen_0;//Now we are no longer on the bottom.
   }
   GEN mnew=ZM_mul(gmael((GEN)info, 1, ind), gel(vdat, 2));//Multiply on the left by the correct matrix.
-  GEN vnew=apol_move_1(gel(vdat, 1), ind);//Make the move
+  GEN vnew=apol_move(gel(vdat, 1), stoi(ind), 3);//Make the move
   if(cmpii(gcoeff(mnew, ind, 1), gel((GEN)info, 2))<0) return gc_NULL(top);//t is too large! (we store -tmax and get -t, so we test if -t<-tmax)
   return mkvec3(vnew, mnew, onbot);//Return the new set of data.
 }
