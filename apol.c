@@ -218,11 +218,9 @@ apol_mod24(GEN v)
 {
   pari_sp av = avma;
   if (!apol_check_primitive(v)) pari_err_TYPE("must be a primitive integral packing", v);
-  long lv, i;
-  GEN v24 = cgetg_copy(v, &lv), tw4=stoi(24);
-  for (i = 1; i < lv; i++) gel(v24, i) = Fp_red(gel(v, i), tw4);/*Reduce v modulo 24*/
-  GEN orb = apol_curvatures_depth(v24, 3, gen_0);/*Only need depth 3*/
-  long lo = lg(orb);
+  GEN tw4 = stoi(24);
+  GEN orb = apol_curvatures_depth(v, 3, gen_0);/*Only need depth 3*/
+  long lo = lg(orb), i;
   for (i = 1; i < lo; i++) gel(orb, i) = Fp_red(gel(orb, i), tw4);/*Reduce modulo 24.*/
   return gerepileupto(av, ZV_to_zv(ZV_sort_uniq(orb)));
 }
