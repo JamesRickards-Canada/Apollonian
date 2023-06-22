@@ -14,7 +14,11 @@ static void apol_move_1i(GEN v, int ind);
 static void apol_move_1r(GEN v, int ind);
 static void apol_move_batchi(GEN v, GEN bat);
 static void apol_move_batchr(GEN v, GEN bat);
-static GEN apol_red_i(GEN v, int seq, void (*move1)(GEN, int));
+static GEN apol_red0(GEN v, int seq, void (*move1)(GEN, int), int (*cmp)(GEN, GEN));
+static GEN apol_red_partial0(GEN v, long maxsteps, void (*move1)(GEN, int), int (*cmp)(GEN, GEN));
+
+
+
 
 static int ismp(GEN x);
 
@@ -335,15 +339,13 @@ apol_red(GEN v, int seq, long prec)
   int isint;
   v = apol_fix(v, &isint, prec);
   if (!v) pari_err_TYPE("v is not a Descartes quadruple.", v);
-  void (*move1)(GEN, int);
-  if (isint) move1 = &apol_move_1i;
-  else move1 = &apol_move_1r;
-  return gerepileupto(av, apol_red_i(v, seq, move1));
+  if (isint) return gerepileupto(av, apol_red0(v, seq, &apol_move_1i, &cmpii));
+  return gerepileupto(av, apol_red0(v, seq, &apol_move_1r, &cmprr));
 }
 
-/*Reduce the ACP given the move type.*/
+/*Reduce the ACP given the move and comparison type.*/
 static GEN
-apol_red_i(GEN v, int seq, void (*move1)(GEN, int))
+apol_red0(GEN v, int seq, void (*move1)(GEN, int), int (*cmp)(GEN, GEN))
 {
   pari_sp av = avma;
   v = shallowcopy(v);
@@ -354,7 +356,7 @@ apol_red_i(GEN v, int seq, void (*move1)(GEN, int))
       ind = vecindexmax(v);
       dold = gel(v, ind);
       move1(v, ind);
-    } while(cmpii(gel(v, ind), dold) < 0);
+    } while(cmp(gel(v, ind), dold) < 0);
 	move1(v, ind);/*Must go back one!*/
     return gerepilecopy(av, v);
   }
@@ -370,31 +372,59 @@ apol_red_i(GEN v, int seq, void (*move1)(GEN, int))
 	  S = vecsmall_lengthen(S, len);
 	}
 	S[i] = ind;
-  } while(cmpii(gel(v, ind), dold) < 0);
+  } while(cmp(gel(v, ind), dold) < 0);
   S = vecsmall_shorten(S, i - 1);/*Remove last move.*/
   move1(v, ind);
   return gerepilecopy(av, mkvec2(v, S));
 }
 
+/*Reduces v, where we go ONLY at most maxsteps steps.*/
+GEN
+apol_red_partial(GEN v, long maxsteps, long prec)
+{
+  pari_sp av = avma;
+  int isint;
+  v = apol_fix(v, &isint, prec);
+  if (!v) pari_err_TYPE("v is not a Descartes quadruple.", v);
+  if (isint) return gerepileupto(av, apol_red_partial0(v, maxsteps, &apol_move_1i, &cmpii));
+  return gerepileupto(av, apol_red_partial0(v, maxsteps, &apol_move_1r, &cmprr));
+}
 
-
-
-//Reduces v, where we go ONLY at most maxsteps steps.
-GEN apol_red_partial(GEN v, long maxsteps){
-  pari_sp top=avma;
-  if(maxsteps==0) return ZV_copy(v);
-  long ind, step=0;
-  int mstepsreached=1;
+/*Reduces v, where we go ONLY at most maxsteps steps.*/
+static GEN
+apol_red_partial0(GEN v, long maxsteps, void (*move1)(GEN, int), int (*cmp)(GEN, GEN))
+{
+  pari_sp av = avma;
+  if (!maxsteps) return ZV_copy(v);
+  long ind, step;
   GEN dold;
-  do{
-    step++;
-    ind=vecindexmax(v);
-    dold=gel(v, ind);
-    v=apol_move(v, stoi(ind), 3);
-    if(cmpii(gel(v, ind), dold)!=-1){mstepsreached=0;break;}//We are reduced if we go back one.
-  }while(step<maxsteps);
-  if(mstepsreached) return gerepilecopy(top, v);
-  else return gerepileupto(top, apol_move(v, stoi(ind), 3));//Must go back one!
+  for (step = 1; step <= maxsteps; step++) {
+    ind = vecindexmax(v);
+    dold = gel(v, ind);
+	move1(v, ind);
+    if (cmp(gel(v, ind), dold) >= 0) { move1(v, ind); break; }/*Must go back one.*/
+  }
+  return gerepilecopy(av, v);
+}
+
+/*Returns the "type" of v, i.e. the number of resiudes modulo 24 and the smallest residue coprime to 6, which uniquely identifies it.*/
+GEN
+apol_type(GEN v)
+{
+  pari_sp av = avma;
+  GEN m24 = apol_mod24(v);
+  long second = m24[2];/*Uniquely identified by the second element*/
+  set_avma(av);
+  switch (second) {
+    case 1: return mkvec2s(6, 1);
+	case 3: return mkvec2s(8, 11);
+	case 4: return mkvec2s(6, 13);
+	case 5: return mkvec2s(6, 5);
+	case 6: return mkvec2s(8, 7);
+	case 8: return mkvec2s(6, 17);
+  }
+  pari_err(e_MISC, "We didn't find one of the 6 possible admissible sets, are you sure you inputted a primitive Apollonian circle packing?");
+  return gen_0;
 }
 
 
@@ -1341,7 +1371,7 @@ GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec){
   long lf;
   GEN curves=cgetg_copy(forms, &lf);
   for(long i=1;i<lf;i++){
-    GEN q=apol_red_partial(gel(forms, i), maxsteps);
+    GEN q=apol_red_partial0(gel(forms, i), maxsteps, &apol_move_1i, &cmpii);
     gel(curves, i)=gel(q, vecindexmin(q));
   }
   return gerepileupto(top, ZV_sort(curves));
