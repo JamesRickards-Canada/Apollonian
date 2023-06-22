@@ -56,6 +56,7 @@ static GEN ZV_copy(GEN v);
 GEN
 apol_admissiblesets()
 {
+  pari_sp av = avma;
   GEN ret = cgetg(7, t_VEC);
   gel(ret, 1) = mkvecsmalln(6, 0L, 1L, 4L, 9L, 12L, 16L);
   gel(ret, 2) = mkvecsmalln(6, 0L, 5L, 8L, 12L, 20L, 21L);
@@ -63,7 +64,9 @@ apol_admissiblesets()
   gel(ret, 4) = mkvecsmalln(6, 0L, 8L, 9L, 12L, 17L, 20L);
   gel(ret, 5) = mkvecsmalln(8, 3L, 6L, 7L, 10L, 15L, 18L, 19L, 22L);
   gel(ret, 6) = mkvecsmalln(8, 2L, 3L, 6L, 11L, 14L, 15L, 18L, 23L);
-  return ret;
+  long i;
+  for (i = 1; i <= 6; i++) gel(ret, i) = zv_to_ZV(gel(ret, i));/*Lazy solution.*/
+  return gerepilecopy(av, ret);
 }
 
 /*Checks if v gives 4 circles that generate an Apollonian circle packing, up to tolerance. Returns 1 if it is, 0 if not.*/
@@ -225,7 +228,7 @@ apol_mod24(GEN v)
   GEN orb = apol_curvatures_depth(v, 3, gen_0);/*Only need depth 3*/
   long lo = lg(orb), i;
   for (i = 1; i < lo; i++) gel(orb, i) = Fp_red(gel(orb, i), tw4);/*Reduce modulo 24.*/
-  return gerepileupto(av, ZV_to_zv(ZV_sort_uniq(orb)));
+  return gerepileupto(av, ZV_sort_uniq(orb));
 }
 
 /*Calls apol_move_(1/batch)(i/r), returning a clean result without affecting v. We also first check that v is a Descartes quadruple.*/
@@ -412,7 +415,7 @@ apol_type(GEN v)
 {
   pari_sp av = avma;
   GEN m24 = apol_mod24(v);
-  long second = m24[2];/*Uniquely identified by the second element*/
+  long second = itos(gel(m24, 2));/*Uniquely identified by the second element*/
   set_avma(av);
   switch (second) {
     case 1: return mkvec2s(6, 1);
@@ -1298,35 +1301,6 @@ ZV_copy(GEN v){
   for(long i=1;i<len;i++) gel(rvec, i)=icopy(gel(v, i));
   return rvec;
 }
-
-
-//LISTS OF VARIABLE LENGTH TEMPORARY TO REMOVE
-
-
-/* Sample use of veclist_append:
-pari_sp top=avma;
-long vind=0, vlen=10;
-GEN v=zerovec(vlen);//So that we can garbage collect.
-...
-GEN x=...;
-v=veclist_append(v, &vind, &vlen, x);
-...
-v=vec_shorten(v, vind);
-return gerepilecopy(top, v);
-*/
-
-//Appends x to v, returning v, and updating vind to vind++. If vind++>vlen, then we double the length of v as well. Don't forget to call vec_shorten at the end, since some positions are uninitialized.
-GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x){
-  if(*vind==*vlen){//Need to lengthen!
-    *vlen=2**vlen;
-    v=vecsmall_lengthen(v, *vlen);
-  }
-  *vind=*vind+1;
-  v[*vind]=x;
-  return v;
-}
-
-
 
 
 

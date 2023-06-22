@@ -47,9 +47,6 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
 //SUPPORTING METHODS
 GEN apol_words(int d);
 
-//LISTS OF VARIABLE LENGTH TO DELETE
-GEN vecsmalllist_append(GEN v, long *vind, long *vlen, long x);
-
 //SPECIALIZED METHODS
 GEN apol_makeall_extdepths(GEN n, long prec);
 GEN apol_makeall_small(GEN n, int red, long prec);
