@@ -5,7 +5,7 @@ parigp_version=version();
 apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*apol.c*/
-	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_qf, apol_red, apol_red_partial, apol_type.");
+	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_chi, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_qf, apol_red, apol_red_partial, apol_type.");
 	
 	/*SECTION 1: BASIC METHODS*/
 		install(apol_admissiblesets,"",,apol_library);
@@ -57,11 +57,6 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_primes,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns the prime curvatures at most bound in the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicities.");
 		install("apol_primes_layer","GLGD0,L,",,apol_library);
 		addhelp(apol_primes_layer,"Inptus v, maxlayer, bound, {countsymm=0}: Descartes quadruple v, maxlayer>=1, bound>=0, countsymm=0, 1.\n Returns the prime curvatures in layer at most maxlayer with curvature at most bound. If countsymm=1, symmetries are counted with their multiplicities.");
-		
-		install(apol_missing,"GGD1,L,D1,L,");
-		addhelp(apol_missing,"apol_missing(v, B, {family=1}, {load=1}): saves all the curvatures up to B in the correct residue classes modulo 24 but are missing from the packing to a file in the folder 'missing'. The curvatures are separated by residue, each on a different line. If family=1, we also find the families of the form ax^2, remove those numbers, and print the modulo 24 residue classes and which families were found for each on the first two lines. If load=1, we load this output into a vector in gp. Note that if B is small, we may find families that do not exist.");
-		install(apol_missing_load,"GGD1,L,");
-		addhelp(apol_missing_load,"apol_missing_load(v, B, {family=1}): loads the saved curvature data. If family=1, the first entry is the vector of modulo 24 residues, then the corresponding families found in each class, then the missing curvatures that are not in one of the families. Creates an error if the data does not exist.");
 		install("apol_thirdtangent","GGGGD1,L,",,apol_library);
 		addhelp(apol_thirdtangent,"Inputs: circ1, circ2, c3, c4, {right=1}.\n Given two tangent circles circ1 and circ2 (given by [centre, radius, curvature] and curvatures c3 and c4 completing a Descartes quadruple, this computes the equation of the circle of curvature c3. We place it to the right of the ray from circ1 to circ2 if and only if right=1.");
 
@@ -103,7 +98,11 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 /*apol_fast.c*/
 
 	/*SECTION 1: MISSING CURVATURES*/
-		
+		/*1: GP ACCESS*/
+		install(apol_missing,"GGD1,L,D1,L,");
+		addhelp(apol_missing,"apol_missing(v, B, {family=1}, {load=1}): saves all the curvatures up to B in the correct residue classes modulo 24 but are missing from the packing to a file in the folder 'missing'. The curvatures are separated by residue, each on a different line. If family=1, we also find the families of the form ax^2, remove those numbers, and print the modulo 24 residue classes and which families were found for each on the first two lines. If load=1, we load this output into a vector in gp. Note that if B is small, we may find families that do not exist.");
+		install(apol_missing_load,"GGD1,L,");
+		addhelp(apol_missing_load,"apol_missing_load(v, B, {family=1}): loads the saved curvature data. If family=1, the first entry is the vector of modulo 24 residues, then the corresponding families found in each class, then the missing curvatures that are not in one of the families. Creates an error if the data does not exist.");
 
 
 /*data.c*/

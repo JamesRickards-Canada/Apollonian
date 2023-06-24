@@ -31,23 +31,18 @@ CPPFLAGS   = -I. -I$(PARI_INCLUDE)
 LDFLAGS    = -O3 -Wall -fno-strict-aliasing    -Wl,--export-dynamic 
 MODLDFLAGS = -shared  $(CFLAGS) $(DLCFLAGS) -Wl,-shared 
 EXTRAMODLDFLAGS = -lc -lm -L$(PARI_LIB) -lpari
-EXTRALIBS  =
 DLCFLAGS   = -fPIC
 
 #Recipes
-all: $(DYN) missing
+all: $(DYN)
 
 #Rule to build the library
 $(DYN): $(OBJS)
-	$(CC) -o $@ $(MODLDFLAGS) $(EXTRACFLAGS) $(OBJS) $(EXTRAMODLDFLAGS)
+	$(CC) -o $@ $(MODLDFLAGS) $(OBJS) $(EXTRAMODLDFLAGS)
 
 #Rule to make the object files
 %.o: %.c
-	$(CC) -c $(CFLAGS) $(EXTRACFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
-
-missing: missing_curvatures.c
-	$(CC) missing_curvatures.c -o missing_curvatures
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(DLCFLAGS) $<
 
 clean:
 	-$(RM) *.o $(ALL)
-	-$(RM) missing_curvatures
