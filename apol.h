@@ -3,6 +3,7 @@
 /*SECTION 1: BASIC METHODS*/
 GEN apol_admissiblesets();
 int apol_check(GEN v, long prec);
+long apol_chi(GEN v);
 GEN apol_complete(GEN a, GEN b, GEN c, long prec);
 long apol_extdepth(GEN v, long prec);
 GEN apol_matrices();
@@ -11,7 +12,7 @@ GEN apol_move(GEN v, GEN command, long prec);
 GEN apol_qf(GEN v, int ind);
 GEN apol_red(GEN v, int seq, long prec);
 GEN apol_red_partial(GEN v, long maxsteps, long prec);
-GEN apol_type(GEN v);
+GEN apol_type(GEN v, int chi);
 
 /*SECTION 2: CREATION OF ACPS*/
 GEN apol_make(GEN q, int pos, int red);

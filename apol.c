@@ -99,6 +99,32 @@ apol_check_primitive(GEN v)
   return gc_int(av, equali1(g));
 }
 
+/*Returns chi of the ACP. We start by finding a pair of coprime tangent circles.*/
+long
+apol_chi(GEN v)
+{
+  pari_sp av = avma;
+  if (!apol_check_primitive(v)) pari_err_TYPE("must be a primitive integral packing", v);
+  GEN vcop = shallowcopy(v);
+  GEN a = gel(vcop, 1), b;
+  if (gequal0(a)) return gc_long(av, 1);/*Strip packing is [0, 0, 1, 1].*/
+  if (equali1(gcdii(a, gel(vcop, 2)))) b = gel(vcop, 2);
+  else if (equali1(gcdii(a, gel(vcop, 3)))) b = gel(vcop, 3);
+  else if (equali1(gcdii(a, gel(vcop, 4)))) b = gel(vcop, 4);
+  else {/*Do S3 and S4 until we get a coprime one.*/
+	for (;;) {
+	  apol_move_1i(vcop, 3);
+	  if (equali1(gcdii(a, gel(vcop, 3)))) { b = gel(vcop, 3); break; }
+	  apol_move_1i(vcop, 4);
+	  if (equali1(gcdii(a, gel(vcop, 4)))) { b = gel(vcop, 4); break; }
+	}
+  }
+  long m4 = Mod4(a);/*a can be negative so need Mod4 not mod4.*/
+  if (m4 <= 1) return gc_long(av, kronecker(b, a));
+  else if (m4 == 2) return gc_long(av, kronecker(negi(b), shifti(a, -1)));
+  return gc_long(av, kronecker(shifti(b, 1), a));
+}
+
 /*Given three curvatures, finds the Descartes quadruple containing them. We pick the smaller of the two possible curvatures, and sort the output.*/
 GEN
 apol_complete(GEN a, GEN b, GEN c, long prec)
@@ -409,14 +435,24 @@ apol_red_partial0(GEN v, long maxsteps, void (*move1)(GEN, int), int (*cmp)(GEN,
   return gerepilecopy(av, v);
 }
 
-/*Returns the "type" of v, i.e. the number of resiudes modulo 24 and the smallest residue coprime to 6, which uniquely identifies it.*/
+/*Returns the "type" of v, i.e. the number of resiudes modulo 24 and the smallest residue coprime to 6, which uniquely identifies it. If chi = 1, also includes the chi value.*/
 GEN
-apol_type(GEN v)
+apol_type(GEN v, int chi)
 {
   pari_sp av = avma;
   GEN m24 = apol_mod24(v);
   long second = itos(gel(m24, 2));/*Uniquely identified by the second element*/
   set_avma(av);
+  if (chi) {
+	switch (second) {
+      case 1: return mkvec3s(6, 1, apol_chi(v));
+	  case 3: return mkvec3s(8, 11, apol_chi(v));
+	  case 4: return mkvec3s(6, 13, apol_chi(v));
+	  case 5: return mkvec3s(6, 5, apol_chi(v));
+	  case 6: return mkvec3s(8, 7, apol_chi(v));
+	  case 8: return mkvec3s(6, 17, apol_chi(v));
+    }
+  }
   switch (second) {
     case 1: return mkvec2s(6, 1);
 	case 3: return mkvec2s(8, 11);
