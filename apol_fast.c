@@ -145,7 +145,7 @@ findmissing(long B, long x[], long res[], long lenres, int families)
     quarfams = (unsigned long **)pari_malloc(lenres * sizeof(unsigned long *));
 	findfamilies(B, quadfams, quarfams, rclass, res, lenres, bitswap);/*Find and remove the families.*/
   }
-  char fname[125];
+  char fname[200];
   int pos = 0;
   DIR* dir = opendir("missing");
   if (dir) {
@@ -161,7 +161,7 @@ findmissing(long B, long x[], long res[], long lenres, int families)
   }
   if (x[0] < 0) pos += sprintf(&fname[pos], "m%ld_", -x[0]);
   else pos += sprintf(&fname[pos], "%ld_", x[0]);
-  pos += sprintf(&fname[pos], "%ld_%ld_%ld_%ld", x[1], x[2], x[3], B);
+  pos += sprintf(&fname[pos], "%ld_%ld_%ld_1-to-%ld", x[1], x[2], x[3], B);
   if (families) pos += sprintf(&fname[pos], "_remqq");
   pos += sprintf(&fname[pos], ".dat");
   FILE *F;
@@ -531,8 +531,8 @@ apol_missing_load(GEN v, GEN B, int family)
   else fname = pari_sprintf("%Pd", gel(v, 1));
   long i;
   for (i = 2; i <= 4; i++) fname = pari_sprintf("%s_%Pd", fname, gel(v, i));
-  if (family) fname = pari_sprintf("%s_%Pd_remqq.dat", fname, B);
-  else fname = pari_sprintf("%s_%Pd.dat", fname, B);
+  if (family) fname = pari_sprintf("%s_1-to-%Pd_remqq.dat", fname, B);
+  else fname = pari_sprintf("%s_1-to-%Pd.dat", fname, B);
   if (pari_is_dir("missing")) {
     fname = pari_sprintf("missing/%s", fname);
   }

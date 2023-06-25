@@ -100,9 +100,9 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 	/*SECTION 1: MISSING CURVATURES*/
 		/*1: GP ACCESS*/
 		install(apol_missing,"GGD1,L,D1,L,");
-		addhelp(apol_missing,"apol_missing(v, B, {family=1}, {load=1}): saves all the curvatures up to B in the correct residue classes modulo 24 but are missing from the packing to a file in the folder 'missing'. The curvatures are separated by residue, each on a different line. If family=1, we also find the families of the form ax^2, remove those numbers, and print the modulo 24 residue classes and which families were found for each on the first two lines. If load=1, we load this output into a vector in gp. Note that if B is small, we may find families that do not exist.");
+		addhelp(apol_missing,"apol_missing(v, B, {remobstruct=1}, {load=1}): saves all the curvatures up to B in the correct residue classes modulo 24 but are missing from the packing to a file in the folder 'missing'. The curvatures are separated by residue, each on a different line. If remobstruct=1, we also find obstructions of the form ax^2 and ax^4, and remove those numbers. We then print the admissible set modulo 24, the quadratic obstructions found, and then the quartic obstructions found on the first three lines. If load=1, we load this output into a vector in gp. Note that if B is small, we may find obstructions that do not exist.");
 		install(apol_missing_load,"GGD1,L,");
-		addhelp(apol_missing_load,"apol_missing_load(v, B, {family=1}): loads the saved curvature data. If family=1, the first entry is the vector of modulo 24 residues, then the corresponding families found in each class, then the missing curvatures that are not in one of the families. Creates an error if the data does not exist.");
+		addhelp(apol_missing_load,"apol_missing_load(v, B, {family=1}): loads the saved curvature data. If family=1, the first entry is the vector of modulo 24 residues, then the quadratic obstructions found in each class, then the quartic obstructions found in each class, then the missing curvatures that are not in one of the obstruction classes. Creates an error if the data does not exist.");
 
 
 /*data.c*/
