@@ -150,7 +150,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(mobius,"mobius(M, x): returns the image of x under the Mobius map M, which is a 2x2 invertible matrix. Allows points (including oo), circles, and lines as input. If the return is a circle, the curvature will always be positive.");
 
 /*quadratic.c*/
-	addhelp(quadratic,"Discriminant methods:\n\tdisclist, isdisc.\n\nBasic quadratic form methods:\n\tqfbapply, qfbapplyL, qfbapplyR, qfbapplyS, idealtoqfb, qfbtoideal.\n\nClass groups:\n\tlexind, qfbnarrow, qfbnarrowlex.");
+	addhelp(quadratic,"Discriminant methods:\n\tdisclist, isdisc.\n\nBasic quadratic form methods:\n\tqfbapply, qfbapplyL, qfbapplyR, qfbapplyS, idealtoqfb, qfbtoideal, qfbsos.\n\nClass groups:\n\tlexind, qfbnarrow, qfbnarrowlex.");
 
 	/*SECTION 1: DISCRIMINANT METHODS*/
 		install(disclist,"GGD0,L,D0,G,");
@@ -171,6 +171,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(idealtoqfb,"idealtoqfb(nf, x): given a quadratic number field, returns the primitive integral binary quadratic form corresponding to the fractional ideal x, positive definite if the field is imaginary. We also assume that we are working in the maximal ideal.");
 		install(qfbtoideal,"GG");
 		addhelp(qfbtoideal,"qfbtoideal(nf, q): given a quadratic number field, returns the fractional ideal corresponding to the primitive integral binary quadratic form q (positive definite if the field is imaginary). We also assume that its discriminant is fundamental.");
+		install(qfbsos,"G");
+		addhelp(qfbsos,"qfbsos(q): given a quadratic form of discriminant -4n^2 < 0, writes it as a sum of two squares (ax+by)^2+(cx+dy)^2, returning [a, b;c, d].");
 		
 	/*SECTION 3: CLASS GROUP*/
 		install(lexind,"GL");

@@ -105,6 +105,8 @@ GEN qfbapplyR(GEN q, GEN n);
 GEN qfbapplyS(GEN q);
 GEN idealtoqfb(GEN nf, GEN x);
 GEN qfbtoideal(GEN nf, GEN q);
+GEN qfbsos(GEN q);
+GEN qfbsos1(GEN q);
 
 /*SECTION 3: CLASS GROUP*/
 GEN lexind(GEN v, long ind);

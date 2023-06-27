@@ -174,6 +174,47 @@ nf_get_rootD(GEN nf, GEN D)
   return gerepilecopy(av, y);
 }
 
+/*Given a positive definite QFB of disc -4n^2 < 0, returns the ZM M=[a, b;c, d] such that q(x, y)=(ax+by)^2+(cx+dy)^2*/
+GEN
+qfbsos(GEN q)
+{
+  pari_sp av = avma;
+  if (typ(q) != t_QFB) pari_err_TYPE("not a Qfb", q);
+  GEN D = gel(q, 4), r;
+  if (signe(D) >= 0) pari_err_TYPE("q must have discriminant -4n^2 < 0", q);
+  GEN n = sqrtremi(negi(D), &r);
+  if (!isintzero(r)) pari_err_TYPE("q must have discriminant -4n^2 < 0", q);
+  if (Mod2(n)) pari_err_TYPE("q must have discriminant -4n^2 < 0", q);
+  return gerepileupto(av, qfbsos1(q));
+}
+
+/*qfb_sos, but do not check the inputs are correct.*/
+GEN
+qfbsos1(GEN q)
+{
+  pari_sp av = avma;
+  GEN triv = mkqfb(gen_1, gen_0, gen_1, stoi(-4));
+  GEN A = gel(q, 1), Bo2 = shifti(gel(q, 2), -1), C = gel(q, 3);
+  GEN ac = qfbsolve(triv, A, 3);/*a^2+c^2=A*/
+  GEN bd = qfbsolve(triv, C, 3);/*b^2+d^2=C*/
+  long i, j, lac = lg(ac), lbd = lg(bd);
+  for (i = 1; i < lac; i++) {
+	GEN a = gmael(ac, i, 1), c = gmael(ac, i, 2);
+	for (j = 1; j < lbd; j++) {
+	  GEN b = gmael(bd, j, 1), d = gmael(bd, j, 2);
+	  GEN sm = addii(mulii(a, b), mulii(c, d));/*sm=Bo2*/
+	  if (equalii(sm, Bo2)) return gerepilecopy(av, mkmat22(a, b, c, d));
+	  if (equalii(negi(sm), Bo2)) return gerepilecopy(av, mkmat22(a, negi(b), c, negi(d)));/*For the automorphism.*/
+	  sm = addii(mulii(a, d), mulii(c, negi(b)));/*[b, d] -> [d, -b] is one automorphism not present*/
+	  if (equalii(sm, Bo2)) return gerepilecopy(av, mkmat22(a, d, c, negi(b)));
+	  if (equalii(negi(sm), Bo2)) return gerepilecopy(av, mkmat22(a, negi(d), c, b));
+	  
+	}
+  }
+  pari_err(e_MISC, "Was not able to write q as a sum of two squares of linear integer terms. Does q have discriminant -4n^2?");
+  return gc_const(av, gen_0);
+}
+
 
 /*SECTION 3: CLASS GROUP*/
 
