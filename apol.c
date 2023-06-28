@@ -101,9 +101,9 @@ apol_check_primitive(GEN v)
   return gc_int(av, equali1(g));
 }
 
-/*Returns chi of the ACP. We start by finding a pair of coprime tangent circles.*/
+/*Returns chi_2 of the ACP. We start by finding a pair of coprime tangent circles.*/
 long
-apol_chi(GEN v)
+apol_chi2(GEN v)
 {
   pari_sp av = avma;
   if (!apol_check_primitive(v)) pari_err_TYPE("must be a primitive integral packing", v);
@@ -479,7 +479,7 @@ apol_red_partial0(GEN v, long maxsteps, void (*move1)(GEN, int), int (*cmp)(GEN,
   return gerepilecopy(av, v);
 }
 
-/*Returns the "type" of v, i.e. the number of resiudes modulo 24 and the smallest residue coprime to 6, which uniquely identifies it. If chi = 1, also includes the chi value.*/
+/*Returns the "type" of v, i.e. the number of resiudes modulo 24 and the smallest residue coprime to 6, which uniquely identifies it. If chi = 1, also includes the chi2 value, and if chi=2, includes the chi4 value (0 if not (6, 1) or (6, 17) packings).*/
 GEN
 apol_type(GEN v, int chi)
 {
@@ -487,14 +487,24 @@ apol_type(GEN v, int chi)
   GEN m24 = apol_mod24(v);
   long second = itos(gel(m24, 2));/*Uniquely identified by the second element*/
   set_avma(av);
-  if (chi) {
+  if (chi == 1) {
 	switch (second) {
-      case 1: return mkvec3s(6, 1, apol_chi(v));
-	  case 3: return mkvec3s(8, 11, apol_chi(v));
-	  case 4: return mkvec3s(6, 13, apol_chi(v));
-	  case 5: return mkvec3s(6, 5, apol_chi(v));
-	  case 6: return mkvec3s(8, 7, apol_chi(v));
-	  case 8: return mkvec3s(6, 17, apol_chi(v));
+      case 1: return mkvec3s(6, 1, apol_chi2(v));
+	  case 3: return mkvec3s(8, 11, apol_chi2(v));
+	  case 4: return mkvec3s(6, 13, apol_chi2(v));
+	  case 5: return mkvec3s(6, 5, apol_chi2(v));
+	  case 6: return mkvec3s(8, 7, apol_chi2(v));
+	  case 8: return mkvec3s(6, 17, apol_chi2(v));
+    }
+  }
+  if (chi == 2) {
+	switch (second) {
+      case 1: return gerepilecopy(av, mkvec4(stoi(6), gen_1, stoi(apol_chi2(v)), apol_chi4(v)));
+	  case 3: return mkvec4s(8, 11, apol_chi2(v), 0);
+	  case 4: return mkvec4s(6, 13, apol_chi2(v), 0);
+	  case 5: return mkvec4s(6, 5, apol_chi2(v), 0);
+	  case 6: return mkvec4s(8, 7, apol_chi2(v), 0);
+	  case 8: return gerepilecopy(av, mkvec4(stoi(6), stoi(17), stoi(apol_chi2(v)), apol_chi4(v)));
     }
   }
   switch (second) {

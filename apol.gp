@@ -5,17 +5,17 @@ parigp_version=version();
 apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*apol.c*/
-	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_chi, apol_chi4, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_qf, apol_red, apol_red_partial, apol_type.");
+	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_chi2, apol_chi4, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_qf, apol_red, apol_red_partial, apol_type.");
 	
 	/*SECTION 1: BASIC METHODS*/
 		install(apol_admissiblesets,"",,apol_library);
 		addhelp(apol_admissiblesets,"apol_admissiblesets(): returns the possible classes modulo 24 of an Apollonian circle packing.");
 		install(apol_check,"iGp");
 		addhelp(apol_check,"apol_check(v): retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2. If the terms are inexact, we only check up to tolerance (half of the precision).");
-		install(apol_chi,"lG");
-		addhelp(apol_chi,"apol_chi(v): returns the chi value of the packing, which determines which quadratic obstruction the packing has.");
+		install(apol_chi2,"lG");
+		addhelp(apol_chi2,"apol_chi2(v): returns the chi_2 value of the packing, which determines which quadratic obstruction the packing has.");
 		install(apol_chi4,"G");
-		addhelp(apol_chi4,"apol_chi4(v): returns the chi_4 value of the packing, which determines which quartic obstructions the packing has. Only valid for types (6, 1) and (6, 17).");
+		addhelp(apol_chi4,"apol_chi4(v): returns the chi_4 value of the packing, which determines which quartic obstructions the packing has. Only valid for types (6, 1) and (6, 17); otherwise there will be no meaning..");
 		install(apol_complete,"GDGDGp");
 		addhelp(apol_complete,"apol_complete(a, {b}, {c}): given three curvatures, returns the Descartes quadruple containing them, choosing the one with minimal curvature, and sorting the result. Can pass a as a length 3 vector, or as three separate inputs.");
 		install(apol_extdepth,"lGp");
@@ -32,8 +32,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_red,"apol_red(v, {seq=0}): reduces v and returns the reduction. If seq=1, also returns a Vecsmall of the sequence of indices used to reach the reduced form. Note that this sequence reads from left to right, and is compatible with apol_move. If the packing is full-plane, the output will be meaningless as eventually floating point errors will add up.");
 		install(apol_red_partial,"GLp");
 		addhelp(apol_red_partial,"apol_red_partial(v, maxsteps): reduce v, doing at most maxsteps. In particular, the returned quadruple may not be reduced!");
-		install(apol_type,"GD1,L,");
-		addhelp(apol_type,"apol_type(v, {chi=1}): returns the type of the primitive Apollonian circle packing v, i.e. the pair (a, b) where a is how many residues modulo 24 are hit, and b is the smallest residue coprime to 6, which uniquely determines the admissible set. If chi=1, we return the extended type, where the third entry is the chi value, determining the set of quadratic obstructions.");
+		install(apol_type,"GD2,L,");
+		addhelp(apol_type,"apol_type(v, {chi=2}): returns the type of the primitive Apollonian circle packing v, i.e. the pair (a, b) where a is how many residues modulo 24 are hit, and b is the smallest residue coprime to 6, which uniquely determines the admissible set. If chi>=1, the third entry is the chi_2 value (determines the quadratic obstructions). If chi=2, the fourth entry is the chi_4 value, which is 0 unless the packing has type (6, 1) or (6, 17). In those cases, it determines the quartic obstructions.");
 
 	/*SECTION 2: CREATION OF ACPS*/
 		install(apol_make,"GD1,L,D1,L,");
