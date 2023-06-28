@@ -14,7 +14,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_check,"apol_check(v): retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2. If the terms are inexact, we only check up to tolerance (half of the precision).");
 		install(apol_chi,"lG");
 		addhelp(apol_chi,"apol_chi(v): returns the chi value of the packing, which determines which quadratic obstruction the packing has.");
-		install(apol_chi4,"lG");
+		install(apol_chi4,"G");
 		addhelp(apol_chi4,"apol_chi4(v): returns the chi_4 value of the packing, which determines which quartic obstructions the packing has. Only valid for types (6, 1) and (6, 17).");
 		install(apol_complete,"GDGDGp");
 		addhelp(apol_complete,"apol_complete(a, {b}, {c}): given three curvatures, returns the Descartes quadruple containing them, choosing the one with minimal curvature, and sorting the result. Can pass a as a length 3 vector, or as three separate inputs.");

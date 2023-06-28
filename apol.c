@@ -152,16 +152,21 @@ apol_chi4(GEN v)
 		  break;
 		}
 	  }
-	  if (!beta) break;
+	  if (beta) break;
     }
   }
   beta = simplify(beta);/*In case we did 4+0*I.*/
-  ulong r = Mod16(a);
-  if (r % 8 <= 1) return gerepileuptoleaf(av, quarticresidue(beta, a));
-  if (r == 4) return gerepileuptoleaf(av, quarticresidue(beta, shifti(a, -2)));
-  if (r == 12) return gerepileuptoleaf(av, gneg(quarticresidue(beta, shifti(a, -2))));
-  pari_err_TYPE("The circle packing must have type (6, 1) or (6, 17).", v);
-  return gc_const(av, gen_0);
+  GEN nprime;
+  long e = Z_lvalrem(a, 2, &nprime), pw;/*nprime = odd part*/
+  if (e) beta = gaussian_makeprimary(beta, &pw);/*Needs to be primary.*/
+  GEN qr = quarticresidue(beta, nprime);
+  if (!e) return gerepileuptoleaf(av, qr);/*n is odd.*/
+  if (e == 2) {
+	if (Mod4(nprime) == 1) return gerepileuptoleaf(av, qr);/*n==4(8), n'==1(4).*/
+	return gerepileuptoleaf(av, gneg(qr));/*n==4(8), n'==3(4).*/
+  }
+  if (Mod8(mulis(imag_i(beta), e))) return gerepileuptoleaf(av, gneg(qr));/*n==0(8)*/
+  return gerepileuptoleaf(av, qr);
 }
 
 /*Given three curvatures, finds the Descartes quadruple containing them. We pick the smaller of the two possible curvatures, and sort the output.*/
