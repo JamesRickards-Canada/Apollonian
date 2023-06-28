@@ -20,7 +20,9 @@ static GEN apol_red_partial0(GEN v, long maxsteps, void (*move1)(GEN, int), int 
 /*SECTION 2: CREATION OF ACPS*/
 static GEN apol_make_n(GEN q, GEN n, int red);
 
-
+static long quarticresidue_int(GEN x, GEN y);
+static GEN gaussian_makeodd(GEN x, long *pwr);
+static GEN gaussian_makeprimary(GEN x, long *pwr);
 static int ismp(GEN x);
 
 
@@ -107,7 +109,7 @@ apol_chi(GEN v)
   if (!apol_check_primitive(v)) pari_err_TYPE("must be a primitive integral packing", v);
   GEN vcop = shallowcopy(v);
   GEN a = gel(vcop, 1), b;
-  if (gequal0(a)) return gc_long(av, 1);/*Strip packing is [0, 0, 1, 1].*/
+  if (isintzero(a)) return gc_long(av, 1);/*Strip packing has chi_2 = 1.*/
   if (equali1(gcdii(a, gel(vcop, 2)))) b = gel(vcop, 2);
   else if (equali1(gcdii(a, gel(vcop, 3)))) b = gel(vcop, 3);
   else if (equali1(gcdii(a, gel(vcop, 4)))) b = gel(vcop, 4);
@@ -123,6 +125,43 @@ apol_chi(GEN v)
   if (m4 <= 1) return gc_long(av, kronecker(b, a));
   else if (m4 == 2) return gc_long(av, kronecker(negi(b), shifti(a, -1)));
   return gc_long(av, kronecker(shifti(b, 1), a));
+}
+
+/*Returns chi_4 of the ACP of type (6, 1) or (6, 17).*/
+GEN
+apol_chi4(GEN v)
+{
+  pari_sp av = avma;
+  GEN a = gel(v, 1);
+  if (isintzero(a)) return gen_1;/*Strip packing has chi_4 = 1.*/
+  GEN q = qfbred(apol_qf(v, 1));
+  GEN sos = qfbsos1(q), beta = NULL;
+  if (equali1(gcdii(a, gel(q, 1)))) beta = mkcomplex(gcoeff(sos, 1, 1), gcoeff(sos, 2, 1));
+  else if (equali1(gcdii(a, gel(q, 3)))) beta = mkcomplex(gcoeff(sos, 1, 2), gcoeff(sos, 2, 2));
+  else {
+    long x, y;
+    for (x = 1; ; x++) {
+	  for (y = 1; y <= x; y++) {
+		GEN term2 = mulis(addii(mulis(gel(q, 2), x), mulis(gel(q, 3), y)), y);/*(Bx+Cy)*y*/
+		GEN term1 = mulis(gel(q, 1), x * x);/*Ax^2*/
+		GEN term = addii(term1, term2);
+		if (equali1(gcdii(a, term))) {
+		  GEN concoef = addii(mulis(gcoeff(sos, 1, 1), x), mulis(gcoeff(sos, 1, 2), y));
+		  GEN Icoef = addii(mulis(gcoeff(sos, 2, 1), x), mulis(gcoeff(sos, 2, 2), y));
+		  beta = mkcomplex(concoef, Icoef);
+		  break;
+		}
+	  }
+	  if (!beta) break;
+    }
+  }
+  beta = simplify(beta);/*In case we did 4+0*I.*/
+  ulong r = Mod16(a);
+  if (r % 8 <= 1) return gerepileuptoleaf(av, quarticresidue(beta, a));
+  if (r == 4) return gerepileuptoleaf(av, quarticresidue(beta, shifti(a, -2)));
+  if (r == 12) return gerepileuptoleaf(av, gneg(quarticresidue(beta, shifti(a, -2))));
+  pari_err_TYPE("The circle packing must have type (6, 1) or (6, 17).", v);
+  return gc_const(av, gen_0);
 }
 
 /*Given three curvatures, finds the Descartes quadruple containing them. We pick the smaller of the two possible curvatures, and sort the output.*/
@@ -1353,3 +1392,99 @@ ismp(GEN x)
   if (t == t_REAL) return 2;
   return 0;
 }
+
+/*Returns the quartic residue symbol [x/y]=i^e for coprime Gaussian integers x, y with y odd. Does not verify that x, y are coprime.*/
+GEN
+quarticresidue(GEN x, GEN y)
+{
+  long tx = typ(x);
+  if (tx == t_COMPLEX) {
+	if (typ(gel(x, 1)) != t_INT || typ(gel(x, 2)) != t_INT) pari_err_TYPE("x and y must be Gaussian integers", x);
+  }
+  else if (tx != t_INT) pari_err_TYPE("x and y must be Gaussian integers", x);
+  long ty = typ(y);
+  if (ty == t_COMPLEX) {
+	if (typ(gel(y, 1)) != t_INT || typ(gel(y, 2)) != t_INT) pari_err_TYPE("x and y must be Gaussian integers", y);
+  }
+  else if (ty != t_INT) pari_err_TYPE("x and y must be Gaussian integers", y);
+  long pow = quarticresidue_int(x, y);
+  if (!pow) return gen_1;
+  if (pow == 1) return mkcomplex(gen_0, gen_1);
+  if (pow == 2) return gen_m1;
+  return mkcomplex(gen_0, gen_m1);
+}
+
+/*Returns 0<=e<=3 where the quartic residue symbol [x/y]=i^e for coprime Gaussian integers x, y with y odd. Does not check these things.*/
+static long
+quarticresidue_int(GEN x, GEN y)
+{
+  pari_sp av = avma;
+  GEN sixteen = stoi(16);
+  long shift;
+  y = gaussian_makeprimary(y, &shift);
+  long pwr = 0;/*Tracks the power of i.*/
+  for (;;) {
+	GEN a = real_i(y), b = imag_i(y);
+	GEN z = gdiv(x, y);
+	GEN w = mkcomplex(ground(real_i(z)), ground(imag_i(z)));
+	GEN delta = gsub(z, w);/*x/y=w+delta with w in Z[i].*/
+	if (gequal0(delta)) return gc_long(av, pwr);/*Done, ASSUMING coprime.*/
+	x = gmul(delta, y);/*Reduce x mod y to something smaller.*/
+	x = gaussian_makeodd(x, &shift);
+	if (shift) {/*Update pwr, divided by (1+i)^shift*/
+		GEN t = Fp_sub(a, Fp_add(b, Fp_add(Fp_sqr(b, sixteen), gen_1, sixteen), sixteen), sixteen);/*a-b-b^2-1*/
+		pwr += (Mod16(t) >> 2) * shift;/*Add the power t/4*/
+	}
+	x = gaussian_makeprimary(x, &shift);
+	if (shift) {/*Update pwr, divided by i^shift*/
+	  pwr += (Mod8(subsi(1, a)) >> 1) * shift;
+	}
+	if (Mod4(b) && Mod4(imag_i(x))) pwr += 2;/*x and y both are == (3, 2) mod 4*/
+	GEN t = x;
+	x = y;
+	y = t;
+	pwr = pwr % 4;
+  }
+}
+
+/*Assuming x=a+bi is a non-zero t_COMPLEX in Z[i], divides by (1+i)^k to make it odd, and stores k mod 4 in pwr. Leaves garbage.*/
+static GEN
+gaussian_makeodd(GEN x, long *pwr)
+{
+  GEN a = real_i(x), b = imag_i(x);
+  long pw = 0;
+  while (Mod2(a) == Mod2(b)) {
+	GEN t = a;
+	a = shifti(addii(a, b), -1);
+	b = shifti(subii(b, t), -1);
+	pw++;
+  }
+  *pwr = pw % 4;
+  return mkcomplex(a, b);
+}
+
+/*Assuming x=a+bi is a t_COMPLEX in Z[i], updates it to its primary associate, and stores the negative of the power of i (mod 4) we multiplied by in pwr. Leaves garbage.*/
+static GEN
+gaussian_makeprimary(GEN x, long *pwr)
+{
+  GEN a = real_i(x), b = imag_i(x);
+  int a4 = Mod4(a), b4 = Mod4(b);
+  switch (a4) {
+	case 0:
+	  if (b4 == 1) { *pwr = 1; return mkcomplex(b, negi(a)); }
+	  *pwr = 3;
+	  return mkcomplex(negi(b), a);/*b==3(4)*/
+	case 1:
+	  if (!b4) { *pwr = 0; return x; }
+	  *pwr = 2;
+	  return mkcomplex(negi(a), negi(b));/*b==2(4)*/
+	case 2:
+	  if (b4 == 1) { *pwr = 3; return mkcomplex(negi(b), a); }
+	  *pwr = 1;
+	  return mkcomplex(b, negi(a));/*b==3(4)*/
+  }/*a==3(4)*/
+  if (b4) { *pwr = 0; return x; }
+  *pwr = 2;
+  return mkcomplex(negi(a), negi(b));/*b==0(4)*/
+}
+

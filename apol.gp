@@ -5,7 +5,7 @@ parigp_version=version();
 apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*apol.c*/
-	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_chi, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_qf, apol_red, apol_red_partial, apol_type.");
+	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_chi, apol_chi4, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_qf, apol_red, apol_red_partial, apol_type.");
 	
 	/*SECTION 1: BASIC METHODS*/
 		install(apol_admissiblesets,"",,apol_library);
@@ -14,6 +14,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_check,"apol_check(v): retuns 1 if this is a Descartes quadruple, i.e. if 2(a^2+b^2+c^2+d^2)=(a+b+c+d)^2. If the terms are inexact, we only check up to tolerance (half of the precision).");
 		install(apol_chi,"lG");
 		addhelp(apol_chi,"apol_chi(v): returns the chi value of the packing, which determines which quadratic obstruction the packing has.");
+		install(apol_chi4,"lG");
+		addhelp(apol_chi4,"apol_chi4(v): returns the chi_4 value of the packing, which determines which quartic obstructions the packing has. Only valid for types (6, 1) and (6, 17).");
 		install(apol_complete,"GDGDGp");
 		addhelp(apol_complete,"apol_complete(a, {b}, {c}): given three curvatures, returns the Descartes quadruple containing them, choosing the one with minimal curvature, and sorting the result. Can pass a as a length 3 vector, or as three separate inputs.");
 		install(apol_extdepth,"lGp");
@@ -93,6 +95,9 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install("apol_makeall_small_maxsteps","GLp",,apol_library);
 		addhelp(apol_makeall_small_maxsteps,"Input n, maxsteps.\n Does apol_makeall_small, but does NOT reduce the forms; instead, we reduce them by at most maxsteps only. We then return the raw data of the smallest element (without negating the curvature).");
 		
+	
+		install(quarticresidue,"GG");
+		addhelp(quarticresidue,"quarticresidue(x, y): returns the quartic residue symbol [x/y] for the coprime Gaussian integers x, y with y odd. Does not check that y is odd or that x and y are coprime.");
 
 
 /*apol_fast.c*/

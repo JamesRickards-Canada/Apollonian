@@ -4,6 +4,7 @@
 GEN apol_admissiblesets();
 int apol_check(GEN v, long prec);
 long apol_chi(GEN v);
+GEN apol_chi4(GEN v);
 GEN apol_complete(GEN a, GEN b, GEN c, long prec);
 long apol_extdepth(GEN v, long prec);
 GEN apol_matrices();
@@ -48,6 +49,8 @@ GEN apol_words(int d);
 GEN apol_makeall_extdepths(GEN n, long prec);
 GEN apol_makeall_small(GEN n, int red, long prec);
 GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
+
+GEN quarticresidue(GEN x, GEN y);
 
 /*apol_fast.c*/
 
