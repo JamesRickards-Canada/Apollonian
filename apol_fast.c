@@ -16,6 +16,7 @@
 
 /*1: C CODE*/
 static void findmissing(long B, long x[], long res[], long lenres, int families);
+static void missing_tofile(long blocks, unsigned long **rclass, unsigned long **quadfams, unsigned long **quarfams, long B, long x[], long res[], long lenres, int families);
 static void findfamilies(long B, unsigned long **quadfams, unsigned long **quarfams, unsigned long **rclass, long res[], long lenres, unsigned long *bitswap);
 static int removequadratic(long B, unsigned long *curvs, unsigned long *bitswap, long u, long cop);
 static int removequartic(long B, unsigned long *curvs, unsigned long *bitswap, long c, long cop);
@@ -208,6 +209,26 @@ findmissing(long B, long x[], long res[], long lenres, int families)
     quarfams = (unsigned long **)pari_malloc(lenres * sizeof(unsigned long *));
     findfamilies(B, quadfams, quarfams, rclass, res, lenres, bitswap);/*Find and remove the families.*/
   }
+  missing_tofile(blocks, rclass, quadfams, quarfams, B, x, res, lenres, families);/*Print to file.*/
+  /*Time to free all of the allocated memory.*/
+  if (families) {
+    for (i = 0; i < lenres; i++) { pari_free(quadfams[i]); pari_free(quarfams[i]); }
+    pari_free(quadfams);
+    pari_free(quarfams);
+  }
+  pari_free(swaps);
+  for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
+  pari_free(depthseq);
+  for (i = 0; i < lenres; i++) pari_free(rclass[res[i]]);
+  pari_free(rclass);
+  pari_free(bitswap);
+  return;
+}
+
+/*Prints the found data to a file.*/
+static void
+missing_tofile(long blocks, unsigned long **rclass, unsigned long **quadfams, unsigned long **quarfams, long B, long x[], long res[], long lenres, int families)
+{
   char fname[200];
   int pos = 0;
   DIR* dir = opendir("missing");
@@ -227,6 +248,7 @@ findmissing(long B, long x[], long res[], long lenres, int families)
   pos += sprintf(&fname[pos], "%ld_%ld_%ld_1-to-%ld", x[1], x[2], x[3], B);
   if (families) pos += sprintf(&fname[pos], "_remqq");
   pos += sprintf(&fname[pos], ".dat");
+  long i;
   FILE *F;
   F = fopen(fname, "w");
   if (families) {/*Print the residue classes and the families found.*/
@@ -279,19 +301,6 @@ findmissing(long B, long x[], long res[], long lenres, int families)
     fprintf(F, "]\n");
   }
   fclose(F);
-  /*Time to pari_free all of the allocated memory.*/
-  if (families) {
-    for (i = 0; i < lenres; i++) { pari_free(quadfams[i]); pari_free(quarfams[i]); }
-    pari_free(quadfams);
-    pari_free(quarfams);
-  }
-  pari_free(swaps);
-  for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
-  pari_free(depthseq);
-  for (i = 0; i < lenres; i++) pari_free(rclass[res[i]]);
-  pari_free(rclass);
-  pari_free(bitswap);
-  return;
 }
 
 /*Updates the families found, and updates rclass to have them removed too.*/
