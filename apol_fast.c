@@ -16,10 +16,10 @@
 
 /*1: C CODE*/
 static void findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int families);
+static void missing_update_Bmin(unsigned long **rclass, long Base, unsigned long *bitswap, long curv);
 static void missing_tofile(long blocks, unsigned long **rclass, unsigned long **quadfams, unsigned long **quarfams, long Bmin, long Bmax, long x[], long res[], long lenres, int families);
 static void findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **quarfams, unsigned long **rclass, long res[], long lenres, unsigned long *bitswap);
-static int removequadratic(long Bmin, long Bmax, unsigned long *curvs, unsigned long *bitswap, long u, long cop);
-static int removequartic(long Bmin, long Bmax, unsigned long *curvs, unsigned long *bitswap, long c, long cop);
+static int removefamily(long d, long Bmin, long Bmax, unsigned long *curvs, unsigned long *bitswap, long u, long cop);
 static int iscop(long n, long cop);
 
 /*SECTION 1: MISSING CURVATURES*/
@@ -67,12 +67,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
   }
   for (i = 1; i < 4; i++) {/*Do the first 3 curvatures (ignore the negative one).*/
     if (x[i] < Bmin || x[i] > Bmax) continue;
-	long xshift = x[i] - Base;
-    long b = xshift % 24;
-    long a = xshift / 24;/*xshift=24a+b. b gives the block to insert into, and we need to save "a"*/
-    long v = a % 64;
-    long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
-    rclass[b][u] |= bitswap[v];
+	missing_update_Bmin(rclass, Base, bitswap, x[i]);
   }
   /*We adjust the starting quadruple in case of symmetries: for a+b+c=d, we put d first, and DO NOT flip it on the first iteration. If c=d, we do c, a, c, b, starting with the second one. Until one element of the depth sequence flips the third entry, we do not flip the first one, as they will be (c, c) still. There are two exceptions: [0, 0, 1, 1], and [-1, 2, 2, 3], as they have both types of symmetry. For the secon, we do 2, 3, 2, -1, and start at the third entry. For [0, 0, 1, 1], we do [1, 4, 1, 0] and also start at the third one (we do the first move, since it is forced). The variable sym keeps track of this: -1 means no symmetries, don't worry. 0 means symmetris and we have not moved beyond them, hence we cannot flip the first element. >0 means this is the index of depthseq that the first 3 occurs, so we know when we drop back into the symmetry zone.
   */
@@ -132,14 +127,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
         continue;
       }
       /*Do the bitswap to update the count if we are large enough.*/
-	  long shifted = newc - Base;
-	  if (shifted > 0) {
-        long b = shifted % 24;
-        long a = shifted / 24;/*shifted=24a+b. b gives the block to insert into, and we need to save "a"*/
-        long v = a % 64;
-        long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
-        rclass[b][u] |= bitswap[v];
-	  }
+	  missing_update_Bmin(rclass, Base, bitswap, newc);
       for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
@@ -180,14 +168,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
       long newc = (apbpc << 1) - depthseq[lastind][cind];/*2(a+b+c)-d, the new curvature.*/
       if (newc > Bmax) continue;/*Too big! go back.*/
       /*Do the bitswap to update the count.*/
-	  long shifted = newc - Base;
-	  if (shifted > 0) {
-        long b = shifted % 24;
-        long a = shifted / 24;/*shifted=24a+b. b gives the block to insert into, and we need to save "a"*/
-        long v = a % 64;
-        long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
-        rclass[b][u] |= bitswap[v];
-      }
+	  missing_update_Bmin(rclass, Base, bitswap, newc);
 	  for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
@@ -233,6 +214,19 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
   pari_free(rclass);
   pari_free(bitswap);
   return;
+}
+
+/*Updates rclass with the new curvature, assuming a Bmin*/
+static void
+missing_update_Bmin(unsigned long **rclass, long Base, unsigned long *bitswap, long curv)
+{
+  long shifted = curv - Base;
+  if (shifted <= 0) return;
+  long b = shifted % 24;
+  long a = shifted / 24;/*shifted=24a+b. b gives the block to insert into, and we need to save "a"*/
+  long v = a % 64;
+  long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
+  rclass[b][u] |= bitswap[v];
 }
 
 /*Prints the found data to a file.*/
@@ -325,38 +319,38 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
       case 0:
         quadfams[i] = (unsigned long *)pari_malloc(5 * sizeof(unsigned long));/*Up to 4 families.*/
         fampos = 1;
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 24, 1)) {/*We have one family!*/
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 24, 1)) {/*We have one family!*/
           quadfams[i][fampos] = 24;
           fampos++;
         }
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 48, 1)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 48, 1)) {
           quadfams[i][fampos] = 48;
           fampos++;
         }
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 72, 1)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 72, 1)) {
           quadfams[i][fampos] = 72;
           fampos++;
         }
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 144, 1)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 144, 1)) {
           quadfams[i][fampos] = 144;
           fampos++;
         }
         quadfams[i][0] = fampos - 1;/*The size.*/
         quarfams[i] = (unsigned long *)pari_malloc(5 * sizeof(unsigned long));/*Up to 4 families.*/
         fampos = 1;
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 144, 1)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 144, 1)) {
           quarfams[i][fampos] = 144;
           fampos++;
         }
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 576, 1)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 576, 1)) {
           quarfams[i][fampos] = 576;
           fampos++;
         }
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 1296, 1)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 1296, 1)) {
           quarfams[i][fampos] = 1296;
           fampos++;
         }
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 5184, 1)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 5184, 1)) {
           quarfams[i][fampos] = 5184;
           fampos++;
         }
@@ -364,13 +358,13 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
         continue;
       case 1:
         quadfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 1, 6)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 1, 6)) {
           quadfams[i][1] = 1;
           quadfams[i][0] = 1;
         }
         else quadfams[i][0] = 0;
         quarfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 1, 6)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 1, 6)) {
           quarfams[i][1] = 1;
           quarfams[i][0] = 1;
         }
@@ -378,7 +372,7 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
         continue;
       case 2:
         quadfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 2, 6)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 2, 6)) {
           quadfams[i][1] = 2;
           quadfams[i][0] = 1;
         }
@@ -388,7 +382,7 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
         continue;
       case 3:
         quadfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 3, 2)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 3, 2)) {
           quadfams[i][1] = 3;
           quadfams[i][0] = 1;
         }
@@ -398,13 +392,13 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
         continue;
       case 4:
         quadfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 4, 6)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 4, 6)) {
           quadfams[i][1] = 4;
           quadfams[i][0] = 1;
         }
         else quadfams[i][0] = 0;
         quarfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 4, 6)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 4, 6)) {
           quarfams[i][1] = 4;
           quarfams[i][0] = 1;
         }
@@ -412,7 +406,7 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
         continue;
       case 6:
         quadfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 6, 2)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 6, 2)) {
           quadfams[i][1] = 6;
           quadfams[i][0] = 1;
         }
@@ -422,7 +416,7 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
         continue;
       case 8:
         quadfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 8, 3)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 8, 3)) {
           quadfams[i][1] = 8;
           quadfams[i][0] = 1;
         }
@@ -432,18 +426,18 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
         continue;
       case 9:
         quadfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 9, 2)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 9, 2)) {
           quadfams[i][1] = 9;
           quadfams[i][0] = 1;
         }
         else quadfams[i][0] = 0;
         quarfams[i] = (unsigned long *)pari_malloc(3 * sizeof(unsigned long));/*Up to 2 families.*/
         fampos = 1;
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 9, 2)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 9, 2)) {
           quarfams[i][fampos] = 9;
           fampos++;
         }
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 81, 2)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 81, 2)) {
           quarfams[i][fampos] = 81;
           fampos++;
         }
@@ -452,22 +446,22 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
       case 12:
         quadfams[i] = (unsigned long *)pari_malloc(3 * sizeof(unsigned long));/*Up to 2 families.*/
         fampos = 1;
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 12, 2)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 12, 2)) {
           quadfams[i][fampos] = 12;
           fampos++;
         }
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 36, 2)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 36, 2)) {
           quadfams[i][fampos] = 36;
           fampos++;
         }
         quadfams[i][0] = fampos - 1;
         quarfams[i] = (unsigned long *)pari_malloc(3 * sizeof(unsigned long));/*Up to 2 families.*/
         fampos = 1;
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 36, 2)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 36, 2)) {
           quarfams[i][fampos] = 36;
           fampos++;
         }
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 324, 2)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 324, 2)) {
           quarfams[i][fampos] = 324;
           fampos++;
         }
@@ -475,18 +469,18 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
         continue;
       case 16:
         quadfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 16, 3)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 16, 3)) {
           quadfams[i][1] = 16;
           quadfams[i][0] = 1;
         }
         else quadfams[i][0] = 0;
         quarfams[i] = (unsigned long *)pari_malloc(3 * sizeof(unsigned long));/*Up to 2 families.*/
         fampos = 1;
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 16, 3)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 16, 3)) {
           quarfams[i][fampos] = 16;
           fampos++;
         }
-        if (removequartic(Bmin, Bmax, rclass[res[i]], bitswap, 64, 3)) {
+        if (removefamily(4, Bmin, Bmax, rclass[res[i]], bitswap, 64, 3)) {
           quarfams[i][fampos] = 64;
           fampos++;
         }
@@ -494,7 +488,7 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
         continue;
       case 18:
         quadfams[i] = (unsigned long *)pari_malloc(sizeof(unsigned long) << 1);/*Up to 1 family.*/
-        if (removequadratic(Bmin, Bmax, rclass[res[i]], bitswap, 18, 2)) {
+        if (removefamily(2, Bmin, Bmax, rclass[res[i]], bitswap, 18, 2)) {
           quadfams[i][1] = 18;
           quadfams[i][0] = 1;
         }
@@ -511,9 +505,9 @@ findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **qua
   }
 }
 
-/*Looks through the family n=c*x^2, x coprime to cop, x>0. If they truly are all missing, we return 1, and flip all the bits in curvs.*/
+/*Looks through the family n=c*x^d, x coprime to cop, x>0, and d=2 or 4. If they truly are all missing, we return 1, and flip all the bits in curvs.*/
 static int
-removequadratic(long Bmin, long Bmax, unsigned long *curvs, unsigned long *bitswap, long c, long cop)
+removefamily(long d, long Bmin, long Bmax, unsigned long *curvs, unsigned long *bitswap, long c, long cop)
 {
   long Base = Bmin - 1;
   Base = Base - (Base % 24);/*We started at a multiple of 24 to not ruin the mod stuff.*/
@@ -527,7 +521,9 @@ removequadratic(long Bmin, long Bmax, unsigned long *curvs, unsigned long *bitsw
       if ((curvs[u] | bitswap[v]) == curvs[u]) return 0;/*This value was found, family not missing.*/
 	}
     do {x++;} while (!iscop(x, cop));
-    n = c * x * x;
+	if (d == 4) n = x * x;
+	else n = x;
+	n = c * n * n;
   }
   /*If we make it here, the family exists! We now must redo the above and actually do the swaps.*/
   x = 1;
@@ -541,42 +537,9 @@ removequadratic(long Bmin, long Bmax, unsigned long *curvs, unsigned long *bitsw
       curvs[u] |= bitswap[v];
     }
 	do {x++;} while (!iscop(x, cop));
-    n = c * x * x;
-  }
-  return 1;
-}
-
-/*Looks through the family n=c*x^4, x coprime to cop, x>0. If they truly are all missing, we return 1, and flip all the bits in curvs.*/
-static int
-removequartic(long Bmin, long Bmax, unsigned long *curvs, unsigned long *bitswap, long c, long cop)
-{
-  long Base = Bmin - 1;
-  Base = Base - (Base % 24);/*We started at a multiple of 24 to not ruin the mod stuff.*/
-  long x = 1, n = c;
-  while (n <= Bmax) {
-	if (n >= Bmin) {
-	  n = n - Base;
-      long a = n / 24;/*n = 24a + residue*/
-      long v = a % 64;
-      long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
-      if ((curvs[u] | bitswap[v]) == curvs[u]) return 0;/*This value was found, family not missing.*/
-    }
-	do {x++;} while (!iscop(x, cop));
-    n = c * x * x * x * x;
-  }
-  /*If we make it here, the family exists! We now must redo the above and actually do the swaps.*/
-  x = 1;
-  n = c;
-  while (n <= Bmax) {
-	if (n >= Bmin) {
-	  n = n - Base;
-      long a = n / 24;/*n = 24a + residue*/
-      long v = a % 64;
-      long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
-      curvs[u] |= bitswap[v];
-    }
-	do {x++;} while (!iscop(x, cop));
-    n = c * x * x * x * x;
+    if (d == 4) n = x * x;
+	else n = x;
+	n = c * n * n;
   }
   return 1;
 }
