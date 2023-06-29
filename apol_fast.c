@@ -28,7 +28,7 @@ static int iscop(long n, long cop);
 
 /*Updates rclass with the new curvature, assuming a Bmin*/
 inline void
-missing_update(unsigned long **rclass, long Base, unsigned long *bitswap, long curv)
+missing_update(unsigned long **rclass, unsigned long *bitswap, unsigned long *maxmiss_block, unsigned int *maxmiss_bit, long Base, long *Bmax, long curv, long res[], long lenres)
 {
   long shifted = curv - Base;
   if (shifted <= 0) return;
@@ -37,6 +37,39 @@ missing_update(unsigned long **rclass, long Base, unsigned long *bitswap, long c
   long v = a % 64;
   long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
   rclass[b][u] |= bitswap[v];
+  if (u != maxmiss_block[b]) return;/*Not swapping in the last block.*/
+  if (v != maxmiss_bit[b]) return;/*Not swapping the last bit.*/
+  long i;
+  for (i = v - 1; i >= 0; i--) {
+	if (!(rclass[b][u] & bitswap[i])) {/*Zero, so we stop here.*/
+	  maxmiss_bit[b] = i;
+	  goto BMAXUPDATE;
+	}
+  }
+  long j;/*We made it out of the block.*/
+  for (j = u - 1; j >= 0; j--) {
+	for (i = 63; i >= 0; i--) {
+	  if (!(rclass[b][j] & bitswap[i])) {/*Zero, so we stop here.*/
+		maxmiss_block[b] = j;
+		maxmiss_bit[b] = i;
+		goto BMAXUPDATE;
+	  }
+	}
+  }
+  maxmiss_block[b] = 0;/*Everything is gone!*/
+  maxmiss_bit[b] = 0;
+  BMAXUPDATE:;/*See if we update Bmax*/
+  if (curv != *Bmax) return;/*Did not remove the largest exception.*/
+  long worst = res[0];
+  for (i = 1; i < lenres; i++) {
+	if (maxmiss_block[res[i]] > maxmiss_block[worst]) {
+	  worst = res[i];
+	  continue;
+	}
+	if (maxmiss_block[res[i]] < maxmiss_block[worst]) continue;
+	if (maxmiss_bit[res[i]] >= maxmiss_bit[worst]) worst = res[i];
+  }
+  *Bmax = ((((maxmiss_block[worst] << 6) + maxmiss_bit[worst]) * 3) << 3 )+ worst;/*Update Bmax*/
 }
 
 /*Finds all missing positive curvatures in the given residue classes between B1 and B2 (inclusive), saving them to a file. Formatting of the inputs is provided by apol_missing; it is crucial that x is reduced, sorted, and res is the set of ALL residues modulo 24.*/
@@ -62,6 +95,26 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
       exit(1);
     }
   }
+  long Bmaxoriginal = Bmax;/*Save for later in case we change it.*/
+  unsigned long *maxmiss_block = (unsigned long *)pari_malloc(24 * sizeof(unsigned long));/*Tracks the largest block in the residue class that still contains 0's*/
+  unsigned int *maxmiss_bit = (unsigned int *)pari_malloc(24 * sizeof(unsigned int));/*Tracks the largest bit of said class that is non-zero.*/
+  int Bm24 = Bmax % 24;/*We now will initialize it.*/
+  long Bmaxbase = Bmax - Bm24;
+  int foundlargest = 0;
+  for (i = 0; i < lenres; i++) {
+	long mc = Bmaxbase + res[i] - Base;
+	if (res[i] > Bm24) {
+	  if (!foundlargest) {
+		foundlargest = 1;
+		if (i) Bmax = Bmaxbase + res[i - 1];/*Update to the largest actually possible value.*/
+		else Bmax = Bmaxbase + res[lenres - 1] - 24;
+	  }
+	  mc -= 24;/*The last curvature of this type.*/
+	}
+	long a = mc / 24;/*Save a in block res[i]*/
+	maxmiss_bit[res[i]] = a % 64;
+    maxmiss_block[res[i]] = a / 64;
+  }
   long maxdepth = 100;/*Maximal depth, to start.*/
   long **depthseq = (long **)pari_malloc(maxdepth * sizeof(long *));/*Tracks the sequence of Apollonian moves.*/
   if (!depthseq) {
@@ -79,7 +132,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
   }
   for (i = 1; i < 4; i++) {/*Do the first 3 curvatures (ignore the negative one).*/
     if (x[i] < Bmin || x[i] > Bmax) continue;
-	missing_update(rclass, Base, bitswap, x[i]);
+	missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, x[i], res, lenres);
   }
   /*We adjust the starting quadruple in case of symmetries: for a+b+c=d, we put d first, and DO NOT flip it on the first iteration. If c=d, we do c, a, c, b, starting with the second one. Until one element of the depth sequence flips the third entry, we do not flip the first one, as they will be (c, c) still. There are two exceptions: [0, 0, 1, 1], and [-1, 2, 2, 3], as they have both types of symmetry. For the secon, we do 2, 3, 2, -1, and start at the third entry. For [0, 0, 1, 1], we do [1, 4, 1, 0] and also start at the third one (we do the first move, since it is forced). The variable sym keeps track of this: -1 means no symmetries, don't worry. 0 means symmetris and we have not moved beyond them, hence we cannot flip the first element. >0 means this is the index of depthseq that the first 3 occurs, so we know when we drop back into the symmetry zone.
   */
@@ -139,7 +192,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
         continue;
       }
       /*Do the bitswap to update the count if we are large enough.*/
-	  missing_update(rclass, Base, bitswap, newc);
+	  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres);
       for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
@@ -180,7 +233,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
       long newc = (apbpc << 1) - depthseq[lastind][cind];/*2(a+b+c)-d, the new curvature.*/
       if (newc > Bmax) continue;/*Too big! go back.*/
       /*Do the bitswap to update the count.*/
-	  missing_update(rclass, Base, bitswap, newc);
+	  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres);
 	  for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
@@ -210,9 +263,9 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
   if (families) {
     quadfams = (unsigned long **)pari_malloc(lenres * sizeof(unsigned long *));/*Pointers to the families that exist. The first element of each family is the number of families in that class.*/
     quarfams = (unsigned long **)pari_malloc(lenres * sizeof(unsigned long *));
-    findfamilies(Bmin, Bmax, quadfams, quarfams, rclass, res, lenres, bitswap);/*Find and remove the families.*/
+    findfamilies(Bmin, Bmaxoriginal, quadfams, quarfams, rclass, res, lenres, bitswap);/*Find and remove the families.*/
   }
-  missing_tofile(blocks, rclass, quadfams, quarfams, Bmin, Bmax, x, res, lenres, families);/*Print to file.*/
+  missing_tofile(blocks, rclass, quadfams, quarfams, Bmin, Bmaxoriginal, x, res, lenres, families);/*Print to file.*/
   /*Time to free all of the allocated memory.*/
   if (families) {
     for (i = 0; i < lenres; i++) { pari_free(quadfams[i]); pari_free(quarfams[i]); }
@@ -222,6 +275,8 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
   pari_free(swaps);
   for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
   pari_free(depthseq);
+  pari_free(maxmiss_block);
+  pari_free(maxmiss_bit);
   for (i = 0; i < lenres; i++) pari_free(rclass[res[i]]);
   pari_free(rclass);
   pari_free(bitswap);
