@@ -16,7 +16,6 @@
 
 /*1: C CODE*/
 static void findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int families);
-static void missing_update_Bmin(unsigned long **rclass, long Base, unsigned long *bitswap, long curv);
 static void missing_tofile(long blocks, unsigned long **rclass, unsigned long **quadfams, unsigned long **quarfams, long Bmin, long Bmax, long x[], long res[], long lenres, int families);
 static void findfamilies(long Bmin, long Bmax, unsigned long **quadfams, unsigned long **quarfams, unsigned long **rclass, long res[], long lenres, unsigned long *bitswap);
 static int removefamily(long d, long Bmin, long Bmax, unsigned long *curvs, unsigned long *bitswap, long u, long cop);
@@ -26,6 +25,19 @@ static int iscop(long n, long cop);
 
 
 /*1: C CODE*/
+
+/*Updates rclass with the new curvature, assuming a Bmin*/
+inline void
+missing_update(unsigned long **rclass, long Base, unsigned long *bitswap, long curv)
+{
+  long shifted = curv - Base;
+  if (shifted <= 0) return;
+  long b = shifted % 24;
+  long a = shifted / 24;/*shifted=24a+b. b gives the block to insert into, and we need to save "a"*/
+  long v = a % 64;
+  long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
+  rclass[b][u] |= bitswap[v];
+}
 
 /*Finds all missing positive curvatures in the given residue classes between B1 and B2 (inclusive), saving them to a file. Formatting of the inputs is provided by apol_missing; it is crucial that x is reduced, sorted, and res is the set of ALL residues modulo 24.*/
 static void
@@ -67,7 +79,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
   }
   for (i = 1; i < 4; i++) {/*Do the first 3 curvatures (ignore the negative one).*/
     if (x[i] < Bmin || x[i] > Bmax) continue;
-	missing_update_Bmin(rclass, Base, bitswap, x[i]);
+	missing_update(rclass, Base, bitswap, x[i]);
   }
   /*We adjust the starting quadruple in case of symmetries: for a+b+c=d, we put d first, and DO NOT flip it on the first iteration. If c=d, we do c, a, c, b, starting with the second one. Until one element of the depth sequence flips the third entry, we do not flip the first one, as they will be (c, c) still. There are two exceptions: [0, 0, 1, 1], and [-1, 2, 2, 3], as they have both types of symmetry. For the secon, we do 2, 3, 2, -1, and start at the third entry. For [0, 0, 1, 1], we do [1, 4, 1, 0] and also start at the third one (we do the first move, since it is forced). The variable sym keeps track of this: -1 means no symmetries, don't worry. 0 means symmetris and we have not moved beyond them, hence we cannot flip the first element. >0 means this is the index of depthseq that the first 3 occurs, so we know when we drop back into the symmetry zone.
   */
@@ -127,7 +139,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
         continue;
       }
       /*Do the bitswap to update the count if we are large enough.*/
-	  missing_update_Bmin(rclass, Base, bitswap, newc);
+	  missing_update(rclass, Base, bitswap, newc);
       for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
@@ -168,7 +180,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
       long newc = (apbpc << 1) - depthseq[lastind][cind];/*2(a+b+c)-d, the new curvature.*/
       if (newc > Bmax) continue;/*Too big! go back.*/
       /*Do the bitswap to update the count.*/
-	  missing_update_Bmin(rclass, Base, bitswap, newc);
+	  missing_update(rclass, Base, bitswap, newc);
 	  for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
@@ -214,19 +226,6 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, int familie
   pari_free(rclass);
   pari_free(bitswap);
   return;
-}
-
-/*Updates rclass with the new curvature, assuming a Bmin*/
-static void
-missing_update_Bmin(unsigned long **rclass, long Base, unsigned long *bitswap, long curv)
-{
-  long shifted = curv - Base;
-  if (shifted <= 0) return;
-  long b = shifted % 24;
-  long a = shifted / 24;/*shifted=24a+b. b gives the block to insert into, and we need to save "a"*/
-  long v = a % 64;
-  long u = a / 64;/*a=64u+v. u gives the entry of the array, v gives the bit to swap.*/
-  rclass[b][u] |= bitswap[v];
 }
 
 /*Prints the found data to a file.*/
