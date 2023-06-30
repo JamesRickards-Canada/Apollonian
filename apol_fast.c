@@ -28,7 +28,7 @@ static void missing_tofile(long blocks, unsigned long **rclass, GEN quadfams, GE
 
 /*Updates rclass with the new curvature.*/
 inline void
-missing_update(unsigned long **rclass, unsigned long *bitswap, unsigned long *maxmiss_block, unsigned int *maxmiss_bit, long Base, long *Bmax, long curv, long res[], long lenres)
+missing_update(unsigned long **rclass, unsigned long *bitswap, long *maxmiss_block, int *maxmiss_bit, long Base, long *Bmax, long curv, long res[], long lenres, long Bmin)
 {
   long shifted = curv - Base;
   if (shifted <= 0) return;
@@ -56,8 +56,8 @@ missing_update(unsigned long **rclass, unsigned long *bitswap, unsigned long *ma
 	  }
 	}
   }
-  maxmiss_block[b] = 0;/*Everything is gone!*/
-  maxmiss_bit[b] = 0;
+  maxmiss_block[b] = -1;/*Everything is gone!*/
+  maxmiss_bit[b] = -1;
   BMAXUPDATE:;/*See if we update Bmax*/
   if (curv != *Bmax) return;/*Did not remove the largest exception.*/
   long worst = res[0];
@@ -69,8 +69,8 @@ missing_update(unsigned long **rclass, unsigned long *bitswap, unsigned long *ma
 	if (maxmiss_block[res[i]] < maxmiss_block[worst]) continue;
 	if (maxmiss_bit[res[i]] >= maxmiss_bit[worst]) worst = res[i];
   }
-  if (maxmiss_block[worst] == 0 && maxmiss_bit[worst] == 0) *Bmax = 0;/*All eliminated, let's quit early!*/
-  else *Bmax = Base + ((((maxmiss_block[worst] << 6) + maxmiss_bit[worst]) * 3) << 3 ) + worst;/*Update Bmax*/
+  *Bmax = Base + ((((maxmiss_block[worst] << 6) + maxmiss_bit[worst]) * 3) << 3 ) + worst;/*Update Bmax*/
+  if (Bmin > *Bmax) *Bmax = 0;/*All eliminated, let's quit early!*/
 }
 
 /*Finds all missing positive curvatures in the given residue classes between B1 and B2 (inclusive), saving them to a file. Formatting of the inputs is provided by apol_missing; it is crucial that x is reduced, sorted, and res is the set of ALL residues modulo 24.*/
@@ -80,8 +80,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
   unsigned long *bitswap = (unsigned long*)pari_malloc(64 * sizeof(unsigned long)), i;/*Used for swapping bits of longs.*/
   bitswap[0] = 1;
   for (i = 1; i < 64; i++) bitswap[i] = bitswap[i - 1] << 1;/*bitswap[i] = 2^i*/
-  long Base = Bmin - 1;
-  Base = Base - (Base % 24);/*We want to start at a multiple of 24 to not ruin the mod stuff.*/
+  long Base = Bmin - (Bmin % 24);/*We want to start at a multiple of 24 to not ruin the mod stuff.*/
   long classmax = (Bmax - Base)/ 24 + 1;/*Maximal number of curvatures found in each class.*/
   long blocks = ((classmax - 1) / 64) + 1;/*Here is where we assume 64-bit. This is the number of 64-bit unsigned longs we need to store in each class.*/
   unsigned long **rclass = (unsigned long **)pari_malloc(24 * sizeof(unsigned long *));/*Stores pointers to the individual classes.*/
@@ -97,13 +96,13 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
     }
   }
   long Bmaxoriginal = Bmax;/*Save for later in case we change it.*/
-  unsigned long *maxmiss_block = (unsigned long *)pari_malloc(24 * sizeof(unsigned long));/*Tracks the largest block in the residue class that still contains 0's*/
-  unsigned int *maxmiss_bit = (unsigned int *)pari_malloc(24 * sizeof(unsigned int));/*Tracks the largest bit of said class that is non-zero.*/
+  long *maxmiss_block = (long *)pari_malloc(24 * sizeof(long));/*Tracks the largest block in the residue class that still contains 0's*/
+  int *maxmiss_bit = (int *)pari_malloc(24 * sizeof(int));/*Tracks the largest bit of said class that is non-zero.*/
   int Bm24 = Bmax % 24;/*We now will initialize it.*/
   long Bmaxbase = Bmax - Bm24, j;
   int foundlargest = 0;
   for (i = 0; i < lenres; i++) {
-	long mc = Bmaxbase + res[i] - Base;
+	long mc = Bmaxbase + res[i];
 	if (res[i] > Bm24) {
 	  if (!foundlargest) {
 		foundlargest = 1;
@@ -112,9 +111,22 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
 	  }
 	  mc -= 24;/*The last curvature of this type.*/
 	}
+	if (mc < Bmin) {
+	  maxmiss_bit[res[i]] = -1;
+	  maxmiss_block[res[i]] = -1;
+	  continue;
+	}
+	mc -= Base;/*Shift it back.*/
 	long a = mc / 24;/*Save a in block res[i]*/
 	maxmiss_bit[res[i]] = a % 64;
     maxmiss_block[res[i]] = a / 64;
+  }
+  if (!foundlargest) Bmax = Bmaxbase + res[lenres - 1];/*They all fit in with the +.*/
+  for (i = 0; i <= lenres; i++) {
+	if (i == lenres) {/*All were -1, so our range actually contains no residues.*/
+	  Bmax = 0;
+	}
+	else if (maxmiss_bit[res[i]] != -1) break;/*We have at least one valid residue.*/
   }
   int families;
   if (quadfams) {/*Remove them right away.*/
@@ -125,7 +137,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
 		long curres = res[i - 1];/*Indices off by 1 with C array.*/
 		long fa = 1, cur = c;/*cur = c * fa^2*/
 		while (cur <= Bmax) {
-		  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, cur, res, lenres);
+		  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, cur, res, lenres, Bmin);
 		  do {
 			fa++;
 			cur = c * (fa * fa);
@@ -138,7 +150,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
 		long curres = res[i - 1];/*Indices off by 1 with C array.*/
 		long fa = 1, cur = c;/*cur = c * fa^4*/
 		while (cur <= Bmax) {
-		  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, cur, res, lenres);
+		  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, cur, res, lenres, Bmin);
 		  do {
 			fa++;
 			cur = fa * fa;
@@ -167,7 +179,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
   }
   for (i = 1; i < 4; i++) {/*Do the first 3 curvatures (ignore the negative one).*/
     if (x[i] < Bmin || x[i] > Bmax) continue;
-	missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, x[i], res, lenres);
+	missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, x[i], res, lenres, Bmin);
   }
   /*We adjust the starting quadruple in case of symmetries: for a+b+c=d, we put d first, and DO NOT flip it on the first iteration. If c=d, we do c, a, c, b, starting with the second one. Until one element of the depth sequence flips the third entry, we do not flip the first one, as they will be (c, c) still. There are two exceptions: [0, 0, 1, 1], and [-1, 2, 2, 3], as they have both types of symmetry. For the secon, we do 2, 3, 2, -1, and start at the third entry. For [0, 0, 1, 1], we do [1, 4, 1, 0] and also start at the third one (we do the first move, since it is forced). The variable sym keeps track of this: -1 means no symmetries, don't worry. 0 means symmetris and we have not moved beyond them, hence we cannot flip the first element. >0 means this is the index of depthseq that the first 3 occurs, so we know when we drop back into the symmetry zone.
   */
@@ -227,7 +239,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
         continue;
       }
       /*Do the bitswap to update the count if we are large enough.*/
-	  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres);
+	  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres, Bmin);
       for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
@@ -268,7 +280,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
       long newc = (apbpc << 1) - depthseq[lastind][cind];/*2(a+b+c)-d, the new curvature.*/
       if (newc > Bmax) continue;/*Too big! go back.*/
       /*Do the bitswap to update the count.*/
-	  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres);
+	  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres, Bmin);
 	  for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
