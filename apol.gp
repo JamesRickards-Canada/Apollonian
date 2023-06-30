@@ -47,14 +47,12 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_circles, "Inputs v, maxcurv: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv in v. Returns the list, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them.");
 		install("apol_circles_depth","GLD0,G,",,apol_library);
 		addhelp(apol_circles_depth,"Inputs v, depth, {maxcurv=0}: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv and depth<=depth in v. Returns the list, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them.");
-		install("apol_curvatures","GGD0,L,",,apol_library);
-		addhelp(apol_curvatures,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
+		install("apol_curvaturesold","GGD0,L,",,apol_library);
+		addhelp(apol_curvaturesold,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns a sorted list of curvatures of circles in v at most bound. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
 		install("apol_curvatures_depth","GLD0,G,",,apol_library);
 		addhelp(apol_curvatures_depth,"Inputs v, depth, {bound=0}: Descartes quadruple v, depth>=1, bound>=0.\n Returns a sorted list of curvatures of circles at most depth circle replacements away from v. If bound>0, we also only save the ones of size at most bound.");
 		install("apol_curvatures_layer","GLGD0,L,",,apol_library);
 		addhelp(apol_curvatures_layer,"Inputs v, maxlayers, bound, {countsymm=0}: Descartes quadruple v, maxlayers>=1 bound>=0, countsymm=0, 1. Returns the curvatures at most bound in the first maxlayers outer layers of the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicity. If v=[0,0,1,1], this does not work correctly.");
-		install("apol_findold","GGD0,L,",,apol_library);
-		addhelp(apol_findold,"Inputs v, N, {countsymm=0}: Descartes quadruple v, positive integer N, countsymm=0, 1.\n Returns the Descartes quadruples in the ACP of v containing N. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
 		install("apol_primes","GGD0,L,",,apol_library);
 		addhelp(apol_primes,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns the prime curvatures at most bound in the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicities.");
 		install("apol_primes_layer","GLGD0,L,",,apol_library);
@@ -114,6 +112,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 	/*SECTION 2: SEARCHING FOR CURVATURES*/	
 		install(apol_find,"GGD1,L,");
 		addhelp(apol_find,"apol_find(v, c, {all=1}): returns the Descartes quadruples in the ACP of v containing curvature c. Note that two distinct circles in the picture may correspond to the same Descartes quadruple (due to symmetries), and they are counted once only. If all=1 returns the vector of all quadruples, and if all=0 we stop at the first one (returning 0 if none found). Both the packing and curvature c must be of long size, i.e. at most 2^63-1.");
+		\\install(apol_curvatures,"GGD0,L,");
+		addhelp(apol_curvatures,"apol_curvatures(v, B, {tofile=1}): finds all positive curvatures in the packing for v up to the bound B. B can be given either as a positive integer, or as [B1, B2] to only look in the range B1<=c<=B2. If tofile = 1, results are output to the folder ./curv_freq, and are labelled by v, Bmin, Bmax, and the residue class (one file per residue class). Each line of the file contains one curvature and its frequency. If tofile = 0, instead return the vector with entries corresponding to the residue classes. Each entry contains two Vecsmalls, the first being the list of curvatures and the second being the frequencies. If tofile = 2, do both. Note that all curvatures must fit into unsigned longs (2^64 - 1 on 64-bit hardware), and the frequencies must be at most unsigned int sized (limiting to 2^32 - 1 on 64-bit hardware).");
 
 
 /*data.c*/

@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
 
 /*STATIC DECLARATIONS*/
 
@@ -19,6 +18,7 @@ static void findmissing(long Bmin, long Bmax, long x[], long res[], long lenres,
 static void missing_tofile(long blocks, unsigned long **rclass, GEN quadfams, GEN quarfams, long Bmin, long Bmax, long x[], long res[], long lenres, int families);
 
 /*SECTION 2: SEARCHING FOR CURVATURES*/
+static GEN findcurvs(GEN v, long Bmin, long Bmax);
 static GEN findonecurv(long x[], long c, int all);
 
 
@@ -190,7 +190,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
   long sym;
   if (x[0] == 0) {/*We are the [0, 0, 1, 1] packing: do [1, 4, 1, 0] and start with swapping the third.*/
     depthseq[0][0] = 1; depthseq[0][1] = 4; depthseq[0][2] = 1; depthseq[0][3] = 0;
-    rclass[4][0] |= bitswap[0];/*Since we are adjusting, we did not do 4 yet.*/
+    if (!Base) rclass[4][0] |= bitswap[0];/*Since we are adjusting, we did not do 4 yet.*/
     swaps[1] = 1;/*Will get incremented to 2 right away.*/
     sym = 0;/*Symmetries to avoid.*/
   }
@@ -425,6 +425,7 @@ apol_missing(GEN v, GEN B, int family, int load)
 	Bmax = B[2];
   }
   else pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+  if (Bmin <= 0) Bmin = 1;
   GEN w = apol_red(v, 0, 0);
   w = ZV_sort(w);
   GEN modres = apol_mod24(w);
@@ -552,6 +553,7 @@ apol_missingfamilies(GEN v)
 
 
 /*SECTION 2: SEARCHING FOR CURVATURES*/
+
 
 /*Execute the curvature finding. x needs to be the reduced quadruple, sorted.*/
 static GEN

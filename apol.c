@@ -37,7 +37,6 @@ static GEN apol_circles_retquad(GEN vdat);
 static GEN apol_generic_nextquad(GEN vdat, int ind, void* nul);
 static GEN apol_generic_retquad(GEN vdat);
 static GEN apol_curvatures_getdata(GEN vdat, int ind, GEN reps, void *nul, int state);
-static GEN apol_find_getdata(GEN vdat, int ind, GEN reps, void *N, int state);
 static GEN apol_layer_getdata(GEN vdat, int ind, GEN reps, void *nul, int state);
 static GEN apol_layer_nextquad(GEN vdat, int ind, void *maxlayers);
 static GEN apol_primes_getdata(GEN vdat, int ind, GEN reps, void *nul, int state);
@@ -939,7 +938,7 @@ static GEN apol_curvatures_getdata(GEN vdat, int ind, GEN reps, void *nul, int s
 }
 
 //Returns the curvatures in the packing v up to bound.
-GEN apol_curvatures(GEN v, GEN bound, int countsymm){
+GEN apol_curvaturesold(GEN v, GEN bound, int countsymm){
   return apol_search_bound(v, bound, countsymm, NULL, &apol_curvatures_getdata, &apol_generic_nextquad, &apol_generic_retquad, 0);
 }
 
@@ -952,18 +951,6 @@ GEN apol_curvatures_depth(GEN v, int depth, GEN bound){
 //Finds all curvatures in layer at most maxlayers with curvature at most bound. The layer of a circle is how many tangencies it is away from the outer circle.
 GEN apol_curvatures_layer(GEN v, int maxlayers, GEN bound, int countsymm){
   return apol_search_bound(v, bound, countsymm, &maxlayers, &apol_layer_getdata, &apol_layer_nextquad, &apol_circles_retquad, 0);
-}
-
-//Helper method for apol_find, to feed into apol_search_bound.
-static GEN apol_find_getdata(GEN vdat, int ind, GEN reps, void *N, int state){
-  if(state==0) return gcopy(reps);//Nothing to do.
-  if(equalii(gel(vdat, ind), *(GEN *)N)) return vdat;//We have found N!
-  return NULL;//This was not N, do not return anything.
-}
-
-//Searches for all circles with curvature N, and returns the corresponding quadruples. If countsymm=1, we may have repeats coming from the symmetry.
-GEN apol_findold(GEN v, GEN N, int countsymm){
-  return apol_search_bound(v, N, countsymm, &N, &apol_find_getdata, &apol_generic_nextquad, &apol_generic_retquad, 0);
 }
 
 //Sort the final list or return the new curvature.
