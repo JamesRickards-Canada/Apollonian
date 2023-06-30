@@ -58,7 +58,7 @@ GEN quarticresidue(GEN x, GEN y);
 /*1: GP ACCESS*/
 GEN apol_missing(GEN v, GEN B, int family, int load);
 GEN apol_missing_load(GEN v, GEN B, int family);
-
+GEN apol_missingfamilies(GEN v);
 
 /*data.c*/
 

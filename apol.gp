@@ -108,6 +108,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_missing,"apol_missing(v, B, {remobstruct=1}, {load=1}): saves all the curvatures up to B in the correct residue classes modulo 24 but are missing from the packing to a file in the folder 'missing'. B can be given either as a positive integer, or as [B1, B2] to only look in the range B1<=c<=B2. The curvatures are separated by residue, each on a different line. If remobstruct=1, we also find obstructions of the form ax^2 and ax^4, and remove those numbers. We then print the admissible set modulo 24, the quadratic obstructions found, and then the quartic obstructions found on the first three lines. If load=1, we load this output into a vector in gp. Note that if B is small, we may find obstructions that do not exist. ");
 		install(apol_missing_load,"GGD1,L,");
 		addhelp(apol_missing_load,"apol_missing_load(v, B, {family=1}): loads the saved curvature data. If family=1, the first entry is the vector of modulo 24 residues, then the quadratic obstructions found in each class, then the quartic obstructions found in each class, then the missing curvatures that are not in one of the obstruction classes. Creates an error if the data does not exist.");
+		install(apol_missingfamilies,"G");
+		addhelp(apol_missingfamilies,"apol_missingfamilies(v): returns the quadratic and quartic obstructions for v, in order. Each element of the obstruction is the vector of u's such that ux^2 or ux^4 is completely absent from the corresponding residue class (where gcd(x, 1/2/3/6)=1 to ensure we land in that class).");
 
 
 /*data.c*/

@@ -70,6 +70,7 @@ missing_update(unsigned long **rclass, unsigned long *bitswap, unsigned long *ma
 	if (maxmiss_bit[res[i]] >= maxmiss_bit[worst]) worst = res[i];
   }
   *Bmax = ((((maxmiss_block[worst] << 6) + maxmiss_bit[worst]) * 3) << 3 )+ worst;/*Update Bmax*/
+  printf("%ld\n", *Bmax);
 }
 
 /*Finds all missing positive curvatures in the given residue classes between B1 and B2 (inclusive), saving them to a file. Formatting of the inputs is provided by apol_missing; it is crucial that x is reduced, sorted, and res is the set of ALL residues modulo 24.*/
@@ -684,5 +685,78 @@ apol_missing_load(GEN v, GEN B, int family)
   }
   set_avma(av);
   return gp_readvec_file(fname);/*Load them up!*/
+}
+
+/*Returns the families associated to v.*/
+GEN
+apol_missingfamilies(GEN v)
+{
+  pari_sp av = avma;
+  GEN t = apol_type(v, 2), quad = NULL, quar = NULL;
+  long types = (itos(gel(t, 1)) >> 1) + itos(gel(t, 2)) + itos(gel(t, 3));/*n/2+k+chi_2 where the type is (n, k): uniquely identifies it.*/
+  switch (types) {
+	case 5:/*6.1.1*/
+	  quad = zerovec(6);
+	  if (equali1(gel(t, 4))) quar = zerovec(6);
+	  else quar = mkvecn(6, mkvec4s(144, 576, 1296, 5184), mkvecs(1), mkvecs(4), mkvec2s(9, 81), mkvec2s(36, 324), mkvec2s(16, 64));
+	  break;
+	case 3:/*6.1.-1*/
+	  quad = mkvecn(6, mkvec4s(24, 48, 72, 144), mkvecs(1), mkvecs(4), mkvecs(9), mkvec2s(12, 36), mkvecs(16));
+	  quar = zerovec(6);
+	  break;
+	case 9:/*6.5.1*/
+	  quad = mkvecn(6, mkvec2s(48, 72), cgetg(1, t_VEC), mkvecs(8), mkvecs(12), cgetg(1, t_VEC), cgetg(1, t_VEC));
+	  quar = zerovec(6);
+	  break;
+	case 7:/*6.5.-1*/
+	  quad = mkvecn(6, mkvec2s(24, 144), cgetg(1, t_VEC), cgetg(1, t_VEC), mkvecs(36), cgetg(1, t_VEC), cgetg(1, t_VEC));
+	  quar = zerovec(6);
+	  break;
+	case 17:/*6.13.1*/
+	  quad = mkvecn(6, mkvec2s(24, 72), cgetg(1, t_VEC), cgetg(1, t_VEC), cgetg(1, t_VEC), cgetg(1, t_VEC), cgetg(1, t_VEC));
+	  quar = zerovec(6);
+	  break;
+	case 15:/*6.13.-1*/
+	  quad = mkvecn(6, mkvec2s(48, 144), mkvecs(4), mkvec2s(12, 36), cgetg(1, t_VEC), mkvecs(16), cgetg(1, t_VEC));
+	  quar = zerovec(6);
+	  break;
+	case 21:/*6.17.1*/
+	  quad = mkvecn(6, mkvec2s(24, 48), cgetg(1, t_VEC), cgetg(1, t_VEC), mkvecs(12), cgetg(1, t_VEC), cgetg(1, t_VEC));
+	  if (equali1(gel(t, 4))) quar = mkvecn(6, mkvec2s(144, 576), cgetg(1, t_VEC), mkvecs(9), mkvecs(36), cgetg(1, t_VEC), cgetg(1, t_VEC));
+	  else quar = mkvecn(6, mkvec2s(1296, 5184), cgetg(1, t_VEC), mkvecs(81), mkvecs(324), cgetg(1, t_VEC), cgetg(1, t_VEC));
+	  break;
+	case 19:/*6.17.-1*/
+	  quad = mkvecn(6, mkvec2s(72, 144), mkvecs(8), mkvecs(9), mkvecs(36), cgetg(1, t_VEC), cgetg(1, t_VEC));
+	  quar = zerovec(6);
+	  break;
+	case 12:/*8.7.1*/
+	  quad = zerovec(8);
+	  gel(quad, 1) = mkvecs(3); gel(quad, 2) = mkvecs(6);
+	  quar = zerovec(8);
+	  break;
+	case 10:/*8.7.-1*/
+	  quad = zerovec(8);
+	  gel(quad, 6) = mkvecs(18);
+	  quar = zerovec(8);
+	  break;
+	case 16:/*8.11.1*/
+	  quad = zerovec(8);
+	  quar = zerovec(8);
+	  break;
+	case 14:/*8.11.-1*/
+	  quad = zerovec(8);
+	  gel(quad, 1) = mkvecs(2); gel(quad, 2) = mkvecs(3);
+	  gel(quad, 3) = mkvecs(6); gel(quad, 7) = mkvecs(18);
+	  quar = zerovec(8);
+	  break;
+	default:
+	  pari_err_TYPE("v did not have a recongizable type, is it a Descartes quadruple?", v);
+  }
+  long i;
+  for (i = 1; i < lg(quad); i++) {/*Fixing the uninitialized entries.*/
+	if (isintzero(gel(quad, i))) gel(quad, i) = cgetg(1, t_VEC);
+	if (isintzero(gel(quar, i))) gel(quar, i) = cgetg(1, t_VEC);
+  }
+  return gerepilecopy(av, mkvec2(quad, quar));
 }
 
