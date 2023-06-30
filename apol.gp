@@ -53,8 +53,8 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_curvatures_depth,"Inputs v, depth, {bound=0}: Descartes quadruple v, depth>=1, bound>=0.\n Returns a sorted list of curvatures of circles at most depth circle replacements away from v. If bound>0, we also only save the ones of size at most bound.");
 		install("apol_curvatures_layer","GLGD0,L,",,apol_library);
 		addhelp(apol_curvatures_layer,"Inputs v, maxlayers, bound, {countsymm=0}: Descartes quadruple v, maxlayers>=1 bound>=0, countsymm=0, 1. Returns the curvatures at most bound in the first maxlayers outer layers of the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicity. If v=[0,0,1,1], this does not work correctly.");
-		install("apol_find","GGD0,L,",,apol_library);
-		addhelp(apol_find,"Inputs v, N, {countsymm=0}: Descartes quadruple v, positive integer N, countsymm=0, 1.\n Returns the Descartes quadruples in the ACP of v containing N. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
+		install("apol_findold","GGD0,L,",,apol_library);
+		addhelp(apol_findold,"Inputs v, N, {countsymm=0}: Descartes quadruple v, positive integer N, countsymm=0, 1.\n Returns the Descartes quadruples in the ACP of v containing N. If countsymm=1, symmetries of the packing are counted with their multiplicity.");
 		install("apol_primes","GGD0,L,",,apol_library);
 		addhelp(apol_primes,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns the prime curvatures at most bound in the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicities.");
 		install("apol_primes_layer","GLGD0,L,",,apol_library);
@@ -110,6 +110,10 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(apol_missing_load,"apol_missing_load(v, B, {family=1}): loads the saved curvature data. If family=1, the first entry is the vector of modulo 24 residues, then the quadratic obstructions found in each class, then the quartic obstructions found in each class, then the missing curvatures that are not in one of the obstruction classes. Creates an error if the data does not exist.");
 		install(apol_missingfamilies,"G");
 		addhelp(apol_missingfamilies,"apol_missingfamilies(v): returns the quadratic and quartic obstructions for v, in order. Each element of the obstruction is the vector of u's such that ux^2 or ux^4 is completely absent from the corresponding residue class (where gcd(x, 1/2/3/6)=1 to ensure we land in that class).");
+		
+	/*SECTION 2: SEARCHING FOR CURVATURES*/	
+		install(apol_find,"GGD1,L,");
+		addhelp(apol_find,"apol_find(v, c, {all=1}): returns the Descartes quadruples in the ACP of v containing curvature c. Note that two distinct circles in the picture may correspond to the same Descartes quadruple (due to symmetries), and they are counted once only. If all=1 returns the vector of all quadruples, and if all=0 we stop at the first one (returning 0 if none found). Both the packing and curvature c must be of long size, i.e. at most 2^63-1.");
 
 
 /*data.c*/

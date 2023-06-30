@@ -962,7 +962,7 @@ static GEN apol_find_getdata(GEN vdat, int ind, GEN reps, void *N, int state){
 }
 
 //Searches for all circles with curvature N, and returns the corresponding quadruples. If countsymm=1, we may have repeats coming from the symmetry.
-GEN apol_find(GEN v, GEN N, int countsymm){
+GEN apol_findold(GEN v, GEN N, int countsymm){
   return apol_search_bound(v, N, countsymm, &N, &apol_find_getdata, &apol_generic_nextquad, &apol_generic_retquad, 0);
 }
 
