@@ -80,7 +80,8 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
   unsigned long *bitswap = (unsigned long*)pari_malloc(64 * sizeof(unsigned long)), i;/*Used for swapping bits of longs.*/
   bitswap[0] = 1;
   for (i = 1; i < 64; i++) bitswap[i] = bitswap[i - 1] << 1;/*bitswap[i] = 2^i*/
-  long Base = Bmin - (Bmin % 24);/*We want to start at a multiple of 24 to not ruin the mod stuff.*/
+  long Base = Bmin - 1;
+  Base = Base - (Base % 24);/*We want to start at a multiple of 24 to not ruin the mod stuff.*/
   long classmax = (Bmax - Base)/ 24 + 1;/*Maximal number of curvatures found in each class.*/
   long blocks = ((classmax - 1) / 64) + 1;/*Here is where we assume 64-bit. This is the number of 64-bit unsigned longs we need to store in each class.*/
   unsigned long **rclass = (unsigned long **)pari_malloc(24 * sizeof(unsigned long *));/*Stores pointers to the individual classes.*/
