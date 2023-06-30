@@ -22,7 +22,6 @@ GEN apol_makeall(GEN n, int red, long prec);
 //SEARCHING FOR CURVATURES
 GEN apol_circles(GEN v, GEN maxcurv);
 GEN apol_circles_depth(GEN v, int depth, GEN maxcurv);
-GEN apol_curvaturesold(GEN v, GEN bound, int countsymm);
 GEN apol_curvatures_depth(GEN v, int depth, GEN bound);
 GEN apol_curvatures_layer(GEN v, int maxlayers, GEN bound, int countsymm);
 GEN apol_primes(GEN v, GEN bound, int countsymm);

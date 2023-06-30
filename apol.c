@@ -936,11 +936,6 @@ static GEN apol_curvatures_getdata(GEN vdat, int ind, GEN reps, void *nul, int s
   return gel(vdat, ind);//state=1/2, we want the new curvature
 }
 
-//Returns the curvatures in the packing v up to bound.
-GEN apol_curvaturesold(GEN v, GEN bound, int countsymm){
-  return apol_search_bound(v, bound, countsymm, NULL, &apol_curvatures_getdata, &apol_generic_nextquad, &apol_generic_retquad, 0);
-}
-
 //Returns the curvatures up to depth depth from v. If bound>0, we only count those at most bound.
 GEN apol_curvatures_depth(GEN v, int depth, GEN bound){
   if(depth<=0) depth=1;//To avoid errors from bad input.

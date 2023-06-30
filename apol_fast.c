@@ -19,7 +19,7 @@ static void missing_tofile(long blocks, unsigned long **rclass, GEN quadfams, GE
 
 /*SECTION 2: SEARCHING FOR CURVATURES*/
 static GEN findcurvs(GEN v, long Bmin, long Bmax, int tofile);
-static void curvs_tofile(unsigned int **rclass, long Bmin, long Bmax, GEN v, GEN m24);
+static void curvs_tofile(unsigned int **rclass, long Bmin, long Bmax, long classmax, GEN v, GEN m24);
 static GEN findonecurv(long x[], long c, int all);
 
 
@@ -738,7 +738,7 @@ findcurvs(GEN v, long Bmin, long Bmax, int tofile)
   pari_free(swaps);
   for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
   pari_free(depthseq);
-  if (tofile) curvs_tofile(rclass, Bmin, Bmax, v, modres);
+  if (tofile) curvs_tofile(rclass, Bmin, Bmax, classmax, v, modres);
   if (tofile % 2) {
 	for (i = 0; i < lenr; i++) pari_free(rclass[res[i]]);
 	pari_free(rclass);/*The last thing to free*/
@@ -764,11 +764,46 @@ findcurvs(GEN v, long Bmin, long Bmax, int tofile)
   return gerepilecopy(av, mkvec2(curvs, freqs));
 }
 
-
+/*Prints the frequencies to file.*/
 static void
-curvs_tofile(unsigned int **rclass, long Bmin, long Bmax, GEN v, GEN m24)
+curvs_tofile(unsigned int **rclass, long Bmin, long Bmax, long classmax, GEN v, GEN m24)
 {
-  return;/*TO DO*/
+  pari_sp av = avma;
+  long Base = Bmin - (Bmin % 24);/*We started at a multiple of 24 to not ruin the mod stuff.*/
+  long x[4], i;
+  for (i = 1; i <= 4; i++) x[i - 1] = itos(gel(v, i));
+  char fname[200];
+  int pos = 0;
+  DIR* dir = opendir("curv_freq");
+  if (dir) {
+    closedir(dir);/* Directory exists. */
+    pos += sprintf(&fname[pos], "curv_freq/");
+  }
+  else if (ENOENT == errno) {/* Directory does not exist. */
+    mkdir("curv_freq", 0777);
+    pos += sprintf(&fname[pos], "curv_freq/");
+  }
+  else {/* opendir() failed for some other reason. */
+    printf("Could not create directory, saving to current folder");
+  }
+  if (x[0] < 0) pos += sprintf(&fname[pos], "m%ld_", -x[0]);
+  else pos += sprintf(&fname[pos], "%ld_", x[0]);
+  pos += sprintf(&fname[pos], "%ld_%ld_%ld_%ld-to-%ld", x[1], x[2], x[3], Bmin, Bmax);
+  long j;
+  for (j = 1; j < lg(m24); j++) {
+    char * thisfile = stack_sprintf("%s_%Pd-freq.dat", fname, gel(m24, j));
+    FILE *F;
+	F = fopen(thisfile, "w");
+	long b = itos(gel(m24, j));
+	long n = Base - 24 + b;
+	for (i = 0; i < classmax; i++) {
+	  n += 24;
+	  if (n < Bmin || n > Bmax) continue;
+	  fprintf(F, "%d\n", rclass[b][i]);
+	}
+	fclose(F);
+  }
+  set_avma(av);
 }
 
 /*findcurvs with pre-checking; B is either an integer or a range of integers.*/
