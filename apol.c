@@ -241,9 +241,8 @@ static GEN
 apol_fix(GEN v, int *isint, long prec)
 {
   pari_sp av = avma;
-  if (typ(v) != t_VEC || lg(v) != 5) return NULL;
+  if (!apol_check(v, prec)) return NULL;
   int t = ismp(gel(v, 1));
-  if (!t) pari_err_TYPE("Each entry must be integral or real.", v);
   int onlyint = t, mixing = 0, i;
   for (i = 2; i <= 4; i++) {
 	t = ismp(gel(v, i));
@@ -408,10 +407,10 @@ apol_red(GEN v, int seq, long prec)
 {
   pari_sp av = avma;
   int isint;
-  v = apol_fix(v, &isint, prec);
-  if (!v) pari_err_TYPE("v is not a Descartes quadruple.", v);
-  if (isint) return gerepileupto(av, apol_red0(v, seq, &apol_move_1i, &cmpii));
-  return gerepileupto(av, apol_red0(v, seq, &apol_move_1r, &cmprr));
+  GEN w = apol_fix(v, &isint, prec);
+  if (!w) pari_err_TYPE("v is not a Descartes quadruple.", v);
+  if (isint) return gerepileupto(av, apol_red0(w, seq, &apol_move_1i, &cmpii));
+  return gerepileupto(av, apol_red0(w, seq, &apol_move_1r, &cmprr));
 }
 
 /*Reduce the ACP given the move and comparison type.*/
