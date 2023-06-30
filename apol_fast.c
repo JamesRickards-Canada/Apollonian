@@ -461,14 +461,14 @@ apol_missing_load(GEN v, GEN B, int family)
   else pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
   v = ZV_sort(apol_red(v, 0, 0));
   char *fname;
-  if (signe(gel(v, 1)) < 0) fname = pari_sprintf("m%Pd", negi(gel(v, 1)));
-  else fname = pari_sprintf("%Pd", gel(v, 1));
+  if (signe(gel(v, 1)) < 0) fname = stack_sprintf("m%Pd", negi(gel(v, 1)));
+  else fname = stack_sprintf("%Pd", gel(v, 1));
   long i;
-  for (i = 2; i <= 4; i++) fname = pari_sprintf("%s_%Pd", fname, gel(v, i));
-  if (family) fname = pari_sprintf("%s_%ld-to-%ld_remqq.dat", fname, Bmin, Bmax);
-  else fname = pari_sprintf("%s_%ld-to-%ld.dat", fname, Bmin, Bmax);
+  for (i = 2; i <= 4; i++) fname = stack_sprintf("%s_%Pd", fname, gel(v, i));
+  if (family) fname = stack_sprintf("%s_%ld-to-%ld_remqq.dat", fname, Bmin, Bmax);
+  else fname = stack_sprintf("%s_%ld-to-%ld.dat", fname, Bmin, Bmax);
   if (pari_is_dir("missing")) {
-    fname = pari_sprintf("missing/%s", fname);
+    fname = stack_sprintf("missing/%s", fname);
   }
   set_avma(av);
   return gp_readvec_file(fname);/*Load them up!*/
