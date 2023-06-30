@@ -1212,12 +1212,12 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
     GEN col=tex_makecolours(modcolours);
     if(typ(gel(col, 1))==t_STR){
       for(long i=1;i<=modcolours;i++){
-        pari_fprintf(f, "\\definecolor{col%d}{HTML}{%Ps}\n", i-1, gel(col, i));//Print the custom colours.
+        pari_fprintf(f, "\\definecolor{col%ld}{HTML}{%Ps}\n", i-1, gel(col, i));//Print the custom colours.
       }
     }
     else{//Too many colours, use RGB.
       for(long i=1;i<=modcolours;i++){
-        pari_fprintf(f, "\\definecolor{col%d}{rgb}{%P.4f,%P.4f,%P.4f}\n", i-1, gmael(col, i, 1), gmael(col, i, 2), gmael(col, i, 3));//Print the custom colours.
+        pari_fprintf(f, "\\definecolor{col%ld}{rgb}{%P.4f,%P.4f,%P.4f}\n", i-1, gmael(col, i, 1), gmael(col, i, 2), gmael(col, i, 3));//Print the custom colours.
       }
     }
   }
@@ -1267,10 +1267,10 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
   }
   else{//Must add colouring. Not sure how this works for the strip packing.
     for(long i=1;i<lc;i++){
-      if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw[ultra thin, fill=col%d] (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", smodis(gmael(c, i, 3), modcolours), gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
+      if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw[ultra thin, fill=col%ld] (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", smodis(gmael(c, i, 3), modcolours), gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
       else{
         if(signe(gmael(c, i, 3))==-1) pari_fprintf(f, "  \\draw[ultra thin] (%P.10fin, %P.10fin) circle (%P.10fin);\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
-        else pari_fprintf(f, "  \\draw[ultra thin, fill=col%d] (%P.10fin, %P.10fin) circle (%P.10fin);\n", smodis(gmael(c, i, 3), modcolours), gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+        else pari_fprintf(f, "  \\draw[ultra thin, fill=col%ld] (%P.10fin, %P.10fin) circle (%P.10fin);\n", smodis(gmael(c, i, 3), modcolours), gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
       }
     }
   }

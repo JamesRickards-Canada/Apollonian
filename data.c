@@ -166,12 +166,12 @@ hist_tobins(GEN v, GEN minx, GEN maxx, GEN nbins, int toscale, int compilenew, c
     for (binno = 0; binno < nbinslong; binno++) {
       ninbin = 0;
       while (ind < lv && gcmp(gel(v, ind), bmax) <= 0) { ind++; ninbin++; }
-      pari_fprintf(f, "%d\n%lf ", ninbin, rtodbl(bmax));
+      pari_fprintf(f, "%ld\n%lf ", ninbin, rtodbl(bmax));
       bmax = gadd(bmax, binlen);
       totinbin = totinbin + ninbin;
     }
     totinbin=lv - 1 - totinbin;
-    pari_fprintf(f, "%d", totinbin);/*The last outliers*/
+    pari_fprintf(f, "%ld", totinbin);/*The last outliers*/
   }
   else {
     GEN rescalefactor = gdivsg(1, gmulgs(binlen, lv - 1));/*Rescaling factor for area 1*/
@@ -188,7 +188,7 @@ hist_tobins(GEN v, GEN minx, GEN maxx, GEN nbins, int toscale, int compilenew, c
   fclose(f);
   if (compilenew) hist_autocompile(minx, maxx, imagename, plotoptions, open);/*Making a new LaTeX document and compiling it*/
   else tex_compile(imagename, open);/*Just recompiling the old LaTeX file*/
-  pari_printf("%d total data points\n%d total bins", lv - 1, nbinslong);
+  pari_printf("%ld total data points\n%ld total bins", lv - 1, nbinslong);
   GEN histprop = cgetg(8, t_VEC);
   gel(histprop, 1) = strtoGENstr(imagename);
   if (!open) gel(histprop, 2) = gen_0;

@@ -399,8 +399,8 @@ apol_missing(GEN v, GEN B, int family, int load)
 	if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
 	if (typ(gel(B, 1)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
 	if (typ(gel(B, 2)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	Bmin = itos(gel(B, 1));
-	Bmax = itos(gel(B, 2));
+	Bmin = itou(gel(B, 1));
+	Bmax = itou(gel(B, 2));
   }
   else if (t == t_VECSMALL) {
 	if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
@@ -451,8 +451,8 @@ apol_missing_load(GEN v, GEN B, int family)
   else fname = pari_sprintf("%Pd", gel(v, 1));
   long i;
   for (i = 2; i <= 4; i++) fname = pari_sprintf("%s_%Pd", fname, gel(v, i));
-  if (family) fname = pari_sprintf("%s_%d-to-%d_remqq.dat", fname, Bmin, Bmax);
-  else fname = pari_sprintf("%s_%d-to-%d.dat", fname, Bmin, Bmax);
+  if (family) fname = pari_sprintf("%s_%ld-to-%ld_remqq.dat", fname, Bmin, Bmax);
+  else fname = pari_sprintf("%s_%ld-to-%ld.dat", fname, Bmin, Bmax);
   if (pari_is_dir("missing")) {
     fname = pari_sprintf("missing/%s", fname);
   }
