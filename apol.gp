@@ -1,11 +1,10 @@
-\\
 print("\n\nType '?apol' for help.\n\n");
-addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages:\napollonian\napollonian_fast\ndata\n geometry\nquadratic");
+addhelp(apol, "For each package P, call ?P to access a basic description and list of methods. Installed packages:\napollonian\ndata\n geometry\nquadratic");
 parigp_version=version();
 apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*apol.c*/
-	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_chi2, apol_chi4, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_qf, apol_red, apol_red_partial, apol_type.");
+	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_chi2, apol_chi4, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial, apol_type.\n\nCreation of ACPs:\n\tapol_make, apol_makeall.\n\nSearching the ACP:\n\tapol_curvatures, apol_find, apol_missing, apol_missing_load, apol_missingfamilies.\n\nCircles and pictures:\n\tapol_circles, printcircles_desmos, printcircles_tex.\n\nSupporting methods:\n\tapol_words, quarticresidue.");
 	
 	/*SECTION 1: BASIC METHODS*/
 		install(apol_admissiblesets,"",,apol_library);
@@ -49,12 +48,9 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(printcircles_tex,"GrD1,L,D0,L,D1,L,D1,L,p");
 		addhelp(printcircles_tex,"printcircles_tex(c, imagename, {addnumbers=1}, {modcolours=0}, {compile=1}, {open=1}): prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle (only valid for integral ones). If modcolours>=1, we colour the circles based on their remainders mod modcolours (only valid for integral). If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
 
-	\\SUPPORTING METHODS
-		install("apol_words","L",,apol_library);
-		addhelp(apol_words,"Input d>0, the depth.\n Returns all reduced words of length d in the Apollonian group, as a Vecsmall of 1-4's (no consecutive repeats).");
-
-
-
+	/*SECTION 4: SUPPORTING METHODS*/
+		install(apol_words,"L");
+		addhelp(apol_words,"apol_words(d): returns all 4*3^(d-1) reduced words of length d in the Apollonian group, as Vecsmalls of 1-4's with no consecutive repeats.");
 		install(quarticresidue,"GG");
 		addhelp(quarticresidue,"quarticresidue(x, y): returns the quartic residue symbol [x/y] for the coprime Gaussian integers x, y with y odd. Does not check that y is odd or that x and y are coprime.");
 
@@ -114,12 +110,14 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(tex_recompile,"vG");
 		addhelp(tex_recompile,"tex_recompile(data): given the output of a tex image creation call, Recompiles the image, returning nothing. This is used when you edit the LaTeX document by hand.");
 
+
 /*geometry.c*/
 	addhelp(geometry,"Lines:\n\t[slope, intercept]\n\ty=slope*x+intercept unless slope=oo, where it is x=intercept instead.\n\nCircles:\n\t[centre, radius, curvature]\n\tRadius > 0, but curvature can be < 0 to mean the 'outside' is the inside. This does not get preserved under the mobius function.\n\nGeometry methods:\n\tmobius.");
 
 	/*SECTION 2: MOBIUS*/
 		install(mobius,"GGp");
 		addhelp(mobius,"mobius(M, x): returns the image of x under the Mobius map M, which is a 2x2 invertible matrix. Allows points (including oo), circles, and lines as input. If the return is a circle, the curvature will always be positive.");
+
 
 /*quadratic.c*/
 	addhelp(quadratic,"Discriminant methods:\n\tdisclist, isdisc.\n\nBasic quadratic form methods:\n\tqfbapply, qfbapplyL, qfbapplyR, qfbapplyS, idealtoqfb, qfbtoideal, qfbsos.\n\nClass groups:\n\tlexind, qfbnarrow, qfbnarrowlex.");

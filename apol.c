@@ -25,14 +25,13 @@ static GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, lo
 static GEN apol_thirdtangent_line1(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long prec);
 static int toleq_circ(GEN c1, GEN c2, GEN tol);
 
-
+/*SECTION 4: SUPPORTING METHODS*/
+static int ismp(GEN x);
 static long quarticresidue_int(GEN x, GEN y);
 static GEN gaussian_makeodd(GEN x, long *pwr);
 static GEN gaussian_makeprimary(GEN x, long *pwr);
-static int ismp(GEN x);
-
-
 static GEN ZV_copy(GEN v);
+
 
 /*MAIN BODY*/
 
@@ -64,7 +63,7 @@ apol_check(GEN v, long prec)
   if (typ(v) != t_VEC || lg(v) != 5) pari_err_TYPE("Must be a length 4 vector", v);
   long i;
   for (i = 1; i <= 4; i++) {
-	if (!ismp(gel(v, i))) pari_err_TYPE("Each entry must be integral or real.", v);
+    if (!ismp(gel(v, i))) pari_err_TYPE("Each entry must be integral or real.", v);
   }
   GEN L = gen_0, R = gen_0;
   for (i = 1; i <= 4; i++) L = mpadd(L, mpsqr(gel(v, i)));
@@ -99,12 +98,12 @@ apol_chi2(GEN v)
   else if (equali1(gcdii(a, gel(vcop, 3)))) b = gel(vcop, 3);
   else if (equali1(gcdii(a, gel(vcop, 4)))) b = gel(vcop, 4);
   else {/*Do S3 and S4 until we get a coprime one.*/
-	for (;;) {
-	  apol_move_1i(vcop, 3);
-	  if (equali1(gcdii(a, gel(vcop, 3)))) { b = gel(vcop, 3); break; }
-	  apol_move_1i(vcop, 4);
-	  if (equali1(gcdii(a, gel(vcop, 4)))) { b = gel(vcop, 4); break; }
-	}
+    for (;;) {
+      apol_move_1i(vcop, 3);
+      if (equali1(gcdii(a, gel(vcop, 3)))) { b = gel(vcop, 3); break; }
+      apol_move_1i(vcop, 4);
+      if (equali1(gcdii(a, gel(vcop, 4)))) { b = gel(vcop, 4); break; }
+    }
   }
   long m4 = Mod4(a);/*a can be negative so need Mod4 not mod4.*/
   if (m4 <= 1) return gc_long(av, kronecker(b, a));
@@ -126,18 +125,18 @@ apol_chi4(GEN v)
   else {
     long x, y;
     for (x = 1; ; x++) {
-	  for (y = 1; y <= x; y++) {
-		GEN term2 = mulis(addii(mulis(gel(q, 2), x), mulis(gel(q, 3), y)), y);/*(Bx+Cy)*y*/
-		GEN term1 = mulis(gel(q, 1), x * x);/*Ax^2*/
-		GEN term = addii(term1, term2);
-		if (equali1(gcdii(a, term))) {
-		  GEN concoef = addii(mulis(gcoeff(sos, 1, 1), x), mulis(gcoeff(sos, 1, 2), y));
-		  GEN Icoef = addii(mulis(gcoeff(sos, 2, 1), x), mulis(gcoeff(sos, 2, 2), y));
-		  beta = mkcomplex(concoef, Icoef);
-		  break;
-		}
-	  }
-	  if (beta) break;
+      for (y = 1; y <= x; y++) {
+        GEN term2 = mulis(addii(mulis(gel(q, 2), x), mulis(gel(q, 3), y)), y);/*(Bx+Cy)*y*/
+        GEN term1 = mulis(gel(q, 1), x * x);/*Ax^2*/
+        GEN term = addii(term1, term2);
+        if (equali1(gcdii(a, term))) {
+          GEN concoef = addii(mulis(gcoeff(sos, 1, 1), x), mulis(gcoeff(sos, 1, 2), y));
+          GEN Icoef = addii(mulis(gcoeff(sos, 2, 1), x), mulis(gcoeff(sos, 2, 2), y));
+          beta = mkcomplex(concoef, Icoef);
+          break;
+        }
+      }
+      if (beta) break;
     }
   }
   beta = simplify(beta);/*In case we did 4+0*I.*/
@@ -147,8 +146,8 @@ apol_chi4(GEN v)
   GEN qr = quarticresidue(beta, nprime);
   if (!e) return gerepileuptoleaf(av, qr);/*n is odd.*/
   if (e == 2) {
-	if (Mod4(nprime) == 1) return gerepileuptoleaf(av, qr);/*n==4(8), n'==1(4).*/
-	return gerepileuptoleaf(av, gneg(qr));/*n==4(8), n'==3(4).*/
+    if (Mod4(nprime) == 1) return gerepileuptoleaf(av, qr);/*n==4(8), n'==1(4).*/
+    return gerepileuptoleaf(av, gneg(qr));/*n==4(8), n'==3(4).*/
   }
   if (Mod8(mulis(imag_i(beta), e))) return gerepileuptoleaf(av, gneg(qr));/*n==0(8)*/
   return gerepileuptoleaf(av, qr);
@@ -161,21 +160,21 @@ apol_complete(GEN a, GEN b, GEN c, long prec)
   pari_sp av = avma;
   long t = typ(a);
   if (t == t_VEC || t == t_COL) {
-	c = gel(a, 3); b = gel(a, 2); a = gel(a, 1);
+    c = gel(a, 3); b = gel(a, 2); a = gel(a, 1);
   }
   int ta = ismp(a);
   if (!ta) pari_err_TYPE("Each input must be integral or real.", a);
   int tb = ismp(b);
   if (!tb) pari_err_TYPE("Each input must be integral or real.", b);
   if (ta != tb) {
-	if (ta == 1) a = gtofp(a, prec);/*Fix to both be real.*/
-	else b = gtofp(b, prec);
+    if (ta == 1) a = gtofp(a, prec);/*Fix to both be real.*/
+    else b = gtofp(b, prec);
   }
   int tc = ismp(c);
   if (!tc) pari_err_TYPE("Each input must be integral or real.", c);
   if (tb != tc) {
-	if (tb == 1) { a = gtofp(a, prec); b = gtofp(b, prec); }
-	else c = gtofp(c, prec);
+    if (tb == 1) { a = gtofp(a, prec); b = gtofp(b, prec); }
+    else c = gtofp(c, prec);
   }
   GEN bpc = mpadd(b, c);
   GEN bc = mpmul(b, c);
@@ -183,18 +182,18 @@ apol_complete(GEN a, GEN b, GEN c, long prec)
   GEN tol = deftol(prec), rt;
   if (toleq0(tort, tol)) rt = gen_0;/*To account for rounding to be slightly negative.*/
   else {
-	if (signe(tort) < 0) pari_err_TYPE("There does not exist a Descartes quadruple with these curvatures. Are two of them negative, or is the negative curvature too small?", mkvec3(a, b, c));
-	if (typ(tort) == t_INT) {
-	  GEN r;
-	  rt = sqrtremi(tort, &r);
-	  if (!isintzero(r)) {/*Square root not integral.*/
-		rt = gsqrt(tort, prec);
-		a = gtofp(a, prec);/*Must update them all.*/
-		b = gtofp(b, prec);
-		c = gtofp(c, prec);
-	  }
-	}
-	else rt = sqrtr(tort);
+    if (signe(tort) < 0) pari_err_TYPE("There does not exist a Descartes quadruple with these curvatures. Are two of them negative, or is the negative curvature too small?", mkvec3(a, b, c));
+    if (typ(tort) == t_INT) {
+      GEN r;
+      rt = sqrtremi(tort, &r);
+      if (!isintzero(r)) {/*Square root not integral.*/
+        rt = gsqrt(tort, prec);
+        a = gtofp(a, prec);/*Must update them all.*/
+        b = gtofp(b, prec);
+        c = gtofp(c, prec);
+      }
+    }
+    else rt = sqrtr(tort);
   }
   GEN term2 = mpshift(rt, 1);/*2*sqrt(ab+ac+bc)*/
   GEN d = mpsub(mpadd(a, bpc), term2);/*The smaller of the roots.*/
@@ -231,9 +230,9 @@ apol_fix(GEN v, int *isint, long prec)
   int t = ismp(gel(v, 1));
   int onlyint = t, mixing = 0, i;
   for (i = 2; i <= 4; i++) {
-	t = ismp(gel(v, i));
-	if (!t) pari_err_TYPE("Each entry must be integral or real.", v);
-	if (t != onlyint) mixing = 1;/*Go back and fix*/
+    t = ismp(gel(v, i));
+    if (!t) pari_err_TYPE("Each entry must be integral or real.", v);
+    if (t != onlyint) mixing = 1;/*Go back and fix*/
   }
   GEN L = gen_0, R = gen_0;
   for (i = 1; i <= 4; i++) L = mpadd(L, mpsqr(gel(v, i)));
@@ -243,8 +242,8 @@ apol_fix(GEN v, int *isint, long prec)
   if (!toleq(L, R, deftol(prec))) return gc_NULL(av);/*Descartes equation not satisfied.*/
   if (!mixing) {/*Uniform type.*/
     if (isint) *isint = 2 - onlyint;
-	set_avma(av);
-	return v;
+    set_avma(av);
+    return v;
   }
   if (isint) *isint = 0;/*Must be real, as we mixed the two.*/
   GEN w = cgetg(5, t_VEC);
@@ -284,17 +283,17 @@ apol_mod24(GEN v)
   do { i++; m8 = Mod8(gel(v, i)); } while (!(m8 % 2));/*Find odd residue modulo 8.*/
   GEN m24;
   switch (m8) {
-	case 1:
-	  if (m3 == 1) m24 = mkvecsmalln(6, 0L, 1L, 4L, 9L, 12L, 16L);
-	  else m24 = mkvecsmalln(6, 0L, 8L, 9L, 12L, 17L, 20L);
-	  break;
-	case 5:
-	  if (m3 == 1) m24 = mkvecsmalln(6, 0L, 4L, 12L, 13L, 16L, 21L);
-	  else m24 = mkvecsmalln(6, 0L, 5L, 8L, 12L, 20L, 21L);
-	  break;
-	default:/*(8, k) type*/
-	  if (m3 == 1) m24 = mkvecsmalln(8, 3L, 6L, 7L, 10L, 15L, 18L, 19L, 22L);
-	  else m24 = mkvecsmalln(8, 2L, 3L, 6L, 11L, 14L, 15L, 18L, 23L);
+    case 1:
+      if (m3 == 1) m24 = mkvecsmalln(6, 0L, 1L, 4L, 9L, 12L, 16L);
+      else m24 = mkvecsmalln(6, 0L, 8L, 9L, 12L, 17L, 20L);
+      break;
+    case 5:
+      if (m3 == 1) m24 = mkvecsmalln(6, 0L, 4L, 12L, 13L, 16L, 21L);
+      else m24 = mkvecsmalln(6, 0L, 5L, 8L, 12L, 20L, 21L);
+      break;
+    default:/*(8, k) type*/
+      if (m3 == 1) m24 = mkvecsmalln(8, 3L, 6L, 7L, 10L, 15L, 18L, 19L, 22L);
+      else m24 = mkvecsmalln(8, 2L, 3L, 6L, 11L, 14L, 15L, 18L, 23L);
   }
   return gerepileupto(av, zv_to_ZV(m24));
 }
@@ -311,16 +310,16 @@ apol_move(GEN v, GEN command, long prec)
   long t = typ(command);
   switch (t) {
     case t_INT:
-	  if (isint) apol_move_1i(vcop, itos(command));
-	  else apol_move_1r(vcop, itos(command));
-	  return gerepilecopy(av, vcop);
-	case t_VEC:
-	case t_COL:
-	  command = gtovecsmall(command);
+      if (isint) apol_move_1i(vcop, itos(command));
+      else apol_move_1r(vcop, itos(command));
+      return gerepilecopy(av, vcop);
+    case t_VEC:
+    case t_COL:
+      command = gtovecsmall(command);
     case t_VECSMALL:
-	  if (isint) apol_move_batchi(vcop, command);
-	  else apol_move_batchr(vcop, command);
-	  return gerepilecopy(av, vcop);
+      if (isint) apol_move_batchi(vcop, command);
+      else apol_move_batchr(vcop, command);
+      return gerepilecopy(av, vcop);
   }
   pari_err_TYPE("Input does not represent a valid move (or series of moves)", command);
   return NULL;
@@ -332,17 +331,17 @@ apol_move_1i(GEN v, int ind)
 {
   GEN a = gel(v, 1), b = gel(v, 2), c = gel(v, 3), d = gel(v, 4);
   switch (ind) {
-	case 1:
-	  gel(v, 1) = subii(shifti(addii(addii(b, c), d), 1), a);
-	  return;
-	case 2:
-	  gel(v, 2) = subii(shifti(addii(addii(a, c), d), 1), b);
-	  return;
-	case 3:
-	  gel(v, 3) = subii(shifti(addii(addii(a, b), d), 1), c);
-	  return;
-	case 4:
-	  gel(v, 4) = subii(shifti(addii(addii(a, b), c), 1), d);
+    case 1:
+      gel(v, 1) = subii(shifti(addii(addii(b, c), d), 1), a);
+      return;
+    case 2:
+      gel(v, 2) = subii(shifti(addii(addii(a, c), d), 1), b);
+      return;
+    case 3:
+      gel(v, 3) = subii(shifti(addii(addii(a, b), d), 1), c);
+      return;
+    case 4:
+      gel(v, 4) = subii(shifti(addii(addii(a, b), c), 1), d);
   }
 }
 
@@ -352,17 +351,17 @@ apol_move_1r(GEN v, int ind)
 {
   GEN a = gel(v, 1), b = gel(v, 2), c = gel(v, 3), d = gel(v, 4);
   switch (ind) {
-	case 1:
-	  gel(v, 1) = subrr(shiftr(addrr(addrr(b, c), d), 1), a);
-	  return;
-	case 2:
-	  gel(v, 2) = subrr(shiftr(addrr(addrr(a, c), d), 1), b);
-	  return;
-	case 3:
-	  gel(v, 3) = subrr(shiftr(addrr(addrr(a, b), d), 1), c);
-	  return;
-	case 4:
-	  gel(v, 4) = subrr(shiftr(addrr(addrr(a, b), c), 1), d);
+    case 1:
+      gel(v, 1) = subrr(shiftr(addrr(addrr(b, c), d), 1), a);
+      return;
+    case 2:
+      gel(v, 2) = subrr(shiftr(addrr(addrr(a, c), d), 1), b);
+      return;
+    case 3:
+      gel(v, 3) = subrr(shiftr(addrr(addrr(a, b), d), 1), c);
+      return;
+    case 4:
+      gel(v, 4) = subrr(shiftr(addrr(addrr(a, b), c), 1), d);
   }
 }
 
@@ -427,7 +426,7 @@ apol_red0(GEN v, int seq, void (*move1)(GEN, int), int (*cmp)(GEN, GEN))
       dold = gel(v, ind);
       move1(v, ind);
     } while(cmp(gel(v, ind), dold) < 0);
-	move1(v, ind);/*Must go back one!*/
+    move1(v, ind);/*Must go back one!*/
     return gerepilecopy(av, v);
   }
   long i = 0, len = 40;
@@ -436,12 +435,12 @@ apol_red0(GEN v, int seq, void (*move1)(GEN, int), int (*cmp)(GEN, GEN))
     ind = vecindexmax(v);
     dold = gel(v, ind);
     move1(v, ind);
-	i++;
-	if (i > len) {
-	  len <<= 1;
-	  S = vecsmall_lengthen(S, len);
-	}
-	S[i] = ind;
+    i++;
+    if (i > len) {
+      len <<= 1;
+      S = vecsmall_lengthen(S, len);
+    }
+    S[i] = ind;
   } while(cmp(gel(v, ind), dold) < 0);
   S = vecsmall_shorten(S, i - 1);/*Remove last move.*/
   move1(v, ind);
@@ -471,7 +470,7 @@ apol_red_partial0(GEN v, long maxsteps, void (*move1)(GEN, int), int (*cmp)(GEN,
   for (step = 1; step <= maxsteps; step++) {
     ind = vecindexmax(v);
     dold = gel(v, ind);
-	move1(v, ind);
+    move1(v, ind);
     if (cmp(gel(v, ind), dold) >= 0) { move1(v, ind); break; }/*Must go back one.*/
   }
   return gerepilecopy(av, v);
@@ -486,32 +485,32 @@ apol_type(GEN v, int chi)
   long second = itos(gel(m24, 2));/*Uniquely identified by the second element*/
   set_avma(av);
   if (chi == 1) {
-	switch (second) {
+    switch (second) {
       case 1: return mkvec3s(6, 1, apol_chi2(v));
-	  case 3: return mkvec3s(8, 11, apol_chi2(v));
-	  case 4: return mkvec3s(6, 13, apol_chi2(v));
-	  case 5: return mkvec3s(6, 5, apol_chi2(v));
-	  case 6: return mkvec3s(8, 7, apol_chi2(v));
-	  case 8: return mkvec3s(6, 17, apol_chi2(v));
+      case 3: return mkvec3s(8, 11, apol_chi2(v));
+      case 4: return mkvec3s(6, 13, apol_chi2(v));
+      case 5: return mkvec3s(6, 5, apol_chi2(v));
+      case 6: return mkvec3s(8, 7, apol_chi2(v));
+      case 8: return mkvec3s(6, 17, apol_chi2(v));
     }
   }
   if (chi == 2) {
-	switch (second) {
+    switch (second) {
       case 1: return gerepilecopy(av, mkvec4(stoi(6), gen_1, stoi(apol_chi2(v)), apol_chi4(v)));
-	  case 3: return mkvec4s(8, 11, apol_chi2(v), 0);
-	  case 4: return mkvec4s(6, 13, apol_chi2(v), 0);
-	  case 5: return mkvec4s(6, 5, apol_chi2(v), 0);
-	  case 6: return mkvec4s(8, 7, apol_chi2(v), 0);
-	  case 8: return gerepilecopy(av, mkvec4(stoi(6), stoi(17), stoi(apol_chi2(v)), apol_chi4(v)));
+      case 3: return mkvec4s(8, 11, apol_chi2(v), 0);
+      case 4: return mkvec4s(6, 13, apol_chi2(v), 0);
+      case 5: return mkvec4s(6, 5, apol_chi2(v), 0);
+      case 6: return mkvec4s(8, 7, apol_chi2(v), 0);
+      case 8: return gerepilecopy(av, mkvec4(stoi(6), stoi(17), stoi(apol_chi2(v)), apol_chi4(v)));
     }
   }
   switch (second) {
     case 1: return mkvec2s(6, 1);
-	case 3: return mkvec2s(8, 11);
-	case 4: return mkvec2s(6, 13);
-	case 5: return mkvec2s(6, 5);
-	case 6: return mkvec2s(8, 7);
-	case 8: return mkvec2s(6, 17);
+    case 3: return mkvec2s(8, 11);
+    case 4: return mkvec2s(6, 13);
+    case 5: return mkvec2s(6, 5);
+    case 6: return mkvec2s(8, 7);
+    case 8: return mkvec2s(6, 17);
   }
   pari_err(e_MISC, "We didn't find one of the 6 possible admissible sets, are you sure you inputted a primitive Apollonian circle packing?");
   return gen_0;
@@ -603,16 +602,16 @@ apol_circles(GEN v, GEN B, long depth, long prec)
   else gel(vfound, 1) = mkvec3(gen_0, ginv(c1), c1);/*First circle has positive curvature, may be a full plane packing!*/
   GEN c2 = gel(v, 2);/*Second circle*/
   if (gequal0(c2)) {/*It is a line.*/
-	if (gequal0(c1)) gel(vfound, 2) = mkvec2(gen_0, gdivsg(2, gel(v, 3)));/*First circle was also a line*/
-	else gel(vfound, 2) = mkvec2(gen_0, gsub(imag_i(gmael(vfound, 1, 1)), gmael(vfound, 1, 2)));/*First circle was a circle. Place line below.*/
+    if (gequal0(c1)) gel(vfound, 2) = mkvec2(gen_0, gdivsg(2, gel(v, 3)));/*First circle was also a line*/
+    else gel(vfound, 2) = mkvec2(gen_0, gsub(imag_i(gmael(vfound, 1, 1)), gmael(vfound, 1, 2)));/*First circle was a circle. Place line below.*/
   }
   else {/*It is a circle*/
     GEN r2 = ginv(c2);
-	if (gequal0(c1)) gel(vfound, 2) = mkvec3(mkcomplex(gen_0, r2), r2, c2);/*First circle was a line! It must be the x-axis*/
-	else if (signe(c1) < 0){/*First circle was outer one, negative curvature.*/
+    if (gequal0(c1)) gel(vfound, 2) = mkvec3(mkcomplex(gen_0, r2), r2, c2);/*First circle was a line! It must be the x-axis*/
+    else if (signe(c1) < 0){/*First circle was outer one, negative curvature.*/
       gel(vfound, 2) = mkvec3(mkcomplex(gen_0, gsub(gmael(vfound, 1, 2), r2)), r2, c2);/*first inner circle, placed vertically at the top. Note gmael(vfound, 1, 2) = r1 > 0.*/
-	}
-	else gel(vfound, 2) = mkvec3(mkcomplex(gen_0, gadd(gmael(vfound, 1, 2), r2)), r2, c2);/*First circle was not the outer one.*/
+    }
+    else gel(vfound, 2) = mkvec3(mkcomplex(gen_0, gadd(gmael(vfound, 1, 2), r2)), r2, c2);/*First circle was not the outer one.*/
   }
   gel(vfound, 3) = apol_thirdtangent(gel(vfound, 1), gel(vfound, 2), gel(v, 3), gel(v, 4), 0, prec);/*Third circle goes left*/
   gel(vfound, 4) = apol_thirdtangent(gel(vfound, 2), gel(vfound, 3), gel(v, 4), gel(v, 1), 0, prec);/*Fourth circle is left of circ2 ->circ3*/
@@ -628,49 +627,49 @@ apol_circles(GEN v, GEN B, long depth, long prec)
     }
     long lastind = ind - 1;
     if (cind == swaps[lastind]) continue; /*Same thing twice, so skip it.*/
-	GEN newv = shallowcopy(gmael(depthseq, lastind, 1));/*Shallow copy the previous entry.*/
-	move1(newv, cind);/*Move it.*/
-	GEN newc = gel(newv, cind);
-	if (gcmp(newc, B) > 0) continue;/*Too big! go back.*/
-	
-	GEN newinds = cgetg(5, t_VECSMALL);/*The new indices*/
-	GEN prevind = gmael(depthseq, lastind, 2);/*The corresponding circle indices of the previous quadruple.*/
-	long i = 1;
-	while (i == cind) i++;
-	newinds[i] = prevind[i];
-	GEN oldcirc1 = gel(vfound, prevind[i]);/*First old circle*/
-	i++;
-	while (i == cind) i++;
-	newinds[i] = prevind[i];
-	GEN oldcirc2 = gel(vfound, prevind[i]);/*Second old circle*/
-	i++;
-	while (i == cind) i++;
-	newinds[i] = prevind[i];
-	GEN newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 1, prec);/*The new circle, if it is to the right of oldcirc1 -> oldcirc2.*/
-	GEN prevcirc = gel(vfound, prevind[cind]);/*The circle we are replacing.*/
-	/*Now we need to check that we found the new circle on the correct side of the old ones.*/
-	if (toleq_circ(newcirc, prevcirc, tol)) newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 0, prec);/*If the two curvatures were the same, this could trigger.*/
-	else {
-	  GEN oldcirc3 = gel(vfound, prevind[i]);/*The unused old circle. Our newcirc must be tangent to it.*/
-	  GEN rsums = gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));/*(r1+r2)^2*/
-	  GEN dcentres = gnorm(gsub(gel(oldcirc3, 1), gel(newcirc, 1)));/*dist(centres)^2*/
-	  if (!toleq(rsums, dcentres, tol)) newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 0, prec);/*Must be the other side.*/
-	}
-	/*Update the data.*/
-	foundind++;
-	if (foundind > maxfound) {
-		maxfound <<= 1;/*Double it*/
-		vfound = vec_lengthen(vfound, maxfound);
-	}
-	gel(vfound, foundind) = newcirc;/*Add the new circle to the list*/
-	newinds[cind] = foundind;
-	gel(depthseq, ind) = mkvec2(newv, newinds);/*Update the depth sequence.*/
+    GEN newv = shallowcopy(gmael(depthseq, lastind, 1));/*Shallow copy the previous entry.*/
+    move1(newv, cind);/*Move it.*/
+    GEN newc = gel(newv, cind);
+    if (gcmp(newc, B) > 0) continue;/*Too big! go back.*/
+    
+    GEN newinds = cgetg(5, t_VECSMALL);/*The new indices*/
+    GEN prevind = gmael(depthseq, lastind, 2);/*The corresponding circle indices of the previous quadruple.*/
+    long i = 1;
+    while (i == cind) i++;
+    newinds[i] = prevind[i];
+    GEN oldcirc1 = gel(vfound, prevind[i]);/*First old circle*/
+    i++;
+    while (i == cind) i++;
+    newinds[i] = prevind[i];
+    GEN oldcirc2 = gel(vfound, prevind[i]);/*Second old circle*/
+    i++;
+    while (i == cind) i++;
+    newinds[i] = prevind[i];
+    GEN newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 1, prec);/*The new circle, if it is to the right of oldcirc1 -> oldcirc2.*/
+    GEN prevcirc = gel(vfound, prevind[cind]);/*The circle we are replacing.*/
+    /*Now we need to check that we found the new circle on the correct side of the old ones.*/
+    if (toleq_circ(newcirc, prevcirc, tol)) newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 0, prec);/*If the two curvatures were the same, this could trigger.*/
+    else {
+      GEN oldcirc3 = gel(vfound, prevind[i]);/*The unused old circle. Our newcirc must be tangent to it.*/
+      GEN rsums = gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));/*(r1+r2)^2*/
+      GEN dcentres = gnorm(gsub(gel(oldcirc3, 1), gel(newcirc, 1)));/*dist(centres)^2*/
+      if (!toleq(rsums, dcentres, tol)) newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 0, prec);/*Must be the other side.*/
+    }
+    /*Update the data.*/
+    foundind++;
+    if (foundind > maxfound) {
+        maxfound <<= 1;/*Double it*/
+        vfound = vec_lengthen(vfound, maxfound);
+    }
+    gel(vfound, foundind) = newcirc;/*Add the new circle to the list*/
+    newinds[cind] = foundind;
+    gel(depthseq, ind) = mkvec2(newv, newinds);/*Update the depth sequence.*/
     ind++;
     if (ind > maxdepth) {/*We are going too deep, must double the depth. This cannot trigger if depth=0.*/
       long newdepth = maxdepth << 1;/*Double it.*/
-	  depthseq = vec_lengthen(depthseq, newdepth);
-	  swaps = vecsmall_lengthen(swaps, newdepth);
-	  for (i = maxdepth + 1; i <= newdepth; i++) swaps[i] = 0;
+      depthseq = vec_lengthen(depthseq, newdepth);
+      swaps = vecsmall_lengthen(swaps, newdepth);
+      for (i = maxdepth + 1; i <= newdepth; i++) swaps[i] = 0;
       maxdepth = newdepth;
     }
   }
@@ -685,8 +684,8 @@ apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long prec)
   if (lg(circ2) == 3) return apol_thirdtangent_line1(circ2, circ1, c3, c4, 1 - right, prec);/*circ2 is a line!*/
   pari_sp av = avma;/*Now neither circ1 or circ2 is a line.*/
   if (gequal0(c3)) {/*c3 is a line.*/
-	if (right) return gerepilecopy(av, mkvec2(gen_0, gsub(imag_i(gel(circ1, 1)), gel(circ1, 2))));/*Below*/
-	return gerepilecopy(av, mkvec2(gen_0, gadd(imag_i(gel(circ1, 1)), gel(circ1, 2))));/*Above*/
+    if (right) return gerepilecopy(av, mkvec2(gen_0, gsub(imag_i(gel(circ1, 1)), gel(circ1, 2))));/*Below*/
+    return gerepilecopy(av, mkvec2(gen_0, gadd(imag_i(gel(circ1, 1)), gel(circ1, 2))));/*Above*/
   }
   /*Now circ1, circ2, and c3 are all circles.*/
   /*The centres form a triangle with sides r1+r2, r1+r3, r2+r3, or -r1-r2, -r1-r3, r2+r3 (if internal tangency, where r1<0). Let theta be the angle at the centre of c1.*/
@@ -726,29 +725,29 @@ apol_thirdtangent_line1(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long pr
   pari_sp av = avma;
   if (lg(circ2) == 3) {/*circ2 is also a line. We will place the third circle on the y-axis. This may cause issues if you input something funny, but if we start at [0, 0, 1, 1] then it should be OK I think.*/
     GEN r = gdivgs(gsub(gel(circ1, 2), gel(circ2, 2)), 2);/*The radius*/
-	if (signe(r) < 0){/*circ2 above circ1*/
-	  r = gneg(r);
-	  return gerepilecopy(av, mkvec3(mkcomplex(gen_0, gadd(gel(circ1, 2), r)), r, ginv(r)));
-	}
-	return gerepilecopy(av, mkvec3(mkcomplex(gen_0, gadd(gel(circ2, 2), r)), r, ginv(r)));
+    if (signe(r) < 0){/*circ2 above circ1*/
+      r = gneg(r);
+      return gerepilecopy(av, mkvec3(mkcomplex(gen_0, gadd(gel(circ1, 2), r)), r, ginv(r)));
+    }
+    return gerepilecopy(av, mkvec3(mkcomplex(gen_0, gadd(gel(circ2, 2), r)), r, ginv(r)));
   }
   /*Now circ2 is a circle.*/
   if (gequal0(c3)) {/*We are making the other tangent line.*/
     GEN y = imag_i(gel(circ2, 1));/*height*/
-	if (gcmp(gel(circ1, 2), y) > 0) return gerepilecopy(av, mkvec2(gen_0, gsub(y, gel(circ2, 2))));/*tangent line circ1 above*/
-	return gerepilecopy(av, mkvec2(gen_0, gadd(y, gel(circ2, 2))));/*tangent line circ1 below*/
+    if (gcmp(gel(circ1, 2), y) > 0) return gerepilecopy(av, mkvec2(gen_0, gsub(y, gel(circ2, 2))));/*tangent line circ1 above*/
+    return gerepilecopy(av, mkvec2(gen_0, gadd(y, gel(circ2, 2))));/*tangent line circ1 below*/
   }
   /*Now circ3 is a circle too.*/
   GEN r2 = gel(circ2, 2);
   GEN r3 = ginv(c3), x;
   if (typ(gel(circ2, 3)) == t_INT && typ(c3) == t_INT && typ(c4) == t_INT){/*Must be the strip packing, so sqrt(r2r3) is rational*/
     GEN c2c3 = mulii(gel(circ2, 3), c3);
-	x = Qdivii(gen_2, sqrti(c2c3));/*x=2sqrt(r2r3)=2/sqrt(c2c3)*/
+    x = Qdivii(gen_2, sqrti(c2c3));/*x=2sqrt(r2r3)=2/sqrt(c2c3)*/
   }
   else x = gmulsg(2, gsqrt(gmul(r2, r3), prec));/*2sqrt(r2r3) is the x-distance we move. Uses lowest precision.*/
   if (gcmp(gel(circ1, 2), imag_i(gel(circ2, 1))) > 0) {/*Tangent line circ1 above*/
-	if (right) return gerepilecopy(av, mkvec3(mkcomplex(gsub(real_i(gel(circ2, 1)), x), gsub(gel(circ1, 2), r3)), r3, c3)); /*-x*/
-	return gerepilecopy(av, mkvec3(mkcomplex(gadd(real_i(gel(circ2, 1)), x), gsub(gel(circ1, 2), r3)), r3, c3));/*+x*/
+    if (right) return gerepilecopy(av, mkvec3(mkcomplex(gsub(real_i(gel(circ2, 1)), x), gsub(gel(circ1, 2), r3)), r3, c3)); /*-x*/
+    return gerepilecopy(av, mkvec3(mkcomplex(gadd(real_i(gel(circ2, 1)), x), gsub(gel(circ1, 2), r3)), r3, c3));/*+x*/
   }
   /*Tangent line circ1 below*/
   if (right) return gerepilecopy(av, mkvec3(mkcomplex(gadd(real_i(gel(circ2, 1)), x), gadd(gel(circ1, 2), r3)), r3, c3));/*+x*/
@@ -760,8 +759,8 @@ static int
 toleq_circ(GEN c1, GEN c2, GEN tol)
 {
   if (lg(c1) == 3) {
-	if (lg(c2) != 3) return 0;/*line vs circle*/
-	return toleq(gel(c1, 2), gel(c2, 2), tol);/*Only need to compare the intercepts, both slopes assumed to be 0.*/
+    if (lg(c2) != 3) return 0;/*line vs circle*/
+    return toleq(gel(c1, 2), gel(c2, 2), tol);/*Only need to compare the intercepts, both slopes assumed to be 0.*/
   }
   if (lg(c2) == 3) return 0;/*circle vs line*/
   if (!toleq(gel(c1, 1), gel(c2, 1), tol)) return 0;/*Different centres.*/
@@ -808,7 +807,7 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int com
   }
   pari_fprintf(f, "\\begin{document}\n\\tikzsetnextfilename{%s}\n\\begin{tikzpicture}\n", imagename);
   
-  //Now we treat the circles:
+  /*Now we treat the circles:*/
   long lc;
   GEN cscale = cgetg_copy(c, &lc);/*Scale it so the first circle has radius 3in and centre at (0, 0). The first circle is supposed to be the biggest, having negative curvature, and centre 0, 0. If it is not the largest, we have some work to do.*/
   GEN largestcirc = stoi(3);/*Radius of largest circle*/
@@ -818,7 +817,7 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int com
     for (i = 2; i < lc; i++) {
       gel(cscale, i) = mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(real_i(gmael(c, i, 1)), scalingfactor), gmul(imag_i(gmael(c, i, 1)), scalingfactor));/*r, x, y*/
     }/*Circles have been scaled!*/
-	pari_printf("Scale:%P.20f\nHorizontal shift: 0\n", scalingfactor);
+    pari_printf("Scale:%P.20f\nHorizontal shift: 0\n", scalingfactor);
   }
   else {/*Strip packing, OR the largest curvature does not come first. The width should be at least as much as the height.*/
     GEN minx = mkoo(), maxx = mkmoo();
@@ -839,7 +838,7 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int com
       }
       gel(cscale, i) = mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gsub(real_i(gmael(c, i, 1)), horizshift), scalingfactor), gmul(imag_i(gmael(c, i, 1)), scalingfactor));/*r, x, y*/
     }
-	pari_printf("Scale:%P.20f\nHorizontal shift: %P.20f\n", scalingfactor, gneg(horizshift));
+    pari_printf("Scale:%P.20f\nHorizontal shift: %P.20f\n", scalingfactor, gneg(horizshift));
   }
   
   /*Time to draw the circles*/
@@ -886,7 +885,7 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int com
       pari_fprintf(f, "  \\node[align=center%s] at (%P.10fin, %P.10fin) {\\fontsize{%P.10fin}{0in}\\selectfont %Pd};\n", options, gmael(cscale, i, 2), gmael(cscale, i, 3), gmul(gmael(cscale, i, 1), scaleby), curv);
     }
   }
-  //Ending stuff.
+  /*Ending stuff.*/
   pari_fprintf(f, "\\end{tikzpicture}\n\\end{document}");
   fclose(f);
   tex_compile(imagename, open);
@@ -894,46 +893,35 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int com
 }
 
 
+/*SECTION 4: SUPPORTING METHODS*/
 
-//SUPPORTING METHODS
-
-
-//Returns all 4*3^(d-1) reduced words of depth d.
-GEN apol_words(int d){
-  if(d<=0) return cgetg(1, t_VEC);
-  pari_sp top=avma;
-  int ind=1;//We reuse ind to track which depth we are going towards.
-  GEN I=vecsmall_ei(d, 1);//Tracks the words
-  int forward=1;//Tracks if we are going forward or not.
-  long Nreps=4*(itos(powuu(3, d-1)))+1;//4*3^(d-1)+1
-  GEN reps=vectrunc_init(Nreps);
-  do{//1<=ind<=d is assumed.
-    I[ind]=forward? 1:I[ind]+1;
-    if(ind>1 && I[ind-1]==I[ind]) I[ind]++;//Don't repeat
-    if(I[ind]>4){ind--;continue;}//Go back. Forward already must =0, so no need to update.
-    //At this point, we can go on with valid and new inputs
-    if(ind==d){
-      forward=0;
-      vectrunc_append(reps, gcopy(I));//Add in I
+/*Returns all 4*3^(d-1) reduced words of depth d.*/
+GEN
+apol_words(int d)
+{
+  if (d <= 0) return cgetg(1, t_VEC);
+  pari_sp av = avma;
+  int ind = 1;/*We reuse ind to track which depth we are going towards.*/
+  GEN I = vecsmall_ei(d, 1);/*Tracks the words*/
+  int forward = 1;/*Tracks if we are going forward or not.*/
+  long Nreps = ((itos(powuu(3, d - 1))) << 2) + 1;/*4*3^(d-1)+1*/
+  GEN reps = vectrunc_init(Nreps);
+  do {/*1<=ind<=d is assumed.*/
+    I[ind] = forward? 1:I[ind] + 1;
+    if (ind>1 && I[ind - 1] == I[ind]) I[ind]++;/*Don't repeat*/
+    if (I[ind] > 4) { ind--; continue; }/*Go back. Forward already must =0, so no need to update.*/
+    /*At this point, we can go on with valid and new inputs*/
+    if (ind == d) {
+      forward = 0;
+      vectrunc_append(reps, gcopy(I));/*Add in I*/
       continue;
     }
-    //We can keep going forward
+    /*We can keep going forward*/
     ind++;
-    forward=1;
-  }while(ind>0);
-  return gerepilecopy(top, reps);
+    forward = 1;
+  } while(ind > 0);
+  return gerepilecopy(av, reps);
 }
-
-//Copies an integer vector
-static GEN
-ZV_copy(GEN v){
-  long len=lg(v);
-  GEN rvec=cgetg(len, t_VEC);
-  for(long i=1;i<len;i++) gel(rvec, i)=icopy(gel(v, i));
-  return rvec;
-}
-
-
 
 /*Returns 1 if x is t_INT, 2 if t_REAL, 0 else*/
 static int
@@ -951,12 +939,12 @@ quarticresidue(GEN x, GEN y)
 {
   long tx = typ(x);
   if (tx == t_COMPLEX) {
-	if (typ(gel(x, 1)) != t_INT || typ(gel(x, 2)) != t_INT) pari_err_TYPE("x and y must be Gaussian integers", x);
+    if (typ(gel(x, 1)) != t_INT || typ(gel(x, 2)) != t_INT) pari_err_TYPE("x and y must be Gaussian integers", x);
   }
   else if (tx != t_INT) pari_err_TYPE("x and y must be Gaussian integers", x);
   long ty = typ(y);
   if (ty == t_COMPLEX) {
-	if (typ(gel(y, 1)) != t_INT || typ(gel(y, 2)) != t_INT) pari_err_TYPE("x and y must be Gaussian integers", y);
+    if (typ(gel(y, 1)) != t_INT || typ(gel(y, 2)) != t_INT) pari_err_TYPE("x and y must be Gaussian integers", y);
   }
   else if (ty != t_INT) pari_err_TYPE("x and y must be Gaussian integers", y);
   long pow = quarticresidue_int(x, y);
@@ -976,26 +964,26 @@ quarticresidue_int(GEN x, GEN y)
   y = gaussian_makeprimary(y, &shift);
   long pwr = 0;/*Tracks the power of i.*/
   for (;;) {
-	GEN a = real_i(y), b = imag_i(y);
-	GEN z = gdiv(x, y);
-	GEN w = mkcomplex(ground(real_i(z)), ground(imag_i(z)));
-	GEN delta = gsub(z, w);/*x/y=w+delta with w in Z[i].*/
-	if (gequal0(delta)) return gc_long(av, pwr);/*Done, ASSUMING coprime.*/
-	x = gmul(delta, y);/*Reduce x mod y to something smaller.*/
-	x = gaussian_makeodd(x, &shift);
-	if (shift) {/*Update pwr, divided by (1+i)^shift*/
-		GEN t = Fp_sub(a, Fp_add(b, Fp_add(Fp_sqr(b, sixteen), gen_1, sixteen), sixteen), sixteen);/*a-b-b^2-1*/
-		pwr += (Mod16(t) >> 2) * shift;/*Add the power t/4*/
-	}
-	x = gaussian_makeprimary(x, &shift);
-	if (shift) {/*Update pwr, divided by i^shift*/
-	  pwr += (Mod8(subsi(1, a)) >> 1) * shift;
-	}
-	if (Mod4(b) && Mod4(imag_i(x))) pwr += 2;/*x and y both are == (3, 2) mod 4*/
-	GEN t = x;
-	x = y;
-	y = t;
-	pwr = pwr % 4;
+    GEN a = real_i(y), b = imag_i(y);
+    GEN z = gdiv(x, y);
+    GEN w = mkcomplex(ground(real_i(z)), ground(imag_i(z)));
+    GEN delta = gsub(z, w);/*x/y=w+delta with w in Z[i].*/
+    if (gequal0(delta)) return gc_long(av, pwr);/*Done, ASSUMING coprime.*/
+    x = gmul(delta, y);/*Reduce x mod y to something smaller.*/
+    x = gaussian_makeodd(x, &shift);
+    if (shift) {/*Update pwr, divided by (1+i)^shift*/
+        GEN t = Fp_sub(a, Fp_add(b, Fp_add(Fp_sqr(b, sixteen), gen_1, sixteen), sixteen), sixteen);/*a-b-b^2-1*/
+        pwr += (Mod16(t) >> 2) * shift;/*Add the power t/4*/
+    }
+    x = gaussian_makeprimary(x, &shift);
+    if (shift) {/*Update pwr, divided by i^shift*/
+      pwr += (Mod8(subsi(1, a)) >> 1) * shift;
+    }
+    if (Mod4(b) && Mod4(imag_i(x))) pwr += 2;/*x and y both are == (3, 2) mod 4*/
+    GEN t = x;
+    x = y;
+    y = t;
+    pwr = pwr % 4;
   }
 }
 
@@ -1006,10 +994,10 @@ gaussian_makeodd(GEN x, long *pwr)
   GEN a = real_i(x), b = imag_i(x);
   long pw = 0;
   while (Mod2(a) == Mod2(b)) {
-	GEN t = a;
-	a = shifti(addii(a, b), -1);
-	b = shifti(subii(b, t), -1);
-	pw++;
+    GEN t = a;
+    a = shifti(addii(a, b), -1);
+    b = shifti(subii(b, t), -1);
+    pw++;
   }
   *pwr = pw % 4;
   return mkcomplex(a, b);
@@ -1022,21 +1010,30 @@ gaussian_makeprimary(GEN x, long *pwr)
   GEN a = real_i(x), b = imag_i(x);
   int a4 = Mod4(a), b4 = Mod4(b);
   switch (a4) {
-	case 0:
-	  if (b4 == 1) { *pwr = 1; return mkcomplex(b, negi(a)); }
-	  *pwr = 3;
-	  return mkcomplex(negi(b), a);/*b==3(4)*/
-	case 1:
-	  if (!b4) { *pwr = 0; return x; }
-	  *pwr = 2;
-	  return mkcomplex(negi(a), negi(b));/*b==2(4)*/
-	case 2:
-	  if (b4 == 1) { *pwr = 3; return mkcomplex(negi(b), a); }
-	  *pwr = 1;
-	  return mkcomplex(b, negi(a));/*b==3(4)*/
+    case 0:
+      if (b4 == 1) { *pwr = 1; return mkcomplex(b, negi(a)); }
+      *pwr = 3;
+      return mkcomplex(negi(b), a);/*b==3(4)*/
+    case 1:
+      if (!b4) { *pwr = 0; return x; }
+      *pwr = 2;
+      return mkcomplex(negi(a), negi(b));/*b==2(4)*/
+    case 2:
+      if (b4 == 1) { *pwr = 3; return mkcomplex(negi(b), a); }
+      *pwr = 1;
+      return mkcomplex(b, negi(a));/*b==3(4)*/
   }/*a==3(4)*/
   if (b4) { *pwr = 0; return x; }
   *pwr = 2;
   return mkcomplex(negi(a), negi(b));/*b==0(4)*/
+}
+
+/*Copies an integer vector*/
+static GEN
+ZV_copy(GEN v) {
+  long len = lg(v), i;
+  GEN rvec = cgetg(len, t_VEC);
+  for (i = 1; i < len; i++) gel(rvec, i) = icopy(gel(v, i));
+  return rvec;
 }
 

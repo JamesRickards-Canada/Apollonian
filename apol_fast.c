@@ -45,20 +45,20 @@ missing_update(unsigned long **rclass, unsigned long *bitswap, long *maxmiss_blo
   if (v != maxmiss_bit[b]) return;/*Not swapping the last bit.*/
   long i;
   for (i = v - 1; i >= 0; i--) {
-	if (!(rclass[b][u] & bitswap[i])) {/*Zero, so we stop here.*/
-	  maxmiss_bit[b] = i;
-	  goto BMAXUPDATE;
-	}
+    if (!(rclass[b][u] & bitswap[i])) {/*Zero, so we stop here.*/
+      maxmiss_bit[b] = i;
+      goto BMAXUPDATE;
+    }
   }
   long j;/*We made it out of the block.*/
   for (j = u - 1; j >= 0; j--) {
-	for (i = 63; i >= 0; i--) {
-	  if (!(rclass[b][j] & bitswap[i])) {/*Zero, so we stop here.*/
-		maxmiss_block[b] = j;
-		maxmiss_bit[b] = i;
-		goto BMAXUPDATE;
-	  }
-	}
+    for (i = 63; i >= 0; i--) {
+      if (!(rclass[b][j] & bitswap[i])) {/*Zero, so we stop here.*/
+        maxmiss_block[b] = j;
+        maxmiss_bit[b] = i;
+        goto BMAXUPDATE;
+      }
+    }
   }
   maxmiss_block[b] = -1;/*Everything is gone!*/
   maxmiss_bit[b] = -1;
@@ -66,12 +66,12 @@ missing_update(unsigned long **rclass, unsigned long *bitswap, long *maxmiss_blo
   if (curv != *Bmax) return;/*Did not remove the largest exception.*/
   long worst = res[0];
   for (i = 1; i < lenres; i++) {
-	if (maxmiss_block[res[i]] > maxmiss_block[worst]) {
-	  worst = res[i];
-	  continue;
-	}
-	if (maxmiss_block[res[i]] < maxmiss_block[worst]) continue;
-	if (maxmiss_bit[res[i]] >= maxmiss_bit[worst]) worst = res[i];
+    if (maxmiss_block[res[i]] > maxmiss_block[worst]) {
+      worst = res[i];
+      continue;
+    }
+    if (maxmiss_block[res[i]] < maxmiss_block[worst]) continue;
+    if (maxmiss_bit[res[i]] >= maxmiss_bit[worst]) worst = res[i];
   }
   *Bmax = Base + ((((maxmiss_block[worst] << 6) + maxmiss_bit[worst]) * 3) << 3 ) + worst;/*Update Bmax*/
   if (Bmin > *Bmax) *Bmax = 0;/*All eliminated, let's quit early!*/
@@ -107,64 +107,64 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
   long Bmaxbase = Bmax - Bm24, j;
   int foundlargest = 0;
   for (i = 0; i < lenres; i++) {
-	long mc = Bmaxbase + res[i];
-	if (res[i] > Bm24) {
-	  if (!foundlargest) {
-		foundlargest = 1;
-		if (i) Bmax = Bmaxbase + res[i - 1];/*Update to the largest actually possible value.*/
-		else Bmax = Bmaxbase + res[lenres - 1] - 24;
-	  }
-	  mc -= 24;/*The last curvature of this type.*/
-	}
-	if (mc < Bmin) {
-	  maxmiss_bit[res[i]] = -1;
-	  maxmiss_block[res[i]] = -1;
-	  continue;
-	}
-	mc -= Base;/*Shift it back.*/
-	long a = mc / 24;/*Save a in block res[i]*/
-	maxmiss_bit[res[i]] = a % 64;
+    long mc = Bmaxbase + res[i];
+    if (res[i] > Bm24) {
+      if (!foundlargest) {
+        foundlargest = 1;
+        if (i) Bmax = Bmaxbase + res[i - 1];/*Update to the largest actually possible value.*/
+        else Bmax = Bmaxbase + res[lenres - 1] - 24;
+      }
+      mc -= 24;/*The last curvature of this type.*/
+    }
+    if (mc < Bmin) {
+      maxmiss_bit[res[i]] = -1;
+      maxmiss_block[res[i]] = -1;
+      continue;
+    }
+    mc -= Base;/*Shift it back.*/
+    long a = mc / 24;/*Save a in block res[i]*/
+    maxmiss_bit[res[i]] = a % 64;
     maxmiss_block[res[i]] = a / 64;
   }
   if (!foundlargest) Bmax = Bmaxbase + res[lenres - 1];/*They all fit in with the +.*/
   for (i = 0; i <= lenres; i++) {
-	if (i == lenres) {/*All were -1, so our range actually contains no residues.*/
-	  Bmax = 0;
-	}
-	else if (maxmiss_bit[res[i]] != -1) break;/*We have at least one valid residue.*/
+    if (i == lenres) {/*All were -1, so our range actually contains no residues.*/
+      Bmax = 0;
+    }
+    else if (maxmiss_bit[res[i]] != -1) break;/*We have at least one valid residue.*/
   }
   int families;
   if (quadfams) {/*Remove them right away.*/
     families = 1;
-	for (i = 1; i <= lenres; i++) {
-	  for (j = 1; j < lg(gel(quadfams, i)); j++) {
-		long c = itos(gmael(quadfams, i, j));
-		long curres = res[i - 1];/*Indices off by 1 with C array.*/
-		long fa = 1, cur = c;/*cur = c * fa^2*/
-		while (cur <= Bmax) {
-		  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, cur, res, lenres, Bmin);
-		  do {
-			fa++;
-			cur = c * (fa * fa);
-		  }
-		  while (cur % 24 != curres);
-		}
-	  }
-	  for (j = 1; j < lg(gel(quarfams, i)); j++) {
-		long c = itos(gmael(quarfams, i, j));
-		long curres = res[i - 1];/*Indices off by 1 with C array.*/
-		long fa = 1, cur = c;/*cur = c * fa^4*/
-		while (cur <= Bmax) {
-		  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, cur, res, lenres, Bmin);
-		  do {
-			fa++;
-			cur = fa * fa;
-			cur = c * (cur * cur);
-		  }
-		  while (cur % 24 != curres);
-		}
-	  }
-	}
+    for (i = 1; i <= lenres; i++) {
+      for (j = 1; j < lg(gel(quadfams, i)); j++) {
+        long c = itos(gmael(quadfams, i, j));
+        long curres = res[i - 1];/*Indices off by 1 with C array.*/
+        long fa = 1, cur = c;/*cur = c * fa^2*/
+        while (cur <= Bmax) {
+          missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, cur, res, lenres, Bmin);
+          do {
+            fa++;
+            cur = c * (fa * fa);
+          }
+          while (cur % 24 != curres);
+        }
+      }
+      for (j = 1; j < lg(gel(quarfams, i)); j++) {
+        long c = itos(gmael(quarfams, i, j));
+        long curres = res[i - 1];/*Indices off by 1 with C array.*/
+        long fa = 1, cur = c;/*cur = c * fa^4*/
+        while (cur <= Bmax) {
+          missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, cur, res, lenres, Bmin);
+          do {
+            fa++;
+            cur = fa * fa;
+            cur = c * (cur * cur);
+          }
+          while (cur % 24 != curres);
+        }
+      }
+    }
   }
   else families = 0;
   long maxdepth = 100;/*Maximal depth, to start.*/
@@ -184,7 +184,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
   }
   for (i = 1; i < 4; i++) {/*Do the first 3 curvatures (ignore the negative one).*/
     if (x[i] < Bmin || x[i] > Bmax) continue;
-	missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, x[i], res, lenres, Bmin);
+    missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, x[i], res, lenres, Bmin);
   }
   /*We adjust the starting quadruple in case of symmetries: for a+b+c=d, we put d first, and DO NOT flip it on the first iteration. If c=d, we do c, a, c, b, starting with the second one. Until one element of the depth sequence flips the third entry, we do not flip the first one, as they will be (c, c) still. There are two exceptions: [0, 0, 1, 1], and [-1, 2, 2, 3], as they have both types of symmetry. For the secon, we do 2, 3, 2, -1, and start at the third entry. For [0, 0, 1, 1], we do [1, 4, 1, 0] and also start at the third one (we do the first move, since it is forced). The variable sym keeps track of this: -1 means no symmetries, don't worry. 0 means symmetric and we have not moved beyond them, hence we cannot flip the first element. >0 means this is the index of depthseq that the first 3 occurs, so we know when we drop back into the symmetry zone.
   */
@@ -244,7 +244,7 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
         continue;
       }
       /*Do the bitswap to update the count if we are large enough.*/
-	  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres, Bmin);
+      missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres, Bmin);
       for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
@@ -285,8 +285,8 @@ findmissing(long Bmin, long Bmax, long x[], long res[], long lenres, GEN quadfam
       long newc = (apbpc << 1) - depthseq[lastind][cind];/*2(a+b+c)-d, the new curvature.*/
       if (newc > Bmax) continue;/*Too big! go back.*/
       /*Do the bitswap to update the count.*/
-	  missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres, Bmin);
-	  for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
+      missing_update(rclass, bitswap, maxmiss_block, maxmiss_bit, Base, &Bmax, newc, res, lenres, Bmin);
+      for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
       ind++;
@@ -414,16 +414,16 @@ apol_missing(GEN v, GEN B, int family, int load)
   long Bmin = 0, Bmax = 0, t = typ(B);
   if (t == t_INT) { Bmin = 1; Bmax = itos(B); }
   else if (t == t_VEC || t == t_COL) {
-	if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	if (typ(gel(B, 1)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	if (typ(gel(B, 2)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	Bmin = itou(gel(B, 1));
-	Bmax = itou(gel(B, 2));
+    if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    if (typ(gel(B, 1)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    if (typ(gel(B, 2)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    Bmin = itou(gel(B, 1));
+    Bmax = itou(gel(B, 2));
   }
   else if (t == t_VECSMALL) {
-	if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	Bmin = B[1];
-	Bmax = B[2];
+    if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    Bmin = B[1];
+    Bmax = B[2];
   }
   else pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
   if (Bmin <= 0) Bmin = 1;
@@ -435,8 +435,8 @@ apol_missing(GEN v, GEN B, int family, int load)
   long lr = lg(modres), lenr = lr - 1, res[lenr];
   for (i = 1; i < lr; i++) res[i - 1] = itos(gel(modres, i));
   if (family) {
-	GEN fams = apol_missingfamilies(w);
-	findmissing(Bmin, Bmax, x, res, lenr, gel(fams, 1), gel(fams, 2));
+    GEN fams = apol_missingfamilies(w);
+    findmissing(Bmin, Bmax, x, res, lenr, gel(fams, 1), gel(fams, 2));
   }
   else findmissing(Bmin, Bmax, x, res, lenr, NULL, NULL);
   if (!load) return gc_const(av, gen_0);/*Do not load.*/
@@ -452,16 +452,16 @@ apol_missing_load(GEN v, GEN B, int family)
   long Bmin = 0, Bmax = 0, t = typ(B);
   if (t == t_INT) { Bmin = 1; Bmax = itos(B); }
   else if (t == t_VEC || t == t_COL) {
-	if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	if (typ(gel(B, 1)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	if (typ(gel(B, 2)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	Bmin = itos(gel(B, 1));
-	Bmax = itos(gel(B, 2));
+    if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    if (typ(gel(B, 1)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    if (typ(gel(B, 2)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    Bmin = itos(gel(B, 1));
+    Bmax = itos(gel(B, 2));
   }
   else if (t == t_VECSMALL) {
-	if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	Bmin = B[1];
-	Bmax = B[2];
+    if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    Bmin = B[1];
+    Bmax = B[2];
   }
   else pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
   v = ZV_sort(apol_red(v, 0, 0));
@@ -487,67 +487,67 @@ apol_missingfamilies(GEN v)
   GEN t = apol_type(v, 2), quad = NULL, quar = NULL;
   long types = (itos(gel(t, 1)) >> 1) + itos(gel(t, 2)) + itos(gel(t, 3));/*n/2+k+chi_2 where the type is (n, k): uniquely identifies it.*/
   switch (types) {
-	case 5:/*6.1.1*/
-	  quad = zerovec(6);
-	  if (equali1(gel(t, 4))) quar = zerovec(6);
-	  else quar = mkvecn(6, mkvec4s(144, 576, 1296, 5184), mkvecs(1), mkvecs(4), mkvec2s(9, 81), mkvec2s(36, 324), mkvec2s(16, 64));
-	  break;
-	case 3:/*6.1.-1*/
-	  quad = mkvecn(6, mkvec4s(24, 48, 72, 144), mkvecs(1), mkvecs(4), mkvecs(9), mkvec2s(12, 36), mkvecs(16));
-	  quar = zerovec(6);
-	  break;
-	case 9:/*6.5.1*/
-	  quad = mkvecn(6, mkvec2s(48, 72), cgetg(1, t_VEC), mkvecs(8), mkvecs(12), cgetg(1, t_VEC), cgetg(1, t_VEC));
-	  quar = zerovec(6);
-	  break;
-	case 7:/*6.5.-1*/
-	  quad = mkvecn(6, mkvec2s(24, 144), cgetg(1, t_VEC), cgetg(1, t_VEC), mkvecs(36), cgetg(1, t_VEC), cgetg(1, t_VEC));
-	  quar = zerovec(6);
-	  break;
-	case 17:/*6.13.1*/
-	  quad = mkvecn(6, mkvec2s(24, 72), cgetg(1, t_VEC), cgetg(1, t_VEC), cgetg(1, t_VEC), cgetg(1, t_VEC), cgetg(1, t_VEC));
-	  quar = zerovec(6);
-	  break;
-	case 15:/*6.13.-1*/
-	  quad = mkvecn(6, mkvec2s(48, 144), mkvecs(4), mkvec2s(12, 36), cgetg(1, t_VEC), mkvecs(16), cgetg(1, t_VEC));
-	  quar = zerovec(6);
-	  break;
-	case 21:/*6.17.1*/
-	  quad = mkvecn(6, mkvec2s(24, 48), cgetg(1, t_VEC), cgetg(1, t_VEC), mkvecs(12), cgetg(1, t_VEC), cgetg(1, t_VEC));
-	  if (equali1(gel(t, 4))) quar = mkvecn(6, mkvec2s(144, 576), cgetg(1, t_VEC), mkvecs(9), mkvecs(36), cgetg(1, t_VEC), cgetg(1, t_VEC));
-	  else quar = mkvecn(6, mkvec2s(1296, 5184), cgetg(1, t_VEC), mkvecs(81), mkvecs(324), cgetg(1, t_VEC), cgetg(1, t_VEC));
-	  break;
-	case 19:/*6.17.-1*/
-	  quad = mkvecn(6, mkvec2s(72, 144), mkvecs(8), mkvecs(9), mkvecs(36), cgetg(1, t_VEC), cgetg(1, t_VEC));
-	  quar = zerovec(6);
-	  break;
-	case 12:/*8.7.1*/
-	  quad = zerovec(8);
-	  gel(quad, 1) = mkvecs(3); gel(quad, 2) = mkvecs(6);
-	  quar = zerovec(8);
-	  break;
-	case 10:/*8.7.-1*/
-	  quad = zerovec(8);
-	  gel(quad, 6) = mkvecs(18);
-	  quar = zerovec(8);
-	  break;
-	case 16:/*8.11.1*/
-	  quad = zerovec(8);
-	  quar = zerovec(8);
-	  break;
-	case 14:/*8.11.-1*/
-	  quad = zerovec(8);
-	  gel(quad, 1) = mkvecs(2); gel(quad, 2) = mkvecs(3);
-	  gel(quad, 3) = mkvecs(6); gel(quad, 7) = mkvecs(18);
-	  quar = zerovec(8);
-	  break;
-	default:
-	  pari_err_TYPE("v did not have a recongizable type, is it a Descartes quadruple?", v);
+    case 5:/*6.1.1*/
+      quad = zerovec(6);
+      if (equali1(gel(t, 4))) quar = zerovec(6);
+      else quar = mkvecn(6, mkvec4s(144, 576, 1296, 5184), mkvecs(1), mkvecs(4), mkvec2s(9, 81), mkvec2s(36, 324), mkvec2s(16, 64));
+      break;
+    case 3:/*6.1.-1*/
+      quad = mkvecn(6, mkvec4s(24, 48, 72, 144), mkvecs(1), mkvecs(4), mkvecs(9), mkvec2s(12, 36), mkvecs(16));
+      quar = zerovec(6);
+      break;
+    case 9:/*6.5.1*/
+      quad = mkvecn(6, mkvec2s(48, 72), cgetg(1, t_VEC), mkvecs(8), mkvecs(12), cgetg(1, t_VEC), cgetg(1, t_VEC));
+      quar = zerovec(6);
+      break;
+    case 7:/*6.5.-1*/
+      quad = mkvecn(6, mkvec2s(24, 144), cgetg(1, t_VEC), cgetg(1, t_VEC), mkvecs(36), cgetg(1, t_VEC), cgetg(1, t_VEC));
+      quar = zerovec(6);
+      break;
+    case 17:/*6.13.1*/
+      quad = mkvecn(6, mkvec2s(24, 72), cgetg(1, t_VEC), cgetg(1, t_VEC), cgetg(1, t_VEC), cgetg(1, t_VEC), cgetg(1, t_VEC));
+      quar = zerovec(6);
+      break;
+    case 15:/*6.13.-1*/
+      quad = mkvecn(6, mkvec2s(48, 144), mkvecs(4), mkvec2s(12, 36), cgetg(1, t_VEC), mkvecs(16), cgetg(1, t_VEC));
+      quar = zerovec(6);
+      break;
+    case 21:/*6.17.1*/
+      quad = mkvecn(6, mkvec2s(24, 48), cgetg(1, t_VEC), cgetg(1, t_VEC), mkvecs(12), cgetg(1, t_VEC), cgetg(1, t_VEC));
+      if (equali1(gel(t, 4))) quar = mkvecn(6, mkvec2s(144, 576), cgetg(1, t_VEC), mkvecs(9), mkvecs(36), cgetg(1, t_VEC), cgetg(1, t_VEC));
+      else quar = mkvecn(6, mkvec2s(1296, 5184), cgetg(1, t_VEC), mkvecs(81), mkvecs(324), cgetg(1, t_VEC), cgetg(1, t_VEC));
+      break;
+    case 19:/*6.17.-1*/
+      quad = mkvecn(6, mkvec2s(72, 144), mkvecs(8), mkvecs(9), mkvecs(36), cgetg(1, t_VEC), cgetg(1, t_VEC));
+      quar = zerovec(6);
+      break;
+    case 12:/*8.7.1*/
+      quad = zerovec(8);
+      gel(quad, 1) = mkvecs(3); gel(quad, 2) = mkvecs(6);
+      quar = zerovec(8);
+      break;
+    case 10:/*8.7.-1*/
+      quad = zerovec(8);
+      gel(quad, 6) = mkvecs(18);
+      quar = zerovec(8);
+      break;
+    case 16:/*8.11.1*/
+      quad = zerovec(8);
+      quar = zerovec(8);
+      break;
+    case 14:/*8.11.-1*/
+      quad = zerovec(8);
+      gel(quad, 1) = mkvecs(2); gel(quad, 2) = mkvecs(3);
+      gel(quad, 3) = mkvecs(6); gel(quad, 7) = mkvecs(18);
+      quar = zerovec(8);
+      break;
+    default:
+      pari_err_TYPE("v did not have a recongizable type, is it a Descartes quadruple?", v);
   }
   long i;
   for (i = 1; i < lg(quad); i++) {/*Fixing the uninitialized entries.*/
-	if (isintzero(gel(quad, i))) gel(quad, i) = cgetg(1, t_VEC);
-	if (isintzero(gel(quar, i))) gel(quar, i) = cgetg(1, t_VEC);
+    if (isintzero(gel(quad, i))) gel(quad, i) = cgetg(1, t_VEC);
+    if (isintzero(gel(quar, i))) gel(quar, i) = cgetg(1, t_VEC);
   }
   return gerepilecopy(av, mkvec2(quad, quar));
 }
@@ -600,7 +600,7 @@ findcurvs(GEN v, long Bmin, long Bmax, int tofile)
   long sym;
   if (x[0] == 0) {/*We are the [0, 0, 1, 1] packing: do [1, 4, 1, 0] and start with swapping the third.*/
     depthseq[0][0] = 1; depthseq[0][1] = 4; depthseq[0][2] = 1; depthseq[0][3] = 0;
-	if (Bmin <= 4) rclass[4][0]++;/*Since we are adjusting, we will not do 4 later on.*/
+    if (Bmin <= 4) rclass[4][0]++;/*Since we are adjusting, we will not do 4 later on.*/
     swaps[1] = 1;/*Will get incremented to 2 right away.*/
     sym = 0;/*Symmetries to avoid.*/
   }
@@ -630,10 +630,10 @@ findcurvs(GEN v, long Bmin, long Bmax, int tofile)
   }
   for (i = swaps[1] + 1; i < 4; i++) {/*Do the first curvatures.*/
     if (x[i] < Bmin || x[i] > Bmax) continue;
-	long shifted = x[i] - Base;
-	long b = shifted % 24;
-	long a = shifted / 24;/*shifted = 24a + b. b gives the residue block, and a gives the place to insert it.*/
-	rclass[b][a]++;
+    long shifted = x[i] - Base;
+    long b = shifted % 24;
+    long a = shifted / 24;/*shifted = 24a + b. b gives the residue block, and a gives the place to insert it.*/
+    rclass[b][a]++;
   }
   long ind = 1;/*Which depth we are working at.*/
   if (!sym) {/*Symmetries to worry about. More efficient to do this way, since we don't need to check for symmetries ever otherwise.*/
@@ -659,12 +659,12 @@ findcurvs(GEN v, long Bmin, long Bmax, int tofile)
         if (ind < sym) sym = 0;/*Tried flipping out of symmetry here but it's too big.*/
         continue;
       }
-	  long shifted = newc - Base;
-	  if (shifted >= 0) {
-	    long b = shifted % 24;
-	    long a = shifted / 24;/*shifted = 24a + b. b gives the residue block, and a gives the place to insert it.*/
-	    rclass[b][a]++;
-	  }
+      long shifted = newc - Base;
+      if (shifted >= 0) {
+        long b = shifted % 24;
+        long a = shifted / 24;/*shifted = 24a + b. b gives the residue block, and a gives the place to insert it.*/
+        rclass[b][a]++;
+      }
       for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
@@ -704,13 +704,13 @@ findcurvs(GEN v, long Bmin, long Bmax, int tofile)
       for (i = cind + 1; i < 4; i++) apbpc += depthseq[lastind][i];
       long newc = (apbpc << 1) - depthseq[lastind][cind];/*2(a+b+c)-d, the new curvature.*/
       if (newc > Bmax) continue;/*Too big! go back.*/
-	  long shifted = newc - Base;
-	  if (shifted >= 0) {
-	    long b = shifted % 24;
-	    long a = shifted / 24;/*shifted = 24a + b. b gives the residue block, and a gives the place to insert it.*/
-	    rclass[b][a]++;
-	  }
-	  for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
+      long shifted = newc - Base;
+      if (shifted >= 0) {
+        long b = shifted % 24;
+        long a = shifted / 24;/*shifted = 24a + b. b gives the residue block, and a gives the place to insert it.*/
+        rclass[b][a]++;
+      }
+      for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
       depthseq[ind][cind] = newc;
       for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
       ind++;
@@ -740,9 +740,9 @@ findcurvs(GEN v, long Bmin, long Bmax, int tofile)
   pari_free(depthseq);
   if (tofile) curvs_tofile(rclass, Bmin, Bmax, classmax, v, modres);
   if (tofile % 2) {
-	for (i = 0; i < lenr; i++) pari_free(rclass[res[i]]);
-	pari_free(rclass);/*The last thing to free*/
-	return gc_const(av, gen_0);
+    for (i = 0; i < lenr; i++) pari_free(rclass[res[i]]);
+    pari_free(rclass);/*The last thing to free*/
+    return gc_const(av, gen_0);
   }
   set_avma(av);/*Now we make it into a Vecsmall*/
   long maxncur = classmax * lenr + 1, j;
@@ -750,14 +750,14 @@ findcurvs(GEN v, long Bmin, long Bmax, int tofile)
   GEN freqs = vecsmalltrunc_init(maxncur);
   long n = Base - 24;
   for (i = 0; i < classmax; i++) {
-	n += 24;/*n = Base + 24i*/
-	for (j = 0; j < lenr; j++) {
-	  long n1 = n + res[j];
-	  if (n1 < Bmin || n1 > Bmax) continue;/*Too big/small*/
-	  if (!rclass[res[j]][i]) continue;/*Does not occur*/
-	  vecsmalltrunc_append(curvs, n1);
-	  vecsmalltrunc_append(freqs, rclass[res[j]][i]);
-	}
+    n += 24;/*n = Base + 24i*/
+    for (j = 0; j < lenr; j++) {
+      long n1 = n + res[j];
+      if (n1 < Bmin || n1 > Bmax) continue;/*Too big/small*/
+      if (!rclass[res[j]][i]) continue;/*Does not occur*/
+      vecsmalltrunc_append(curvs, n1);
+      vecsmalltrunc_append(freqs, rclass[res[j]][i]);
+    }
   }
   for (i = 0; i < lenr; i++) pari_free(rclass[res[i]]);
   pari_free(rclass);/*The last thing to free*/
@@ -793,15 +793,15 @@ curvs_tofile(unsigned int **rclass, long Bmin, long Bmax, long classmax, GEN v, 
   for (j = 1; j < lg(m24); j++) {
     char * thisfile = stack_sprintf("%s_%Pd-freq.dat", fname, gel(m24, j));
     FILE *F;
-	F = fopen(thisfile, "w");
-	long b = itos(gel(m24, j));
-	long n = Base - 24 + b;
-	for (i = 0; i < classmax; i++) {
-	  n += 24;
-	  if (n < Bmin || n > Bmax) continue;
-	  fprintf(F, "%d\n", rclass[b][i]);
-	}
-	fclose(F);
+    F = fopen(thisfile, "w");
+    long b = itos(gel(m24, j));
+    long n = Base - 24 + b;
+    for (i = 0; i < classmax; i++) {
+      n += 24;
+      if (n < Bmin || n > Bmax) continue;
+      fprintf(F, "%d\n", rclass[b][i]);
+    }
+    fclose(F);
   }
   set_avma(av);
 }
@@ -813,16 +813,16 @@ apol_curvatures(GEN v, GEN B, int tofile)
   long Bmin = 0, Bmax = 0, t = typ(B);
   if (t == t_INT) { Bmin = 1; Bmax = itos(B); }
   else if (t == t_VEC || t == t_COL) {
-	if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	if (typ(gel(B, 1)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	if (typ(gel(B, 2)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	Bmin = itou(gel(B, 1));
-	Bmax = itou(gel(B, 2));
+    if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    if (typ(gel(B, 1)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    if (typ(gel(B, 2)) != t_INT) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    Bmin = itou(gel(B, 1));
+    Bmax = itou(gel(B, 2));
   }
   else if (t == t_VECSMALL) {
-	if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
-	Bmin = B[1];
-	Bmax = B[2];
+    if (lg(B) < 3) pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
+    Bmin = B[1];
+    Bmax = B[2];
   }
   else pari_err_TYPE("B must be a positive integer or a range of positive integers", B);
   if (Bmin <= 0) Bmin = 1;
@@ -836,17 +836,17 @@ findonecurv(long x[], long c, int all)
   pari_sp av = avma;
   long i;
   for (i = 0; i <= 3; i++) {/*Search the first four curvatures, as everything else later will be larger.*/
-	if (x[i] != c) continue;
-	if (all) return gerepilecopy(av, mkvec(mkvec4s(x[0], x[1], x[2], x[3])));
-	return gerepilecopy(av, mkvec4s(x[0], x[1], x[2], x[3]));
+    if (x[i] != c) continue;
+    if (all) return gerepilecopy(av, mkvec(mkvec4s(x[0], x[1], x[2], x[3])));
+    return gerepilecopy(av, mkvec4s(x[0], x[1], x[2], x[3]));
   }
   if (c <= x[3]) {/*Already past these curvatures.*/
-	if (all) return cgetg(1, t_VEC);
-	return gen_0;
+    if (all) return cgetg(1, t_VEC);
+    return gen_0;
   }
   if (!x[0] && c == 4) {/*Due to the shifting later, we need to cover this case now.*/
-	if (all) return gerepilecopy(av, mkvec(mkvec4s(0, 4, 1, 1)));
-	return gerepilecopy(av, mkvec4s(0, 4, 1, 1));
+    if (all) return gerepilecopy(av, mkvec(mkvec4s(0, 4, 1, 1)));
+    return gerepilecopy(av, mkvec4s(0, 4, 1, 1));
   }
   long maxdepth = 100;/*Maximal depth, to start.*/
   long **depthseq = (long **)pari_malloc(maxdepth * sizeof(long *));/*Tracks the sequence of Apollonian moves.*/
@@ -899,8 +899,8 @@ findonecurv(long x[], long c, int all)
   GEN vfound;
   if (all) {
     maxfound = 100;
-	foundind = 0;
-	vfound = cgetg(maxfound + 1, t_VEC);
+    foundind = 0;
+    vfound = cgetg(maxfound + 1, t_VEC);
   }
   long ind = 1;/*Which depth we are working at.*/
   while (ind > 0) {/*We are coming in trying to swap this circle out.*/
@@ -928,21 +928,21 @@ findonecurv(long x[], long c, int all)
     for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
     depthseq[ind][cind] = newc;
     for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
-	if (newc == c) {/*Found one!*/
-	  GEN newv = mkvec4s(depthseq[ind][0], depthseq[ind][1], depthseq[ind][2], depthseq[ind][3]);/*The found quadruple*/
-	  if (!all) {/*Free the memory and return*/
-		pari_free(swaps);
-		for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
-		pari_free(depthseq);
-		return gerepilecopy(av, newv);
-	  }
-	  foundind++;
-	  if (foundind > maxfound) {
-		maxfound <<= 1;/*Double it*/
-		vfound = vec_lengthen(vfound, maxfound);
-	  }
-	  gel(vfound, foundind) = newv;
-	}
+    if (newc == c) {/*Found one!*/
+      GEN newv = mkvec4s(depthseq[ind][0], depthseq[ind][1], depthseq[ind][2], depthseq[ind][3]);/*The found quadruple*/
+      if (!all) {/*Free the memory and return*/
+        pari_free(swaps);
+        for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
+        pari_free(depthseq);
+        return gerepilecopy(av, newv);
+      }
+      foundind++;
+      if (foundind > maxfound) {
+        maxfound <<= 1;/*Double it*/
+        vfound = vec_lengthen(vfound, maxfound);
+      }
+      gel(vfound, foundind) = newv;
+    }
     ind++;
     if (ind == maxdepth) {/*We are going too deep, must pari_reallocate the storage location.*/
       long newdepth = maxdepth << 1;/*Double it.*/
@@ -982,12 +982,12 @@ apol_find(GEN v, GEN c, int all)
   GEN m24 = apol_mod24(w);
   long i, cm24 = smodis(c, 24), lm24 = lg(m24);
   for (i = 1; i <= lm24; i++) {
-	if (i == lm24) {/*Not admisisble modulo 24.*/
-	  set_avma(av);
-	  if (all) return cgetg(1, t_VEC);
-	  return gen_0;
-	}
-	if (equalis(gel(m24, i), cm24)) break;/*Admissible!*/
+    if (i == lm24) {/*Not admisisble modulo 24.*/
+      set_avma(av);
+      if (all) return cgetg(1, t_VEC);
+      return gen_0;
+    }
+    if (equalis(gel(m24, i), cm24)) break;/*Admissible!*/
   }
   long x[4];
   for (i = 1; i <= 4; i++) x[i - 1] = itos(gel(w, i));
