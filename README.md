@@ -1,5 +1,5 @@
 # Apollonian
-Methods for computing various things related to (integral) Apollonian circle packings.
+Methods for computing various things related to (primarily integral) Apollonian circle packings.
 
 ## Installation
 System requirements:
