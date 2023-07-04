@@ -577,11 +577,11 @@ apol_circles(GEN v, GEN bounds, long depth, GEN maxxval, long prec)
   GEN B, Bmin = NULL;
   long t = typ(bounds);
   if (t == t_VEC) {
-	Bmin = gel(bounds, 1);
-	t = typ(Bmin);
-	if (t != t_INT && t != t_FRAC && t != t_REAL) pari_err_TYPE("bounds must be integers, rational numbers, or real numbers.", bounds);
-	B = gel(bounds, 2);
-	t = typ(B);
+    Bmin = gel(bounds, 1);
+    t = typ(Bmin);
+    if (t != t_INT && t != t_FRAC && t != t_REAL) pari_err_TYPE("bounds must be integers, rational numbers, or real numbers.", bounds);
+    B = gel(bounds, 2);
+    t = typ(B);
   }
   else B = bounds;
   if (t != t_INT && t != t_FRAC && t != t_REAL) pari_err_TYPE("bounds must be integers, rational numbers, or real numbers.", bounds);
@@ -656,13 +656,13 @@ apol_circles(GEN v, GEN bounds, long depth, GEN maxxval, long prec)
     newinds[i] = prevind[i];
     GEN newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 1, prec);/*The new circle, if it is to the right of oldcirc1 -> oldcirc2.*/
     GEN prevcirc = gel(vfound, prevind[cind]);/*The circle we are replacing.*/
-	/*Now we need to check that we found the new circle on the correct side of the old ones.*/
-	if (toleq0(gel(newv, 1), tol) && toleq0(gel(newv, 2), tol)) {/*Strip packing moving along the top.*/
-	  GEN oldcirc3 = gel(vfound, prevind[i]);/*The unused old circle. Our newcirc must be tangent to it.*/
-	  GEN ct = gel(oldcirc3, 1);/*Centre of oldcirc3*/
-	  GEN ctdiff = real_i(gsub(ct, gel(prevcirc, 1)));
-	  newcirc = mkvec3(gadd(ct, ctdiff), gcopy(gel(oldcirc3, 2)), gcopy(gel(oldcirc3, 3)));
-	}
+    /*Now we need to check that we found the new circle on the correct side of the old ones.*/
+    if (toleq0(gel(newv, 1), tol) && toleq0(gel(newv, 2), tol)) {/*Strip packing moving along the top.*/
+      GEN oldcirc3 = gel(vfound, prevind[i]);/*The unused old circle. Our newcirc must be tangent to it.*/
+      GEN ct = gel(oldcirc3, 1);/*Centre of oldcirc3*/
+      GEN ctdiff = real_i(gsub(ct, gel(prevcirc, 1)));
+      newcirc = mkvec3(gadd(ct, ctdiff), gcopy(gel(oldcirc3, 2)), gcopy(gel(oldcirc3, 3)));
+    }
     else if (toleq_circ(newcirc, prevcirc, tol)) newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 0, prec);/*If the two curvatures were the same, this could trigger.*/
     else {
       GEN oldcirc3 = gel(vfound, prevind[i]);/*The unused old circle. Our newcirc must be tangent to it.*/
@@ -689,13 +689,13 @@ apol_circles(GEN v, GEN bounds, long depth, GEN maxxval, long prec)
     }
   }
   if (!maxxval) {
-	if (!Bmin) return gerepilecopy(av, vec_shorten(vfound, foundind));
-	GEN remaining = vectrunc_init(foundind + 1);
+    if (!Bmin) return gerepilecopy(av, vec_shorten(vfound, foundind));
+    GEN remaining = vectrunc_init(foundind + 1);
     long i;
     for (i = 1; i <= foundind; i++) {
       GEN cir = gel(vfound, i);
-	  if (lg(cir) == 4 && gcmp(gel(cir, 3), Bmin) < 0) continue;
-	  vectrunc_append(remaining, cir);
+      if (lg(cir) == 4 && gcmp(gel(cir, 3), Bmin) < 0) continue;
+      vectrunc_append(remaining, cir);
     }
     return gerepilecopy(av, remaining);
   }
@@ -704,12 +704,12 @@ apol_circles(GEN v, GEN bounds, long depth, GEN maxxval, long prec)
   long i;
   for (i = 1; i <= foundind; i++) {
     GEN cir = gel(vfound, i);
-	if (lg(cir) == 4 && gcmp(gel(cir, 3), Bmin) < 0) continue;/*Curvature too small.*/
-	GEN xright = gadd(real_i(gel(cir, 1)), gel(cir, 2));
-	GEN xleft = gsub(real_i(gel(cir, 1)), gel(cir, 2));
-	GEN mx = gmax(gabs(xright, prec), gabs(xleft, prec));
-	if (gcmp(mx, maxxval) > 0) continue;/*Went too far.*/
-	vectrunc_append(remaining, cir);
+    if (lg(cir) == 4 && gcmp(gel(cir, 3), Bmin) < 0) continue;/*Curvature too small.*/
+    GEN xright = gadd(real_i(gel(cir, 1)), gel(cir, 2));
+    GEN xleft = gsub(real_i(gel(cir, 1)), gel(cir, 2));
+    GEN mx = gmax(gabs(xright, prec), gabs(xleft, prec));
+    if (gcmp(mx, maxxval) > 0) continue;/*Went too far.*/
+    vectrunc_append(remaining, cir);
   }
   return gerepilecopy(av, remaining);
 }
@@ -906,8 +906,8 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int com
       GEN curv = gmael(c, i, 3), scaleby;
       if (signe(curv) <= 0) continue;/*Don't add numbers for curvatures <0.*/
       long ndigits;
-	  if (typ(curv) == t_REAL) ndigits = logint(gfloor(curv), ten) + 3;/*Real numbers to two decimal places.*/
-	  else ndigits = logint(curv, ten) + 1;
+      if (typ(curv) == t_REAL) ndigits = logint(gfloor(curv), ten) + 3;/*Real numbers to two decimal places.*/
+      else ndigits = logint(curv, ten) + 1;
       switch(ndigits){/*Scaling the font.*/
         case 1:
           scaleby = dbltor(1.4);break;
@@ -922,12 +922,12 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int com
         default:
           scaleby = gdivgs(gen_2, ndigits);
       }
-	  if (typ(curv) == t_REAL) {
-		pari_fprintf(f, "  \\node[align=center%s] at (%P.10fin, %P.10fin) {\\fontsize{%P.10fin}{0in}\\selectfont %P.2f};\n", options, gmael(cscale, i, 2), gmael(cscale, i, 3), gmul(gmael(cscale, i, 1), scaleby), curv);
-	  }
-	  else {
+      if (typ(curv) == t_REAL) {
+        pari_fprintf(f, "  \\node[align=center%s] at (%P.10fin, %P.10fin) {\\fontsize{%P.10fin}{0in}\\selectfont %P.2f};\n", options, gmael(cscale, i, 2), gmael(cscale, i, 3), gmul(gmael(cscale, i, 1), scaleby), curv);
+      }
+      else {
         pari_fprintf(f, "  \\node[align=center%s] at (%P.10fin, %P.10fin) {\\fontsize{%P.10fin}{0in}\\selectfont %Pd};\n", options, gmael(cscale, i, 2), gmael(cscale, i, 3), gmul(gmael(cscale, i, 1), scaleby), curv);
-	  }
+      }
     }
   }
   /*Ending stuff.*/
