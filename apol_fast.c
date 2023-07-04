@@ -75,7 +75,6 @@ missing_update(unsigned long **rclass, unsigned long *bitswap, long *maxmiss_blo
   }
   *Bmax = Base + ((((maxmiss_block[worst] << 6) + maxmiss_bit[worst]) * 3) << 3 ) + worst;/*Update Bmax*/
   if (Bmin > *Bmax) *Bmax = 0;/*All eliminated, let's quit early!*/
-  printf("%ld\n", *Bmax);
 }
 
 /*Finds all missing positive curvatures in the given residue classes between B1 and B2 (inclusive), saving them to a file. Formatting of the inputs is provided by apol_missing; it is crucial that x is reduced, sorted, and res is the set of ALL residues modulo 24.*/
