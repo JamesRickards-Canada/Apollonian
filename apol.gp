@@ -4,7 +4,7 @@ parigp_version=version();
 apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2]);
 
 /*apol.c*/
-	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_chi2, apol_chi4, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial, apol_type.\n\nCreation of ACPs:\n\tapol_make, apol_makeall.\n\nSearching the ACP:\n\tapol_curvatures, apol_find, apol_missing, apol_missing_load, apol_missingfamilies.\n\nCircles and pictures:\n\tapol_circles, printcircles_desmos, printcircles_tex.\n\nSupporting methods:\n\tapol_words, quarticresidue.");
+	addhelp(apollonian,"Basic methods:\n\tapol_admissiblesets, apol_check, apol_chi2, apol_chi4, apol_complete, apol_extdepth, apol_matrices, apol_mod24, apol_move, apol_qf, apol_red, apol_red_partial, apol_type.\n\nCreation of ACPs:\n\tapol_make, apol_makeall.\n\nSearching the ACP:\n\tapol_curvatures, apol_find, apol_missing, apol_missing_load, apol_missingfamilies.\n\nCircles and pictures:\n\tapol_circles, printcircles_desmos, printcircles_tex.\n\nStrip packing methods:\n\t\n\nSupporting methods:\n\tapol_words, quarticresidue.");
 	
 	/*SECTION 1: BASIC METHODS*/
 		install(apol_admissiblesets,"",,apol_library);
@@ -48,7 +48,9 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(printcircles_tex,"GrD1,L,D0,L,D1,L,D1,L,p");
 		addhelp(printcircles_tex,"printcircles_tex(c, imagename, {addnumbers=1}, {modcolours=0}, {compile=1}, {open=1}): prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle (only valid for integral ones). If modcolours>=1, we colour the circles based on their remainders mod modcolours (only valid for integral). If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
 
-	/*SECTION 4: SUPPORTING METHODS*/
+	/*SECTION 4: STRIP PACKING METHODS*/
+
+	/*SECTION 5: SUPPORTING METHODS*/
 		install(apol_words,"L");
 		addhelp(apol_words,"apol_words(d): returns all 4*3^(d-1) reduced words of length d in the Apollonian group, as Vecsmalls of 1-4's with no consecutive repeats.");
 		install(quarticresidue,"GG");

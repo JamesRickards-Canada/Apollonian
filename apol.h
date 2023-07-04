@@ -24,7 +24,9 @@ GEN apol_circles(GEN v, GEN B, long depth, long prec);
 void printcircles_desmos(GEN c);
 GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec);
 
-/*SECTION 4: SUPPORTING METHODS*/
+/*SECTION 4: STRIP PACKING METHODS*/
+
+/*SECTION 5: SUPPORTING METHODS*/
 GEN apol_words(int d);
 GEN quarticresidue(GEN x, GEN y);
 

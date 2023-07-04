@@ -647,8 +647,14 @@ apol_circles(GEN v, GEN B, long depth, long prec)
     newinds[i] = prevind[i];
     GEN newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 1, prec);/*The new circle, if it is to the right of oldcirc1 -> oldcirc2.*/
     GEN prevcirc = gel(vfound, prevind[cind]);/*The circle we are replacing.*/
-    /*Now we need to check that we found the new circle on the correct side of the old ones.*/
-    if (toleq_circ(newcirc, prevcirc, tol)) newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 0, prec);/*If the two curvatures were the same, this could trigger.*/
+	/*Now we need to check that we found the new circle on the correct side of the old ones.*/
+	if (gequal0(gel(newv, 1)) && gequal0(gel(newv, 2)) && gequal1(gel(newv, 3)) && gequal1(gel(newv, 4))) {/*Strip packing moving along the top.*/
+	  GEN oldcirc3 = gel(vfound, prevind[i]);/*The unused old circle. Our newcirc must be tangent to it.*/
+	  GEN ct = gel(oldcirc3, 1);/*Centre of oldcirc3*/
+	  if (signe(real_i(gsub(ct, gel(prevcirc, 1)))) > 0) newcirc = mkvec3(gaddgs(ct, 2), gen_1, gen_1);
+	  else newcirc = mkvec3(gsubgs(ct, 2), gen_1, gen_1);
+	}
+    else if (toleq_circ(newcirc, prevcirc, tol)) newcirc = apol_thirdtangent(oldcirc1, oldcirc2, newc, gel(newv, i), 0, prec);/*If the two curvatures were the same, this could trigger.*/
     else {
       GEN oldcirc3 = gel(vfound, prevind[i]);/*The unused old circle. Our newcirc must be tangent to it.*/
       GEN rsums = gsqr(gadd(gel(oldcirc3, 2), gel(newcirc, 2)));/*(r1+r2)^2*/
@@ -893,7 +899,10 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int com
 }
 
 
-/*SECTION 4: SUPPORTING METHODS*/
+/*SECTION 4: STRIP PACKING METHODS*/
+
+
+/*SECTION 5: SUPPORTING METHODS*/
 
 /*Returns all 4*3^(d-1) reduced words of depth d.*/
 GEN
