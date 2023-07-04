@@ -554,6 +554,7 @@ GEN
 apol_makeall(GEN n, int red, long prec)
 {
   pari_sp av = avma;
+  if (isintzero(n)) return gerepilecopy(av, mkvec(mkvec4s(0, 0, 1, 1)));
   GEN D = shifti(negi(sqri(n)), 2);
   GEN forms = gel(qfbnarrowlex(D, prec), 3);
   long lf = lg(forms), i;
