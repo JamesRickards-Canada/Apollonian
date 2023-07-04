@@ -21,21 +21,14 @@ GEN apol_makeall(GEN n, int red, long prec);
 
 /*SECTION 3: COMPUTING THE CIRCLES*/
 GEN apol_circles(GEN v, GEN B, long depth, long prec);
-
-
-
-
-//VISUALIZATION
 void printcircles_desmos(GEN c);
 GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec);
+
+
 
 //SUPPORTING METHODS
 GEN apol_words(int d);
 
-//SPECIALIZED METHODS
-GEN apol_makeall_extdepths(GEN n, long prec);
-GEN apol_makeall_small(GEN n, int red, long prec);
-GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec);
 
 GEN quarticresidue(GEN x, GEN y);
 

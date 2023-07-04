@@ -615,7 +615,8 @@ apol_circles(GEN v, GEN B, long depth, long prec)
 	else gel(vfound, 2) = mkvec3(mkcomplex(gen_0, gadd(gmael(vfound, 1, 2), r2)), r2, c2);/*First circle was not the outer one.*/
   }
   gel(vfound, 3) = apol_thirdtangent(gel(vfound, 1), gel(vfound, 2), gel(v, 3), gel(v, 4), 0, prec);/*Third circle goes left*/
-  gel(vfound, 4) = apol_thirdtangent(gel(vfound, 2), gel(vfound, 3), gel(v, 4), gel(v, 1), 0, prec);/*Fourth circle is left of circ2 ->circ3.*/
+  gel(vfound, 4) = apol_thirdtangent(gel(vfound, 2), gel(vfound, 3), gel(v, 4), gel(v, 1), 0, prec);/*Fourth circle is left of circ2 ->circ3*/
+  
   /*Depth first search section.*/
   long ind = 2;/*Which depth we are working at. This differs to apol_fast methods as we start at index 0 there and index 1 here.*/
   while (ind > 1) {/*We are coming in trying to swap this circle out.*/
@@ -676,7 +677,7 @@ apol_circles(GEN v, GEN B, long depth, long prec)
   return gerepilecopy(av, vec_shorten(vfound, foundind));
 }
 
-/*Store a circle as [centre, radius, curvature]. Given two tangent circles and a third curvature, this finds this third circle that is tangent to the first two. For internal tangency, we need a positive radius and negative curvature. There are always 2 places to put the circle: left or right of the line from circ1 to circ2. If right=1, we put it right, else we put it left. c4 is one of the curvatures to complete an Apollonian quadruple (supplying it allows us to always work with exact numbers in the case of integral ACPs). In the case of a horizontal line, we ASSUME that it has slope 0.*/
+/*Store a circle as [centre, radius, curvature]. Given two tangent circles and a third curvature, this finds this third circle that is tangent to the first two. For internal tangency, we need a positive radius and negative curvature. There are always 2 places to put the circle: left or right of the line from the centre of circ1 to the centre of circ2. If right=1, we put it right, else we put it left. c4 is one of the curvatures to complete an Apollonian quadruple (supplying it allows us to always work with exact numbers in the case of integral ACPs). In the case of a horizontal line, we ASSUME that it has slope 0.*/
 static GEN
 apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right, long prec)
 {
@@ -767,40 +768,41 @@ toleq_circ(GEN c1, GEN c2, GEN tol)
   return toleq(gel(c1, 3), gel(c2, 3), tol);/*No need to check radii if curvatures are okay.*/
 }
 
-
-
-//VISUALIZATION
-
-
-//Given a list of circles, this prints them to the screen in a format suitable for Desmos.
-void printcircles_desmos(GEN c){
-  for(long i=1;i<lg(c);i++){
-    if(lg(gel(c, i))==3) pari_printf("y=%Ps\n", gmael(c, i, 2));//Horizontal line
-    else pari_printf("(x-%Ps)^2+(y-%Ps)^2=1/(%Ps)^2\n", real_i(gmael(c, i, 1)), imag_i(gmael(c, i, 1)), gmael(c, i, 3));
+/*Given a list of circles, this prints them to the screen in a format suitable for Desmos.*/
+void
+printcircles_desmos(GEN c)
+{
+  long i;
+  for (i = 1; i < lg(c); i++) {
+    if (lg(gel(c, i)) == 3) pari_printf("y=%P.10f\n", gmael(c, i, 2));/*Horizontal line*/
+    else pari_printf("(x-%P.10f)^2+(y-%P.10f)^2=1/(%P.10f)^2\n", real_i(gmael(c, i, 1)), imag_i(gmael(c, i, 1)), gmael(c, i, 3));
   }
 }
 
-//Given a list of circles, this prints them to the tex file images/build/imagename_build.tex using tikz. If compile=1, we compile and move the output up to images/imagename.pdf. If open=1, we also open the file, assuming we are working with WSL. Assume the largest circle occurs first. This can take horizontal lines as well. Can supply the scalingfactor, or have the program auto-set it if NULL.
-GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec){
-  pari_sp top=avma;
-  if(!pari_is_dir("images/build")){
-    int s=system("mkdir -p images/build");
-    if(s==-1) pari_err(e_MISC, "ERROR CREATING DIRECTORY images/build");
+/*Given a list of circles/lines in an ACP, this prints them to the tex file images/build/imagename_build.tex using tikz. If compile=1, we compile and move the output up to images/imagename.pdf. If open=1, we also open the file, assuming we are working with WSL. Any lines should come first.*/
+GEN
+printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec)
+{
+  pari_sp av = avma;
+  if( !pari_is_dir("images/build")) {
+    int s = system("mkdir -p images/build");
+    if (s == -1) pari_err(e_MISC, "ERROR CREATING DIRECTORY images/build");
   }
-  char *autofilestr=stack_sprintf("images/build/%s_build.tex", imagename);
-  FILE *f=fopen(autofilestr, "w");//Now we have created the output file f.
+  char *autofilestr = stack_sprintf("images/build/%s_build.tex", imagename);
+  FILE *f = fopen(autofilestr, "w");/*Now we have created the output file f.*/
   pari_fprintf(f, "\\documentclass{article}\n\\usepackage{anyfontsize, pgfplots}\n  \\usepgfplotslibrary{external}\n  \\tikzexternalize\n");
   pari_fprintf(f, "  \\tikzset{external/force remake}\n  \\pgfplotsset{compat=1.16}\n");
-  if(modcolours>0){//Define some colours!
-    GEN col=tex_makecolours(modcolours);
-    if(typ(gel(col, 1))==t_STR){
-      for(long i=1;i<=modcolours;i++){
-        pari_fprintf(f, "\\definecolor{col%ld}{HTML}{%Ps}\n", i-1, gel(col, i));//Print the custom colours.
+  long i;
+  if (modcolours) {/*Define some colours!*/
+    GEN col = tex_makecolours(modcolours);
+    if (typ(gel(col, 1)) == t_STR) {
+      for (i = 1; i <= modcolours; i++) {
+        pari_fprintf(f, "\\definecolor{col%ld}{HTML}{%Ps}\n", i - 1, gel(col, i));/*Print the custom colours.*/
       }
     }
-    else{//Too many colours, use RGB.
-      for(long i=1;i<=modcolours;i++){
-        pari_fprintf(f, "\\definecolor{col%ld}{rgb}{%P.4f,%P.4f,%P.4f}\n", i-1, gmael(col, i, 1), gmael(col, i, 2), gmael(col, i, 3));//Print the custom colours.
+    else {/*Too many colours, use RGB.*/
+      for (i = 1; i <= modcolours; i++) {
+        pari_fprintf(f, "\\definecolor{col%ld}{rgb}{%P.4f,%P.4f,%P.4f}\n", i - 1, gmael(col, i, 1), gmael(col, i, 2), gmael(col, i, 3));/*Print the custom colours.*/
       }
     }
   }
@@ -808,88 +810,87 @@ GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int
   
   //Now we treat the circles:
   long lc;
-  GEN cscale=cgetg_copy(c, &lc);//Scale it so the first circle has radius 3in and centre at (0, 0). The first circle is supposed to be the biggest, having negative curvature, and centre 0, 0. If it is not the largest, we have some work to do.
-  GEN largestcirc=stoi(3);//Radius of largest circle
-  if(lg(gel(c, 1))==4 && gcmpgs(gmael(c, 1, 3), 0)<0){//First circle neg curvature, assume all circles
-    GEN scalingfactor=gdiv(largestcirc, gmael(c, 1, 2));//Scaling factor.
-    gel(cscale, 1)=mkvec3(largestcirc, gen_0, gen_0);
-    for(long i=2;i<lc;i++){
-      gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(real_i(gmael(c, i, 1)), scalingfactor), gmul(imag_i(gmael(c, i, 1)), scalingfactor));//r, x, y
-    }//Circles have been scaled!
+  GEN cscale = cgetg_copy(c, &lc);/*Scale it so the first circle has radius 3in and centre at (0, 0). The first circle is supposed to be the biggest, having negative curvature, and centre 0, 0. If it is not the largest, we have some work to do.*/
+  GEN largestcirc = stoi(3);/*Radius of largest circle*/
+  if (lg(gel(c, 1)) == 4 && gcmpgs(gmael(c, 1, 3), 0) < 0) {/*First circle neg curvature, assume all circles*/
+    GEN scalingfactor = gdiv(largestcirc, gmael(c, 1, 2));/*Scaling factor.*/
+    gel(cscale, 1) = mkvec3(largestcirc, gen_0, gen_0);
+    for (i = 2; i < lc; i++) {
+      gel(cscale, i) = mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(real_i(gmael(c, i, 1)), scalingfactor), gmul(imag_i(gmael(c, i, 1)), scalingfactor));/*r, x, y*/
+    }/*Circles have been scaled!*/
 	pari_printf("Scale:%P.20f\nHorizontal shift: 0\n", scalingfactor);
   }
-  else{//Strip packing, OR the largest curvature does not come first. The width should be at least as much as the height.
-    GEN minx=mkoo(), maxx=mkmoo();
-    for(long i=1;i<lc;i++){
-      if(lg(gel(c, i))==3) continue;//Horizontal line.
-      GEN circxmin=gsub(real_i(gmael(c, i, 1)), gmael(c, i, 2));
-      GEN circxmax=gadd(real_i(gmael(c, i, 1)), gmael(c, i, 2));
-      minx=gmin_shallow(minx, circxmin);
-      maxx=gmax_shallow(maxx, circxmax);
+  else {/*Strip packing, OR the largest curvature does not come first. The width should be at least as much as the height.*/
+    GEN minx = mkoo(), maxx = mkmoo();
+    for (i = 1; i < lc; i++) {
+      if (lg(gel(c, i)) == 3) continue;/*Horizontal line.*/
+      GEN circxmin = gsub(real_i(gmael(c, i, 1)), gmael(c, i, 2));
+      GEN circxmax = gadd(real_i(gmael(c, i, 1)), gmael(c, i, 2));
+      minx = gmin_shallow(minx, circxmin);
+      maxx = gmax_shallow(maxx, circxmax);
     }
-    if(typ(minx)==t_INFINITY || typ(maxx)==t_INFINITY) pari_err_TYPE("You don't have any circles", c);
-    GEN scalingfactor=gmulgs(gdiv(largestcirc, gsub(maxx, minx)), 2);
-    GEN horizshift=gdivgs(gadd(maxx, minx), 2);
-    for(long i=1;i<lc;i++){
-      if(lg(gel(c, i))==3){//Horizontal line
-        gel(cscale, i)=mkvec3(mkoo(), largestcirc, gmul(gmael(c, i, 2), scalingfactor));//oo, "radius", y-intercept ("radius"=r means going from [-r, y] to [r, y])
+    if (typ(minx) == t_INFINITY || typ(maxx) == t_INFINITY) pari_err_TYPE("You don't have any circles", c);
+    GEN scalingfactor = gmulgs(gdiv(largestcirc, gsub(maxx, minx)), 2);
+    GEN horizshift = gdivgs(gadd(maxx, minx), 2);
+    for (i = 1; i < lc; i++) {
+      if (lg(gel(c, i)) == 3) {/*Horizontal line*/
+        gel(cscale, i) = mkvec3(mkoo(), largestcirc, gmul(gmael(c, i, 2), scalingfactor));/*oo, "radius", y-intercept ("radius"=r means going from [-r, y] to [r, y])*/
         continue;
       }
-      gel(cscale, i)=mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gsub(real_i(gmael(c, i, 1)), horizshift), scalingfactor), gmul(imag_i(gmael(c, i, 1)), scalingfactor));//r, x, y
+      gel(cscale, i) = mkvec3(gmul(gmael(c, i, 2), scalingfactor), gmul(gsub(real_i(gmael(c, i, 1)), horizshift), scalingfactor), gmul(imag_i(gmael(c, i, 1)), scalingfactor));/*r, x, y*/
     }
 	pari_printf("Scale:%P.20f\nHorizontal shift: %P.20f\n", scalingfactor, gneg(horizshift));
   }
   
-  //Time to draw the circles
-  if(modcolours==0){
-    char *drawoptions="[ultra thin]";
-    for(long i=1;i<lc;i++){
-      if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", drawoptions, gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
+  /*Time to draw the circles*/
+  if (!modcolours) {
+    char *drawoptions = "[ultra thin]";
+    for (i = 1; i < lc; i++) {
+      if (typ(gmael(cscale, i, 1)) == t_INFINITY) pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", drawoptions, gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
       else pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
     }
   }
-  else{//Must add colouring. Not sure how this works for the strip packing.
-    for(long i=1;i<lc;i++){
-      if(typ(gmael(cscale, i, 1))==t_INFINITY) pari_fprintf(f, "  \\draw[ultra thin, fill=col%ld] (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", smodis(gmael(c, i, 3), modcolours), gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
-      else{
-        if(signe(gmael(c, i, 3))==-1) pari_fprintf(f, "  \\draw[ultra thin] (%P.10fin, %P.10fin) circle (%P.10fin);\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
+  else {/*Must add colouring. Not sure how this works for the strip packing.*/
+    for (i = 1; i < lc; i++) {
+      if (typ(gmael(cscale, i, 1)) == t_INFINITY) pari_fprintf(f, "  \\draw[ultra thin, fill=col%ld] (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", smodis(gmael(c, i, 3), modcolours), gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
+      else {
+        if(signe(gmael(c, i, 3)) < 0) pari_fprintf(f, "  \\draw[ultra thin] (%P.10fin, %P.10fin) circle (%P.10fin);\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
         else pari_fprintf(f, "  \\draw[ultra thin, fill=col%ld] (%P.10fin, %P.10fin) circle (%P.10fin);\n", smodis(gmael(c, i, 3), modcolours), gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
       }
     }
   }
-  GEN ten=stoi(10);
-  if(addnumbers){
-      char *options;
-      if(modcolours>0) options=", white";
-      else options="";
-    for(long i=1;i<lc;i++){
-      if(lg(gel(c, i))==3) continue;//No numbers for horizontal lines
-      GEN curv=gmael(c, i, 3), scaleby;
-      if(signe(curv)!=1) continue;//Don't add numbers for curvatures <0.
-      long ndigits=logint(curv, ten)+1;
-      switch(ndigits){//Scaling the font.
+  GEN ten = stoi(10);
+  if (addnumbers) {
+    char *options;
+    if (modcolours) options = ", white";
+    else options = "";
+    for (i = 1; i < lc; i++) {
+      if (lg(gel(c, i)) == 3) continue;/*No numbers for horizontal lines*/
+      GEN curv = gmael(c, i, 3), scaleby;
+      if (signe(curv) <= 0) continue;/*Don't add numbers for curvatures <0.*/
+      long ndigits = logint(curv, ten) + 1;
+      switch(ndigits){/*Scaling the font.*/
         case 1:
-          scaleby=dbltor(1.4);break;
+          scaleby = dbltor(1.4);break;
         case 2:
-          scaleby=gen_1;break;
+          scaleby = gen_1;break;
         case 3:
-          scaleby=dbltor(0.8);break;
+          scaleby = dbltor(0.8);break;
         case 4:
-          scaleby=dbltor(0.6);break;
+          scaleby = dbltor(0.6);break;
         case 5:
-          scaleby=dbltor(0.5);break;
+          scaleby = dbltor(0.5);break;
         default:
-          scaleby=gdivgs(gen_2, ndigits);
+          scaleby = gdivgs(gen_2, ndigits);
       }
       pari_fprintf(f, "  \\node[align=center%s] at (%P.10fin, %P.10fin) {\\fontsize{%P.10fin}{0in}\\selectfont %Pd};\n", options, gmael(cscale, i, 2), gmael(cscale, i, 3), gmul(gmael(cscale, i, 1), scaleby), curv);
     }
   }
-  
   //Ending stuff.
   pari_fprintf(f, "\\end{tikzpicture}\n\\end{document}");
   fclose(f);
   tex_compile(imagename, open);
-  return gerepilecopy(top, mkvec2(strtoGENstr(imagename), stoi(open)));
+  return gerepilecopy(av, mkvec2(strtoGENstr(imagename), stoi(open)));
 }
 
 
@@ -932,53 +933,6 @@ ZV_copy(GEN v){
   return rvec;
 }
 
-
-
-//SPECIALIZED METHODS
-//These are scripts that are useful to me, but not likely useful in general.
-
-
-//Computes apol_makeall, and returns the external depths of the corresponding circles of curvature n. This works because we use the reduced quadratic forms: A-n<=C-n<=A+C-B-n. Swapping A+C-B-n gives A+C+B-n, so this cannot decrease it. Thus either we are already reduced (and A-n<=0 necessarily), or it is not the largest term (which thus must be n). Thus n is immediately swapped if depth>0, and this gives the circle depth.
-GEN apol_makeall_extdepths(GEN n, long prec){
-  pari_sp top=avma;
-  GEN forms=apol_makeall(n, 0, prec);//The forms
-  long maxdepth=0, lf=lg(forms);
-  GEN depths=cgetg(lf, t_VECSMALL);
-  for(long i=1;i<lf;i++){//Computing depths
-    long d=apol_extdepth(gel(forms, i), prec);
-    depths[i]=d;
-    if(d>maxdepth) maxdepth=d;
-  }
-  GEN dcount=zero_zv(maxdepth+1);//Depths 0 through d.
-  for(long i=1;i<lf;i++) dcount[depths[i]+1]++;//Counting.
-  return gerepileupto(top, dcount);
-}
-
-//Computes apol_makeall, and returns the sorted vector of smallest curvature for each example. We do not remove repeats, and output the negative of the curvatures (as they are all negative). If red=0, we actually just take the data as is, and output the smallest curvature in each of the quadruples (no negation).
-GEN apol_makeall_small(GEN n, int red, long prec){
-  pari_sp top=avma;
-  GEN forms=apol_makeall(n, red, prec);
-  long lf;
-  GEN curves=cgetg_copy(forms, &lf);
-  for(long i=1;i<lf;i++){
-    gel(curves, i)=gmael(forms, i, 1);
-    if(red) togglesign_safe(&gel(curves, i));
-  }
-  return gerepileupto(top, ZV_sort(curves));
-}
-
-//apol_makeall_small, but we only reduce maxsteps steps.
-GEN apol_makeall_small_maxsteps(GEN n, long maxsteps, long prec){
-  pari_sp top=avma;
-  GEN forms=apol_makeall(n, 0, prec);
-  long lf;
-  GEN curves=cgetg_copy(forms, &lf);
-  for(long i=1;i<lf;i++){
-    GEN q=apol_red_partial0(gel(forms, i), maxsteps, &apol_move_1i, &cmpii);
-    gel(curves, i)=gel(q, vecindexmin(q));
-  }
-  return gerepileupto(top, ZV_sort(curves));
-}
 
 
 /*Returns 1 if x is t_INT, 2 if t_REAL, 0 else*/

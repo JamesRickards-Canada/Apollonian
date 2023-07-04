@@ -43,28 +43,18 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 
 	/*SECTION 3: COMPUTING THE CIRCLES*/
 		install(apol_circles,"GGD0,L,p");
-		addhelp(apol_circles, "apol_circles(v, B, {maxdepth=0}): computes all circles with curvature <= B in v, also limiting to depth at most maxdepth if set. We always compute the starting four circles, even if one curvature there is > B. Returns the vector of equations, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them. For a strip, half-plane, or full-plane packing, you must set the depth to something non-zero. The output of this method can be used in printcircles_tex to display it in LaTeX.");
-
-	\\VISUALIZATION
-		install("printcircles_desmos","vG",,apol_library);
-		addhelp(printcircles_desmos,"Input c, a list of circles.\n Prints to the screen the list of equations of the circles, suitable for copying and pasting into Desmos.");
-		install("printcircles_tex","GrD1,L,D0,L,D1,L,D1,L,p",,apol_library);
-		addhelp(printcircles_tex,"Input c, imagename, {addnumbers=1}, {modcolours=0}, {compile=1}, {open=1}: list of circles c, string imagename, addnumbers/compile/open =0, 1, modcolours>=0.\n Prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle. If modcolours>=1, we colour the circles based on their remainders mod modcolours. If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
+		addhelp(apol_circles, "apol_circles(v, B, {maxdepth=0}): computes all circles with curvature <= B in v, also limiting to depth at most maxdepth if set. If v is not a half or full plane packing, ensure that it is reduced (otherwise incorrect output may occur). We always compute the starting four circles, even if one curvature there is > B. Returns the vector of equations, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them. For a strip, half-plane, or full-plane packing, you must set the depth to something non-zero. The output of this method can be used in printcircles_tex to display it in LaTeX.");
+		install(printcircles_desmos,"vG");
+		addhelp(printcircles_desmos,"printcircles_desmos(c): prints to the screen the list of equations of the circles in c, suitable for copying and pasting into Desmos.");
+		install(printcircles_tex,"GrD1,L,D0,L,D1,L,D1,L,p");
+		addhelp(printcircles_tex,"printcircles_tex(c, imagename, {addnumbers=1}, {modcolours=0}, {compile=1}, {open=1}): prints the circles in c to the tex file images/build/imagename_build.tex. If addnumbers=1, we add the curvatures to each circle (only valid for integral ones). If modcolours>=1, we colour the circles based on their remainders mod modcolours (only valid for integral). If compile=1 we compile the file and move the output to images/imagename.pdf, and if open=1 (only valid with WSL), we also open the resulting image. Returns [imagename, open].");
 
 	\\SUPPORTING METHODS
 		install("apol_words","L",,apol_library);
 		addhelp(apol_words,"Input d>0, the depth.\n Returns all reduced words of length d in the Apollonian group, as a Vecsmall of 1-4's (no consecutive repeats).");
 
 
-	\\SPECIALIZED METHODS
-		install("apol_makeall_extdepths","Gp",,apol_library);
-		addhelp(apol_makeall_extdepths,"Input n.\n Computes apol_makeall(n), and returns [d0,d1,...,dk], where the number of forms at depth i is given by di.");
-		install("apol_makeall_small","GD1,L,p",,apol_library);
-		addhelp(apol_makeall_small,"Input n, {red=1}: n a positive integer.\n Computes apol_makeall(n, red), takes the corresponding smallest curvatures and returns the sorted list. If red=1, we reduce the quadruples, and negate the curvature (since it is <=0 always). If red=0, we do not do so, since it could be positive or negative.");
-		install("apol_makeall_small_maxsteps","GLp",,apol_library);
-		addhelp(apol_makeall_small_maxsteps,"Input n, maxsteps.\n Does apol_makeall_small, but does NOT reduce the forms; instead, we reduce them by at most maxsteps only. We then return the raw data of the smallest element (without negating the curvature).");
-		
-	
+
 		install(quarticresidue,"GG");
 		addhelp(quarticresidue,"quarticresidue(x, y): returns the quartic residue symbol [x/y] for the coprime Gaussian integers x, y with y odd. Does not check that y is odd or that x and y are coprime.");
 
