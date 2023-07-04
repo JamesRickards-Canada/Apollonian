@@ -41,36 +41,9 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		install(apol_makeall,"GD1,L,p");
 		addhelp(apol_makeall,"apol_makeall(n, {red=1}): returns all Descartes quadruples containing n. We reduce the quadruples iff red=1. The output has length h^{+/-}(-4n^2), and may contain Descartes quadruples in the same packing (if n appears multiple times in 'unique ways'.");
 
-
-	\\SEARCHING FOR CURVATURES
-		install("apol_circles","GG",,apol_library);
-		addhelp(apol_circles, "Inputs v, maxcurv: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv in v. Returns the list, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them.");
-		install("apol_circles_depth","GLD0,G,",,apol_library);
-		addhelp(apol_circles_depth,"Inputs v, depth, {maxcurv=0}: Descartes quadruple v, positive integer maxcurv.\n Computes all circles with curvature <=maxcurv and depth<=depth in v. Returns the list, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them.");
-		install("apol_curvatures_depth","GLD0,G,",,apol_library);
-		addhelp(apol_curvatures_depth,"Inputs v, depth, {bound=0}: Descartes quadruple v, depth>=1, bound>=0.\n Returns a sorted list of curvatures of circles at most depth circle replacements away from v. If bound>0, we also only save the ones of size at most bound.");
-		install("apol_curvatures_layer","GLGD0,L,",,apol_library);
-		addhelp(apol_curvatures_layer,"Inputs v, maxlayers, bound, {countsymm=0}: Descartes quadruple v, maxlayers>=1 bound>=0, countsymm=0, 1. Returns the curvatures at most bound in the first maxlayers outer layers of the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicity. If v=[0,0,1,1], this does not work correctly.");
-		install("apol_primes","GGD0,L,",,apol_library);
-		addhelp(apol_primes,"Inputs v, bound, {countsymm=0}: Descartes quadruple v, bound>=0, countsymm=0, 1.\n Returns the prime curvatures at most bound in the ACP corresponding to v. If countsymm=1, symmetries are counted with their multiplicities.");
-		install("apol_primes_layer","GLGD0,L,",,apol_library);
-		addhelp(apol_primes_layer,"Inptus v, maxlayer, bound, {countsymm=0}: Descartes quadruple v, maxlayer>=1, bound>=0, countsymm=0, 1.\n Returns the prime curvatures in layer at most maxlayer with curvature at most bound. If countsymm=1, symmetries are counted with their multiplicities.");
-		install("apol_thirdtangent","GGGGD1,L,",,apol_library);
-		addhelp(apol_thirdtangent,"Inputs: circ1, circ2, c3, c4, {right=1}.\n Given two tangent circles circ1 and circ2 (given by [centre, radius, curvature] and curvatures c3 and c4 completing a Descartes quadruple, this computes the equation of the circle of curvature c3. We place it to the right of the ray from circ1 to circ2 if and only if right=1.");
-
-	\\STRIP PACKING METHODS
-		install("apol_depthelt_circle","G",,apol_library);
-		addhelp(apol_depthelt_circle,"Input L, an integer between 1 and 4, or a vector/vecsmall of integers between 1 and 4.\n Returns the circle/line corresponding to the depth element L. If L is an integer, this corresponds to Id_L. If L is a vecsmall/vector, this corresponds to S_L[1]*...*S_L[n].");
-		install("apol_farey_allqf","G",,apol_library);
-		addhelp(apol_farey_allqf,"Input q, a positive integer.\n Returns the set of primitive quadratic forms (Kate's construction) corresponding to the upside down Farey circle at x=p/q, over all p. The forms are all non-equivalent.");
-		install("apol_farey_qf","GG",,apol_library);
-		addhelp(apol_farey_qf,"Inputs p and q, positive integers.\n Returns the quadratic forms (Kate's construction) corresponding to the upside down Farey circle at x=p/q.");
-		install("apol_stair","GD1,L,p",,apol_library);
-		addhelp(apol_stair, "Input L, {format=1}: L is an integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, and format=0,1.\n Returns the data for the stair corresponding to the depth element L. If format=1, we return [t, a_W] as in my paper. If we don't intersect the fundamental domain or L=2, then we return 0. If format=0, we return [cutoff, height], and return [0, 0] if we don't intersect the fundamental domain.");
-		install("apol_stairs","G",,apol_library);
-		addhelp(apol_stairs,"Input tmax, a positive integer.\n Returns the stairs in the packing to tmax. We use the format of apol_stair with format=1, i.e. [t, a_W], hence we skip the identity element. We also don't combine stairs of the same height.");
-		install("apol_strip_qf","GD0,L,",,apol_library);
-		addhelp(apol_strip_qf,"Inputs L, {red=0}: L an integer between 1 and 4 or a vector/vecsmall of integers between 1 and 4, red=0 or 1.\n Returns the quadratic form corresponding to this circle in the strip packing, i.e. generating the curvatures of PSL(2, Z) times this circle.");
+	/*SECTION 3: COMPUTING THE CIRCLES*/
+		install(apol_circles,"GGD0,L,p");
+		addhelp(apol_circles, "apol_circles(v, B, {maxdepth=0}): computes all circles with curvature <= B in v, also limiting to depth at most maxdepth if set. We always compute the starting four circles, even if one curvature there is > B. Returns the vector of equations, where each element is of the form [centre, radius, curvature], representing the circle centred at (x, y) with given radius/curvature. Negative radius/curvature corresponds to the outermost circle. The outer circle is centred at 0, the next largest circle is tangent at the top, and the third circle is on the left of them. For a strip, half-plane, or full-plane packing, you must set the depth to something non-zero. The output of this method can be used in printcircles_tex to display it in LaTeX.");
 
 	\\VISUALIZATION
 		install("printcircles_desmos","vG",,apol_library);

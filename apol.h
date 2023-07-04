@@ -19,22 +19,11 @@ GEN apol_type(GEN v, int chi);
 GEN apol_make(GEN q, int pos, int red);
 GEN apol_makeall(GEN n, int red, long prec);
 
-//SEARCHING FOR CURVATURES
-GEN apol_circles(GEN v, GEN maxcurv);
-GEN apol_circles_depth(GEN v, int depth, GEN maxcurv);
-GEN apol_curvatures_depth(GEN v, int depth, GEN bound);
-GEN apol_curvatures_layer(GEN v, int maxlayers, GEN bound, int countsymm);
-GEN apol_primes(GEN v, GEN bound, int countsymm);
-GEN apol_primes_layer(GEN v, int maxlayers, GEN bound, int countsymm);
-GEN apol_thirdtangent(GEN circ1, GEN circ2, GEN c3, GEN c4, int right);
+/*SECTION 3: COMPUTING THE CIRCLES*/
+GEN apol_circles(GEN v, GEN B, long depth, long prec);
 
-//STRIP PACKING METHODS
-GEN apol_depthelt_circle(GEN L);
-GEN apol_farey_allqf(GEN q);
-GEN apol_farey_qf(GEN p, GEN q);
-GEN apol_stair(GEN L, int format, long prec);
-GEN apol_stairs(GEN tmax);
-GEN apol_strip_qf(GEN L, int red);
+
+
 
 //VISUALIZATION
 void printcircles_desmos(GEN c);
@@ -61,6 +50,7 @@ GEN apol_missingfamilies(GEN v);
 /*SECTION 2: SEARCHING FOR CURVATURES*/
 GEN apol_curvatures(GEN v, GEN B, int tofile);
 GEN apol_find(GEN v, GEN c, int all);
+
 
 /*data.c*/
 
@@ -97,6 +87,7 @@ GEN mobius(GEN M, GEN x, long prec);
 GEN deftol(long prec);
 int toleq(GEN x, GEN y, GEN tol);
 int toleq0(GEN x, GEN tol);
+
 
 /*quadratic.c*/
 
