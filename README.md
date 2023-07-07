@@ -28,7 +28,7 @@ Start the program with "gp apol", and call "?apol" to access the help.
 
 This package has been used to generate the data for several papers:
 * [The Apollonian staircase](https://academic.oup.com/imrn/advance-article/doi/10.1093/imrn/rnad007/7072814?utm_source=authortollfreelink&utm_campaign=imrn&utm_medium=email&guestAccessKey=72a0a7b9-45f7-47f0-900c-b13d85dac729)
-* [The Local-Global Conjecture for Apollonian circle packings is false](): data on missing curvatures is stored in the GitHub repository [Apollonian Missing Curvatures](https://github.com/JamesRickards-Canada/Apollonian-Missing-Curvatures).
+* [The Local-Global Conjecture for Apollonian circle packings is false](https://arxiv.org/abs/2307.02749): data on missing curvatures is stored in the GitHub repository [Apollonian Missing Curvatures](https://github.com/JamesRickards-Canada/Apollonian-Missing-Curvatures).
 
 ## Bibtex
 
