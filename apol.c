@@ -144,13 +144,13 @@ apol_chi4(GEN v)
   long e = Z_lvalrem(a, 2, &nprime), pw;/*nprime = odd part*/
   if (e) beta = gaussian_makeprimary(beta, &pw);/*Needs to be primary.*/
   GEN qr = quarticresidue(beta, nprime);
-  if (!e) return gerepileuptoleaf(av, qr);/*n is odd.*/
+  if (!e) return gerepilecopy(av, qr);/*n is odd.*/
   if (e == 2) {
-    if (Mod4(nprime) == 1) return gerepileuptoleaf(av, qr);/*n==4(8), n'==1(4).*/
-    return gerepileuptoleaf(av, gneg(qr));/*n==4(8), n'==3(4).*/
+    if (Mod4(nprime) == 1) return gerepilecopy(av, qr);/*n==4(8), n'==1(4).*/
+    return gerepileupto(av, gneg(qr));/*n==4(8), n'==3(4).*/
   }
-  if (Mod8(mulis(imag_i(beta), e))) return gerepileuptoleaf(av, gneg(qr));/*n==0(8)*/
-  return gerepileuptoleaf(av, qr);
+  if (Mod8(mulis(imag_i(beta), e))) return gerepileupto(av, gneg(qr));/*n==0(8)*/
+  return gerepilecopy(av, qr);
 }
 
 /*Given three curvatures, finds the Descartes quadruple containing them. We pick the smaller of the two possible curvatures, and sort the output.*/
