@@ -22,7 +22,7 @@ GEN apol_makeall(GEN n, int red, long prec);
 /*SECTION 3: COMPUTING THE CIRCLES*/
 GEN apol_circles(GEN v, GEN bounds, long depth, GEN maxxval, long prec);
 void printcircles_desmos(GEN c);
-GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec);
+GEN printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, GEN outerrad, int compile, int open, long prec);
 
 /*SECTION 4: STRIP PACKING METHODS*/
 

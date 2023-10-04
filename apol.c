@@ -816,9 +816,9 @@ printcircles_desmos(GEN c)
   }
 }
 
-/*Given a list of circles/lines in an ACP, this prints them to the tex file images/build/imagename_build.tex using tikz. If compile=1, we compile and move the output up to images/imagename.pdf. If open=1, we also open the file, assuming we are working with WSL. Any lines should come first.*/
+/*Given a list of circles/lines in an ACP, this prints them to the tex file images/build/imagename_build.tex using tikz. If compile=1, we compile and move the output up to images/imagename.pdf. If open=1, we also open the file, assuming we are working with WSL. We can also supply the radius of the bounding circle (if relevant), defaults to 3in.*/
 GEN
-printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int compile, int open, long prec)
+printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, GEN outerrad, int compile, int open, long prec)
 {
   pari_sp av = avma;
   if( !pari_is_dir("images/build")) {
@@ -848,7 +848,9 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, int com
   /*Now we treat the circles:*/
   long lc;
   GEN cscale = cgetg_copy(c, &lc);/*Scale it so the first circle has radius 3in and centre at (0, 0). The first circle is supposed to be the biggest, having negative curvature, and centre 0, 0. If it is not the largest, we have some work to do.*/
-  GEN largestcirc = stoi(3);/*Radius of largest circle*/
+  GEN largestcirc;
+  if (outerrad) largestcirc = outerrad;
+  else largestcirc = stoi(3);/*Radius of largest circle*/
   if (lg(gel(c, 1)) == 4 && gcmpgs(gmael(c, 1, 3), 0) < 0) {/*First circle neg curvature, assume all circles*/
     GEN scalingfactor = gdiv(largestcirc, gmael(c, 1, 2));/*Scaling factor.*/
     gel(cscale, 1) = mkvec3(largestcirc, gen_0, gen_0);
