@@ -21,7 +21,7 @@ static void missing_tofile(long blocks, unsigned long **rclass, GEN quadfams, GE
 static GEN findcurvs(GEN v, long Bmin, long Bmax, int tofile);
 static void curvs_tofile(unsigned int **rclass, long Bmin, long Bmax, long classmax, GEN v, GEN m24);
 static GEN findonecurv(long x[], long c, int all);
-
+static GEN findquads(long x[], long B, long perm[]);
 
 /*MAIN BODY*/
 
@@ -863,7 +863,7 @@ findonecurv(long x[], long c, int all)
     depthseq[i] = (long *)pari_malloc(sizeof(long) << 2);
     swaps[i] = -1;/*Initialize to all -1's*/
   }
-  /*We adjust the starting quadruple in case of symmetries: for a+b+c=d, we put d first, and DO NOT flip it on the first iteration. If c=d, we do c, a, c, b, starting with the second one. Until one element of the depth sequence flips the third entry, we do not flip the first one, as they will be (c, c) still. There are two exceptions: [0, 0, 1, 1], and [-1, 2, 2, 3], as they have both types of symmetry. For the secon, we do 2, 3, 2, -1, and start at the third entry. For [0, 0, 1, 1], we do [1, 4, 1, 0] and also start at the third one (we do the first move, since it is forced). The variable sym keeps track of this: -1 means no symmetries, don't worry. 0 means symmetric and we have not moved beyond them, hence we cannot flip the first element. >0 means this is the index of depthseq that the first 3 occurs, so we know when we drop back into the symmetry zone.
+  /*We adjust the starting quadruple in case of symmetries: for a+b+c=d, we put d first, and DO NOT flip it on the first iteration. If c=d, we do c, a, c, b, starting with the second one. Until one element of the depth sequence flips the third entry, we do not flip the first one, as they will be (c, c) still. There are two exceptions: [0, 0, 1, 1], and [-1, 2, 2, 3], as they have both types of symmetry. For the second, we do 2, 3, 2, -1, and start at the third entry. For [0, 0, 1, 1], we do [1, 4, 1, 0] and also start at the third one (we do the first move, since it is forced). The variable sym keeps track of this: -1 means no symmetries, don't worry. 0 means symmetric and we have not moved beyond them, hence we cannot flip the first element. >0 means this is the index of depthseq that the first 3 occurs, so we know when we drop back into the symmetry zone.
   */
   long sym;
   if (x[0] == 0) {/*We are the [0, 0, 1, 1] packing: do [1, 4, 1, 0] and start with swapping the third.*/
@@ -896,7 +896,7 @@ findonecurv(long x[], long c, int all)
     sym = -1;/*No symmetries to begin with.*/
   }
   long maxfound, foundind;
-  GEN vfound;
+  GEN vfound = NULL;
   if (all) {
     maxfound = 100;
     foundind = 0;
@@ -994,6 +994,171 @@ apol_find(GEN v, GEN c, int all)
   long clong = itos(c);
   set_avma(av);
   return findonecurv(x, clong, all);
+}
+
+/*Execute the quadruple finding.*/
+static GEN
+findquads(long x[], long B, long perm[])
+{
+  pari_sp av = avma;
+  if (B < x[3]) return cgetg(1, t_VEC);/*B too small already*/
+  long maxdepth = 100, i;/*Maximal depth, to start.*/
+  long **depthseq = (long **)pari_malloc(maxdepth * sizeof(long *));/*Tracks the sequence of Apollonian moves.*/
+  if (!depthseq) {
+    printf("Insufficient memory to allocate to store the depth sequence.\n");
+    exit(1);
+  }
+  int *swaps = (int *)pari_malloc(maxdepth * sizeof(int));/*Tracks the sequence of swaps.*/
+  if (!swaps) {
+    printf("Insufficient memory to allocate to store the swaps.\n");
+    exit(1);
+  }
+  for (i = 0; i < maxdepth; i++) {
+    depthseq[i] = (long *)pari_malloc(sizeof(long) << 2);
+    swaps[i] = -1;/*Initialize to all -1's*/
+  }
+  long maxfound = 3000, foundind = 1;/*Start here since we will be adding the first quadruple.*/
+  GEN vfound = cgetg(maxfound + 1, t_VEC);/*Storing the quadruples found, initially as Vecsmalls.*/
+  /*We adjust the starting quadruple in case of symmetries: for a+b+c=d, we put d first, and DO NOT flip it on the first iteration. If c=d, we do c, a, c, b, starting with the second one. Until one element of the depth sequence flips the third entry, we do not flip the first one, as they will be (c, c) still. There are two exceptions: [0, 0, 1, 1], and [-1, 2, 2, 3], as they have both types of symmetry. For the second, we do 2, 3, 2, -1, and start at the third entry. For [0, 0, 1, 1], we do [1, 4, 1, 0] and also start at the third one (we do the first move, since it is forced). The variable sym keeps track of this: -1 means no symmetries, don't worry. 0 means symmetric and we have not moved beyond them, hence we cannot flip the first element. >0 means this is the index of depthseq that the first 3 occurs, so we know when we drop back into the symmetry zone.
+  */
+  long sym, iperm[4];/*iperm is the opposite of perm, converting from {0, 1, 2, 3} to {1, 2, 3, 4} as well.*/
+  if (x[0] == 0) {/*We are the [0, 0, 1, 1] packing: do [1, 4, 1, 0] and start with swapping the third.*/
+    depthseq[0][0] = 1; depthseq[0][1] = 4; depthseq[0][2] = 1; depthseq[0][3] = 0;
+    swaps[1] = 1;/*Will get incremented to 2 right away.*/
+    sym = 0;/*Symmetries to avoid.*/
+    gel(vfound, foundind) = mkvecsmall4(1, 0, 1, 0);/*Add the two we skipped*/
+    if (B >= 4) {
+      foundind++;
+      gel(vfound, foundind) = mkvecsmall4(1, 4, 1, 0);
+    }
+    long temp = perm[0];
+    perm[0] = perm[3];
+    perm[3] = temp;/*Update the permutation, then we invert it.*/
+    for (i = 0; i <= 3; i++) iperm[perm[i]] = i + 1;/*invert it.*/
+  }
+  else if (x[0] == -1) {/*[-1, 2, 2, 3]: do [2, 3, 2, -1]*/
+    depthseq[0][0] = 2; depthseq[0][1] = 3; depthseq[0][2] = 2; depthseq[0][3] = -1;
+    swaps[1] = 1;
+    sym = 0;/*Symmetries to avoid.*/
+    gel(vfound, foundind) = mkvecsmall4(2, 3, 2, -1);/*Add the skipped one*/
+    long tperm[4];
+    tperm[0] = perm[1]; tperm[1] = perm[3]; tperm[2] = perm[2]; tperm[3] = perm[0];/*Compose*/
+    for (i = 0; i <= 3; i++) iperm[tperm[i]] = i + 1;/*invert it.*/
+  }
+  else if (x[1] == x[2]) {/*b=c, so do [b, a, b, d]*/
+    depthseq[0][0] = x[1]; depthseq[0][1] = x[0]; depthseq[0][2] = x[2]; depthseq[0][3] = x[3];
+    swaps[1] = 0;
+    sym = 0;/*Symmetries to avoid.*/
+    gel(vfound, foundind) = mkvecsmall4(x[1], x[0], x[2], x[3]);/*Add the skipped one*/
+    long temp = perm[0];
+    perm[0] = perm[1];
+    perm[1] = temp;/*Update the permutation, then we invert it.*/
+    for (i = 0; i <= 3; i++) iperm[perm[i]] = i + 1;/*invert it.*/
+  }
+  else if (x[2] == x[3]) {/*c=d, so do [c, a, c, b]*/
+    depthseq[0][0] = x[3]; depthseq[0][1] = x[0]; depthseq[0][2] = x[2]; depthseq[0][3] = x[1];
+    swaps[1] = 0;
+    sym = 0;/*Symmetries to avoid.*/
+    gel(vfound, foundind) = mkvecsmall4(x[3], x[0], x[2], x[1]);/*Add the skipped one*/
+    long tperm[4];
+    tperm[0] = perm[3]; tperm[1] = perm[0]; tperm[2] = perm[2]; tperm[3] = perm[1];/*Compose*/
+    for (i = 0; i <= 3; i++) iperm[tperm[i]] = i + 1;/*invert it.*/
+  }
+  else if ((x[0] + x[1] + x[2]) == x[3]) {/*a+b+c=d, so do [d, a, b, c]*/
+    depthseq[0][0] = x[3]; depthseq[0][1] = x[0]; depthseq[0][2] = x[1]; depthseq[0][3] = x[2];
+    swaps[1] = 0;
+    sym = -1;/*After first swap, no symmetries to worry about.*/
+    gel(vfound, foundind) = mkvecsmall4(x[3], x[0], x[1], x[2]);/*Add the skipped one*/
+    long tperm[4];
+    tperm[0] = perm[3]; tperm[1] = perm[0]; tperm[2] = perm[1]; tperm[3] = perm[2];/*Compose*/
+    for (i = 0; i <= 3; i++) iperm[tperm[i]] = i + 1;/*invert it.*/
+  }
+  else {
+    depthseq[0][0] = x[0]; depthseq[0][1] = x[1]; depthseq[0][2] = x[2]; depthseq[0][3] = x[3];
+    sym = -1;/*No symmetries to begin with.*/
+    gel(vfound, foundind) = mkvecsmall4(x[0], x[1], x[2], x[3]);/*Add the skipped one*/
+    for (i = 0; i <= 3; i++) iperm[perm[i]] = i + 1;/*invert it.*/
+  }
+  long ind = 1;/*Which depth we are working at.*/
+  while (ind > 0) {/*We are coming in trying to swap this circle out.*/
+    int cind = ++swaps[ind];/*Increment the swapping index.*/
+    if (cind == 4) {/*Overflowed, go back.*/
+      swaps[ind] = -1;
+      ind--;
+      if (ind < sym) sym = 0;/*We moved past the first index swapping 3, so worry about symmetries again.*/
+      continue;
+    }
+    long lastind = ind - 1;
+    if (cind == swaps[lastind]) continue; /*Same thing twice, so skip it.*/
+    if (!sym) {/*Worry about symmetries.*/
+      if (cind == 0) continue;/*We skip the first one.*/
+      else if (cind == 2) sym = ind + 1;/*First time we swap out the third one, eliminating symmetries further on in this branch.*/
+    }
+    long apbpc = 0;/*Now we can reasonably try a swap.*/
+    for (i = 0; i < cind; i++) apbpc += depthseq[lastind][i];
+    for (i = cind + 1; i < 4; i++) apbpc += depthseq[lastind][i];
+    long newc = (apbpc << 1) - depthseq[lastind][cind];/*2(a+b+c)-d, the new curvature.*/
+    if (newc > B) {/*Too big! go back.*/
+      if (ind < sym) sym = 0;/*Tried flipping out of symmetry here but it's too big.*/
+      continue;
+    }/*Update the element*/
+    for (i = 0; i < cind; i++) depthseq[ind][i] = depthseq[lastind][i];
+    depthseq[ind][cind] = newc;
+    for (i = cind + 1; i < 4; i++) depthseq[ind][i] = depthseq[lastind][i];/*Add the tuple in.*/
+    foundind++;/*Add it to our found quadruples*/
+    if (foundind > maxfound) {
+      maxfound <<= 1;/*Double it*/
+      vfound = vec_lengthen(vfound, maxfound);
+    }
+    gel(vfound, foundind) = mkvecsmall4(depthseq[ind][0], depthseq[ind][1], depthseq[ind][2], depthseq[ind][3]);
+    ind++;
+    if (ind == maxdepth) {/*We are going too deep, must pari_reallocate the storage location.*/
+      long newdepth = maxdepth << 1;/*Double it.*/
+      depthseq = pari_realloc(depthseq, newdepth * sizeof(long *));
+      if (!depthseq) {
+        printf("Insufficient memory to pari_reallocate the depth sequence.\n");
+        exit(1);
+      }
+      swaps = pari_realloc(swaps, newdepth * sizeof(int));
+      if (!swaps) {
+        printf("Insufficient memory to pari_reallocate the swaps.\n");
+        exit(1);
+      }
+      for (i = maxdepth; i < newdepth; i++) {
+        depthseq[i] = (long *)pari_malloc(sizeof(long) << 2);
+        swaps[i] = -1;
+      }
+      maxdepth = newdepth;
+    }
+  }
+  /*Time to free all of the allocated memory.*/
+  pari_free(swaps);
+  for (i = 0; i < maxdepth; i++) pari_free(depthseq[i]);
+  pari_free(depthseq);
+  GEN vordered = cgetg(foundind + 1, t_VEC);/*Stores the return, back to the original ordering.*/
+  for (i = 1; i <= foundind; i++) {
+    GEN quad = gel(vfound, i);
+    gel(vordered, i) = mkvec4s(quad[iperm[0]], quad[iperm[1]], quad[iperm[2]], quad[iperm[3]]);
+  }
+  return gerepileupto(av, vordered);
+}
+
+/*Finds all quadruples in the ACP generated by v, up to symmetry, where the curvatures are all at most B.*/
+GEN
+apol_quadruples(GEN v, GEN B)
+{
+  pari_sp av = avma;
+  if (typ(B) != t_INT) pari_err_TYPE("B must be an integer", B);
+  GEN w = apol_red(v, 0, 0);
+  GEN wperm = ZV_indexsort(w);/*Permutation sorting w, we apply this in reverse to the output.*/
+  long i, x[4], perm[4];/*x is the sorted reduced quadruple*/
+  for (i = 1; i <= 4; i++) {
+    x[i - 1] = itos(gel(w, wperm[i]));/*The sorted vector.*/
+    perm[i - 1] = wperm[i] - 1;
+  }
+  long Blong = itos(B);
+  set_avma(av);
+  return findquads(x, Blong, perm);
 }
 
 

@@ -42,7 +42,7 @@ GEN apol_missingfamilies(GEN v);
 /*SECTION 2: SEARCHING FOR CURVATURES*/
 GEN apol_curvatures(GEN v, GEN B, int tofile);
 GEN apol_find(GEN v, GEN c, int all);
-
+GEN apol_quadruples(GEN v, GEN B);
 
 /*data.c*/
 
