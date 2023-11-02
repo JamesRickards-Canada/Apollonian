@@ -1,7 +1,7 @@
 /*Methods to deal with quadratic forms.*/
 
 /*INCLUSIONS*/
-#include <pari/pari.h>
+#include <pari.h>
 #include "apol.h"
 
 /*STATIC DECLARATIONS*/

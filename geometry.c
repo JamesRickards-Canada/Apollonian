@@ -1,7 +1,7 @@
 /*These methods implement Mobius maps acting on circles/lines. There are no restrictions on the types of numbers that can appear; real, rational, and integral are all OK.*/
 
 /*INCLUSIONS*/
-#include <pari/pari.h>
+#include <pari.h>
 #include "apol.h"
 
 /*STATIC DECLARATIONS*/

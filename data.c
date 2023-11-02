@@ -1,7 +1,7 @@
 /*Methods for data collection and visualization.*/
 
 /*INCLUSIONS*/
-#include <pari/pari.h>
+#include <pari.h>
 #include "apol.h"
 #include <stdlib.h>
 

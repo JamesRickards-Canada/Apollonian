@@ -1,7 +1,7 @@
 /*Basic methods to deal with Apollonian circle packings. This part of the package is not designed to be as efficient as possible: it should be good, but we use pari GENS which are slower than C longs. Efficient methods should be written in C and placed in apol_fast. We allow integral and real packings, but NOT fractions (and cannot mix real and integral).*/
 
 /*INCLUSIONS*/
-#include <pari/pari.h>
+#include <pari.h>
 #include "apol.h"
 
 
