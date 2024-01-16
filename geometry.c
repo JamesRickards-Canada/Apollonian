@@ -61,7 +61,7 @@ circle_fromppp(GEN p1, GEN p2, GEN p3, GEN tol)
   GEN l1 = perpbis(p1, p2, tol), l2 = perpbis(p1, p3, tol);
   GEN centre = line_int(l1, l2, tol);/*The centre is the intersection of the perpendicular bisectors.*/
   if (typ(centre) == t_INFINITY) return line_frompp(p1, p2, tol);/*p1, p2, p3 collinear*/
-  return circle_fromcp(centre, p1, lg(tol));
+  return circle_fromcp(centre, p1, realprec(tol));
 }
 
 /*The line through p with slope s, which can be oo. Not stack clean or gerepileupto suitable.*/

@@ -133,7 +133,7 @@ apol_library=strprintf("./libapol-%d-%d.so", parigp_version[1], parigp_version[2
 		addhelp(isdisc,"isdisc(D): returns 1 if D is a discriminant, 0 else.");
 
 	/*SECTION 2: BASIC QUADRATIC FORM METHODS*/
-		install(qfb_apply_ZM,"GG",qfbapply);/*In PARI but not installed.*/
+		if(parigp_version[2]>=16 && parigp_version[3]>=2, install(qfb_ZM_apply,"GG",qfbapply),install(qfb_apply_ZM,"GG",qfbapply));/*In PARI but not installed. Name changed during 2.16.2.*/
 		addhelp(qfbapply,"qfbapply(q, g): returns the quadratic form formed by g acting on q, where g is a matrix with integral coefficients.");
 		install(qfbapplyL,"GD1,G,");
 		addhelp(qfbapplyL,"qfbapplyL(q, {n=1}): returns L^n acting on q, where L=[1, 1;0, 1].");
