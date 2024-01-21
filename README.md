@@ -13,16 +13,13 @@ System requirements:
 * Linux/Mac: none that I am aware of;
 * Windows: you need to be running PARI/GP through WSL. See this [tutorial](https://pari.math.u-bordeaux.fr/PDF/PARIwithWindows.pdf) for how to set this up.
 
-After cloning into the repository, call "make". If your PARI/GP is not installed in the default location of "/usr/local", then find the folder X, where:
-* X/lib contains the file "libpari.so";
-* X/lib/pari contains the file "pari.cfg";
-* X/include/pari contains around 18 .h header files for PARI/GP.
-Searching for the file pari.cfg should be sufficient to find this folder.
-
-Afterwards, make a new file called "pari_loc.txt", containing the path to X (which should start with "/"). Now you can call ``make'' and it will compile properly.
+You need to know where the version of PARI/GP you want to use is installed, in particular, the file ```pari.cfg```. The default location is ```/usr/local/lib/pari/pari.cfg```.
+* If this is the correct location, call ```make``` to build the project.
+* Otherwise, call ```make setup``` to search for the location of the file. By default the program searches in ```/usr```, but there is a chance it is not installed there (this sometimes happens on a server). If this is the case, you can supply an alternate location.
+* If the program finds potential matches, it will ask you to confirm which files are correct, and saves them to ```paricfg_loc.txt```. Once this step completes, a call to ```make``` will compile the project! Modifying the program (e.g. via ```git pull```) won't require redoing this setup, unless the version of PARI/GP you use changes.
 
 ## Using the package
-Start the program with "gp apol", and call "?apol" to access the help.
+Start the program with ```gp apol```, and call ```?apol``` to access the help.
 
 ## Papers
 
