@@ -304,8 +304,9 @@ apol_move(GEN v, GEN command, long prec)
 {
   pari_sp av = avma;
   int isint;
+  GEN vorig = v;
   v = apol_fix(v, &isint, prec);
-  if (!v) pari_err_TYPE("v is not a Descartes quadruple.", v);
+  if (!v) pari_err_TYPE("v is not a Descartes quadruple.", vorig);
   GEN vcop = shallowcopy(v);
   long t = typ(command);
   switch (t) {
