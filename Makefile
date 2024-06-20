@@ -36,7 +36,7 @@ all: $(DYN)
 
 #Build the shared library object
 $(DYN): $(OBJS)
-		$(CC) -o $@ -shared	$(CFLAGS) -Wl,$(OS_FLAG) $(OBJS) -lc -lm -L$(PARI_LIB) -lpari
+	$(CC) -o $@ -shared	$(CFLAGS) -Wl,$(OS_FLAG) $(OBJS) -lc -lm -L$(PARI_LIB) -lpari
 
 #Make the object files
 %.o: %.c
