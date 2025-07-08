@@ -890,9 +890,9 @@ printcircles_tex(GEN c, char *imagename, int addnumbers, int modcolours, GEN out
       else pari_fprintf(f, "  \\draw%s (%P.10fin, %P.10fin) circle (%P.10fin);\n", drawoptions, gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
     }
   }
-  else {/*Must add colouring. Not sure how this works for the strip packing.*/
+  else {/*Must add colouring. For strip, won't colour the horizontal line.*/
     for (i = 1; i < lc; i++) {
-      if (typ(gmael(cscale, i, 1)) == t_INFINITY) pari_fprintf(f, "  \\draw[ultra thin, fill=col%ld] (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", smodis(gmael(c, i, 3), modcolours), gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
+      if (typ(gmael(cscale, i, 1)) == t_INFINITY) pari_fprintf(f, "  \\draw[ultra thin] (%P.10fin, %P.10fin) -- (%P.10fin, %P.10fin);\n", gneg(gmael(cscale, i, 2)), gmael(cscale, i, 3), gmael(cscale, i, 2), gmael(cscale, i, 3));
       else {
         if(signe(gmael(c, i, 3)) < 0) pari_fprintf(f, "  \\draw[ultra thin] (%P.10fin, %P.10fin) circle (%P.10fin);\n", gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
         else pari_fprintf(f, "  \\draw[ultra thin, fill=col%ld] (%P.10fin, %P.10fin) circle (%P.10fin);\n", smodis(gmael(c, i, 3), modcolours), gmael(cscale, i, 2), gmael(cscale, i, 3), gmael(cscale, i, 1));
